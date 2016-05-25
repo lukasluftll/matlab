@@ -1,9 +1,10 @@
 function cube(center, edgeLength, color)
 % cube Plot a 3D cube.
-%   cube(center, edgeLength) plots a cube.
+%   cube(center, edgeLength) plots an axis-aligned cube.
 %
 %   cube(center, edgeLength, color) plots a cube with a color indicated by
-%   the MATLAB ColorSpec specification.
+%   the MATLAB ColorSpec specification. Its faces are aligned with the
+%   x, y, and z axis.
 %
 %   Example
 %      cube([0, 5, 3], 1, 'y');
