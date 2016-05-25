@@ -188,7 +188,7 @@ viewpoint = affine3d(viewpointMatrix');
 if (isempty(strmatch('x', fields)) ...
         || isempty(strmatch('y', fields)) ...
         || isempty(strmatch('z', fields)))
-    error('Invalid data: PCD file does not contain fields named x, y, z.');
+    error('PCD file does not contain fields named x, y, z.');
 end
 
 % Get the coordinates of the points.
