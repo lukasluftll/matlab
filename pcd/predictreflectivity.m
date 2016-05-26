@@ -9,6 +9,7 @@ res = 1;
 % Read the point cloud.
 cloud = pcdread('data/campus.pcd');
 points = cloud.pointCloud.Location;
+pointcount = numel(points(:,:,1));
 
 % Compute the spherical coordinates of the points w.r.t. the sensor frame.
 beams = pc2sph(points);
@@ -45,9 +46,9 @@ for x = limits(1,1) : res : limits(1,2)
             % Find all points that reside inside the voxel.
             roiIndices = findPointsInROI(cloud.pointCloud, voxel);
             hits = numel(roiIndices);
-            cloudSize = size(cloud.pointCloud.Location);
-            [row, col] = ind2sub(cloudSize(1:2), roiIndices);
-            roiPoints = points(row,col,:);
+            roiPoints = [points(roiIndices) + 0*pointcount, ...
+                points(roiIndices + 1*pointcount), ...
+                points(roiIndices + 2*pointcount)];
             
             % Compute the coordinates of all 8 voxel vertices.
             vertices = [x, y, z];    %#ok<*AGROW>
@@ -111,10 +112,13 @@ for x = limits(1,1) : res : limits(1,2)
             end
             
             % Plot the voxel.
-            center = [x + res/2, y + res/2, z + res/2];
             if (perms > 0)
+                center = [x + res/2, y + res/2, z + res/2];
+                
                 % If at least one beam permeated the voxel, plot it red.
-                % Otherwise, plot it gray.
+                % The transparency indicates the probability of a
+                % reflection.
+                % If the voxel did never reflect a beam, color it gray.
                  if (hits > 0)
                      alpha = hits / perms;
                      cube(center, res, 'FaceColor', 'red', ...
@@ -124,6 +128,12 @@ for x = limits(1,1) : res : limits(1,2)
                         'FaceAlpha', 0.05, 'LineStyle', 'none');
                  end
             end
+            
+            % Calculate the properties of the Gaussian distribution of
+            % the points.
+%             roiPoints = reshape(...
+%                 roiPoints, size(roiPoints, 1)*size(roiPoints, 2), 3);
+%             mu = mean(roiPoints, 1);
         end
     end
 end
