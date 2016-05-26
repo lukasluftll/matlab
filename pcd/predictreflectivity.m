@@ -37,8 +37,15 @@ drawnow;
 
 % Iterate over all voxels and for each one compute the reflection 
 % probability.
+voxelcount = (limits(:,2) - limits(:,1))' / res;
+mu = cell(voxelcount);
+cov = cell(voxelcount);
+alpha = 0.5 * ones(voxelcount);
+ix = 1;
 for x = limits(1,1) : res : limits(1,2)
+    iy = 1;
     for y = limits(2,1) : res : limits(2,2)
+        iz = 1;
         for z = limits(3,1) : res : limits(3,2)
             % Compute the limits of the voxel.
             voxel = [x, x+res; y, y+res; z, z+res];
@@ -120,9 +127,10 @@ for x = limits(1,1) : res : limits(1,2)
                 % reflection.
                 % If the voxel did never reflect a beam, color it gray.
                  if (hits > 0)
-                     alpha = hits / perms;
+                     alpha(ix,iy,iz) = hits / perms;
                      cube(center, res, 'FaceColor', 'red', ...
-                         'FaceAlpha', alpha * 0.8 + 0.2, 'LineStyle', 'none');
+                         'FaceAlpha', alpha(ix,iy,iz)*0.8 + 0.2, ...
+                         'LineStyle', 'none');
                  else
                     cube(center, res, 'FaceColor', [0, 0, 0], ...
                         'FaceAlpha', 0.05, 'LineStyle', 'none');
@@ -131,9 +139,12 @@ for x = limits(1,1) : res : limits(1,2)
             
             % Calculate the properties of the Gaussian distribution of
             % the points.
-%             roiPoints = reshape(...
-%                 roiPoints, size(roiPoints, 1)*size(roiPoints, 2), 3);
-%             mu = mean(roiPoints, 1);
+            mu{ix,iy,iz} = mean(roiPoints, 1);
+            cov{ix,iy,iz} = roiPoints' * roiPoints;
+            
+            iz = iz + 1;
         end
+        iy = iy + 1;
     end
+    ix = ix + 1;
 end
