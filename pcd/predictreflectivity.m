@@ -30,9 +30,9 @@ fig = figure('Name', 'Occupancy map', 'NumberTitle', 'Off');
 grid on;
 axis equal;
 
-
 % Plot the point cloud.
 pcshow(cloud.pointCloud, 'MarkerSize', 80);
+drawnow;
 
 % Iterate over all voxels and for each one compute the reflection 
 % probability.
