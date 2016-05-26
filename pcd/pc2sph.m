@@ -1,15 +1,17 @@
 function beams = pc2sph(points)
-% pc2sph Convert a point cloud to spherical coordinates.
-%   beams = pc2sph(points) takes an [M x N x 3] matrix that contains an 
+% PC2SPH Convert a point cloud to spherical coordinates.
+%   BEAMS = PC2SPH(POINTS) takes an [M x N x 3] matrix that contains an 
 %   organized point cloud and converts the points to spherical coordinates. 
 %   The columns of the returned [M x N x 3] matrix beams contain the 
 %   azimuth, elevation, and range of the points.
 %
 %   Conversion of NaN points
 %   ------------------------
-%   If the input matrix contains NaN points, pc2sph uses the point 
+%   If the input matrix contains NaN points, PC2SPH uses the point 
 %   coordinates around each NaN point to interpolate its azimuth and 
 %   elevation angles. Its range is set to NaN.
+%
+%   See also CART2SPH.
 
 % Copyright 2016 Alexander Schaefer
 

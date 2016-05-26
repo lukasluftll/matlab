@@ -1,12 +1,12 @@
 function outcloud = pccolor(incloud, palette, interval)
-% pccolor Colorize a 3D point cloud using intensity values.
-%   outcloud = pccolor(incloud, palette, interval) uses a 64-step color
+% PCCOLOR Colorize a 3D point cloud using intensity values.
+%   OUTCLOUD = PCCOLOR(INCLOUD, PALETTE, INTERVAL) uses a 64-step color
 %   palette to transform the given intensity values into colors and 
 %   writes them to the point cloud object. 
 %   
 %   The input parameters must have the following properties:
 %
-%   incloud     structure that contains at least the following elements:
+%   INCLOUD     structure that contains at least the following elements:
 %               pointCloud  - pointCloud object, organized or unorganized.
 %               intensity   - matrix that specifies intensity values.
 %                             For unorganized point clouds, 
@@ -14,13 +14,13 @@ function outcloud = pccolor(incloud, palette, interval)
 %                             for organized point clouds, its size must be
 %                             [height, width, 1].
 %
-%   palette     optional MATLAB colormap name. Frequently used colormaps
+%   PALETTE     optional MATLAB colormap name. Frequently used colormaps
 %               are 'gray', 'hot', and 'parula'. Type 'help colormap' 
 %               for more palettes.
 %
 %               Default: 'jet'.
 %
-%   interval    2-element vector that contains the intensity values that
+%   INTERVAL    2-element vector that contains the intensity values that
 %               correspond to the darkest and the brightest color.
 %               Intensity values below interval(1) or above interval(2) 
 %               will be set to interval(1) and interval(2), respectively.
@@ -29,7 +29,7 @@ function outcloud = pccolor(incloud, palette, interval)
 %
 %   The return value is described as follows:
 %
-%   outcloud    pointCloud object with color values that correspond to the 
+%   OUTCLOUD    pointCloud object with color values that correspond to the 
 %               given intensities.
 %
 %   Example : colorize a point cloud
@@ -38,15 +38,13 @@ function outcloud = pccolor(incloud, palette, interval)
 %   cloud = pccolor(cloud, 'hot', [0; 255]);
 %   pcshow(cloud);
 %
-%   See also pointCloud, pcshow, colormap, pcdread.
+%   See also POINTCLOUD, PCSHOW, COLORMAP, PCDREAD.
  
 % Copyright 2016 Alexander Schaefer
 
 %% Check input.
-% If the user does not specify the required arguments, abort.
-if (nargin < 1)
-    error('Invalid input: not enough input arguments.')
-end
+% Check if the user specified the correct number of input arguments.
+narginchk(1, 3);
 
 % If the user does not specify a color map, use the default color map.
 if (nargin < 2)

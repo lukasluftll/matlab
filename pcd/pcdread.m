@@ -1,6 +1,6 @@
 function outcloud = pcdread(filename)
-% pcdread Read a 3D point cloud from PCD file.
-%   outcloud = pcdread(filename) reads a point cloud from the 
+% PCDREAD Read a 3D point cloud from PCD file.
+%   OUTCLOUD = PCDREAD(FILENAME) reads a point cloud from the 
 %   PCD file specified by the string filename.
 %   If a accompanying DAT file is available, this function also reads 
 %   the DAT file's contents.
@@ -11,7 +11,7 @@ function outcloud = pcdread(filename)
 %   PCD file name   <name>.pcd
 %   DAT file name   <name>_info.dat
 %
-%   The return value outcloud is a structure with the following elements:
+%   The return value OUTCLOUD is a structure with the following elements:
 %
 %   pointCloud      pointCloud object read from the PCD file
 %
@@ -69,7 +69,7 @@ function outcloud = pcdread(filename)
 %   outcloud = pcdread('terrain.pcd');
 %   pcshow(outcloud.pointCloud);
 %
-%   See also pcread, ptsread, pointCloud, pcwrite, pcshow.
+%   See also PCREAD, PTSREAD, POINTCLOUD, PCWRITE, PCSHOW.
  
 %  Copyright 2016 Alexander Schaefer
 

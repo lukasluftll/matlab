@@ -1,11 +1,11 @@
 function outcloud = ptsread(filename, subsampling)
-% ptsread Read a 3D point cloud from PTS file.
-%   outcloud = pcdread(filename) reads a point cloud from the 
+% PTSREAD Read a 3D point cloud from PTS file.
+%   OUTCLOUD = PCDREAD(FILENAME) reads a point cloud from the 
 %   PTS file specified by the string filename.
-%   outcloud = pcdread(filename, subsampling) reads every 
-%   n-th line of the given PTS file with n = subsampling.
+%   OUTCLOUD = PCDREAD(FILENAME, SUBSAMPLING) reads every 
+%   SUBSAMPLING-th line of the given PTS file.
 %
-%   The return value outcloud is a structure with the following elements:
+%   The return value OUTCLOUD is a structure with the following elements:
 %
 %   pointCloud      pointCloud object (unorganized point cloud)
 %
@@ -23,11 +23,14 @@ function outcloud = ptsread(filename, subsampling)
 %   outcloud = ptsread('field.pts');
 %   pcshow(outcloud.pointCloud);
 %
-%   See also pcread, pcdread, pointCloud, pcwrite, pcshow.
+%   See also PCREAD, PCDREAD, POINTCLOUD, PCWRITE, PCSHOW.
  
 %  Copyright 2016 Alexander Schaefer
 
 %% Validate the input.
+% Make sure the user specified the correct number of arguments.
+narginchk(1, 2);
+
 % Make sure the given file name is a string.
 if ~ischar(filename)
     error(message('vision:pointcloud:badFileName'));

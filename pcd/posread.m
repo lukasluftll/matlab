@@ -1,8 +1,8 @@
 function position = posread(filename)
-% posread Read a file containing position information about a laser scan.
-%   position = posread(filename) reads position information from the 
+% POSREAD Read a file containing position information about a laser scan.
+%   POSITION = POSREAD(FILENAME) reads position information from the 
 %   DAT file specified by the string filename. The return value 
-%   position is a structure with the following elements:
+%   POSITION is a structure with the following elements:
 %
 %   time            scalar that represents the time stamp of the laser scan
 %
@@ -31,7 +31,7 @@ function position = posread(filename)
 %   -----------------------------------------
 %   position = posread('terrain.dat');
 %
-%   See also pcread, ptsread, pcdread, pointCloud.
+%   See also PCREAD, PCDREAD, PTSREAD, POINTCLOUD.
  
 %  Copyright 2016 Alexander Schaefer
 

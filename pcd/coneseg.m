@@ -1,10 +1,10 @@
 function groundIndex = coneseg(incloud, coneAngle)
-% coneseg Segments the ground in the given point cloud.
-%   groundIndex = coneseg(incloud) puts a cone that opens along +z 
+% CONESEG Segments the ground in the given point cloud.
+%   GROUNDINDEX = CONESEG(INCLOUD) puts a cone that opens along +z 
 %   on top of each point. All points that are not contained in the cone 
 %   of any other point are segmented as ground points.
 %
-%   groundIndex = coneseg(incloud, coneAngle) does not use the default 
+%   GROUNDINDEX = CONESEG(INCLOUD, CONEANGLE) does not use the default 
 %   cone opening angle of sqrt(2) rad, but the value specified by the user.
 %
 %   Example : segment and display ground points 
@@ -13,7 +13,7 @@ function groundIndex = coneseg(incloud, coneAngle)
 %   cloud = cloud.pointCloud;
 %   pcshow(cloud.select(coneseg(cloud)));
 %
-%   See also pointCloud, pcshow.
+%   See also POINTCLOUD, PCSHOW.
  
 %  Copyright 2016 Alexander Schaefer
 
