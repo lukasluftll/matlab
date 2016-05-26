@@ -21,7 +21,7 @@ narginchk(1, 1);
 
 % Check if the input point cloud is organized.
 if size(points, 3) ~= 3
-    error('Input point cloud must be of size [M x N x 3].');
+    error('Input point cloud must be of size MxNx3].');
 end
 
 %% Convert coordinates.
@@ -38,14 +38,16 @@ elevation = nanmean(beams(:,:,2), 2);
 % If a row or a colums contains NaN values only, interpolate the 
 % corresponding azimuth or elevation angle using the mean angles 
 % computed above.
+azimuthIndex = 1 : length(azimuth);
 azimuth(isnan(azimuth)) ...
-    = interp1(1:length(azimuth), azimuth, isnan(azimuth));
+    = interp1(azimuthIndex, azimuth, azimuthIndex(isnan(azimuth)));
+elevationIndex = 1 : length(elevation);
 elevation(isnan(elevation)) ...
-    = interp1(1:length(elevation), elevation, isnan(elevation));
+    = interp1(elevationIndex, elevation, elevationIndex(isnan(elevation)));
 
 % Set the azimuth and elevation angles of all NaN points.
-for row = 1 : size(points, 1)
-    for col = 1 : size(points, 2)
+for row = 1 : size(beams, 1)
+    for col = 1 : size(beams, 2)
         if isnan(beams(row,col,:))
             beams(row,col,1:2) = [azimuth(col), elevation(row)];
         end
