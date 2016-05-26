@@ -4,7 +4,7 @@
 % points in each voxel are Gauss-distributed.
 
 % Define the voxel map resolution.
-res = 0.5;
+res = 1;
 
 % Read the point cloud.
 cloud = pcdread('data/campus.pcd');
@@ -30,6 +30,10 @@ fig = figure('Name', 'Occupancy map', 'NumberTitle', 'Off');
 grid on;
 axis equal;
 
+
+% Plot the point cloud.
+pcshow(cloud.pointCloud, 'MarkerSize', 80);
+
 % Iterate over all voxels and for each one compute the reflection 
 % probability.
 for x = limits(1,1) : res : limits(1,2)
@@ -54,7 +58,7 @@ for x = limits(1,1) : res : limits(1,2)
             % Use the vertices to compute the minimum and maximum 
             % azimuth and elevation angles of the beams that penetrate
             % the voxel.
-            [azimuth, elevation, r] = cart2sph(...
+            [azimuth, elevation, radius] = cart2sph(...
                 vertices(:,1), vertices(:,2), vertices(:,3));
             
             % Make sure the azimuth difference for the voxel corners is
@@ -65,18 +69,20 @@ for x = limits(1,1) : res : limits(1,2)
                 azimuth(azimuth == pi) = -pi;
             end
             
-            % Find the logical subscripts of all beams that can 
+            % Find the logical subscripts of all beams that can
             % permeate the voxel volume.
-            del = logical(...
-                beams(:,:,1) < min(azimuth) ...
-                + beams(:,:,1) > max(azimuth) ...
-                + beams(:,:,2) < min(elevation) ...
-                + beams(:,:,2) > max(elevation) ...
-                + beams(:,:,3) < min(r));
+            keep = beams(:,:,1) >= min(azimuth) ...
+                & beams(:,:,1) <= max(azimuth) ...
+                & beams(:,:,2) >= min(elevation) ...
+                & beams(:,:,2) <= max(elevation) ...
+                & beams(:,:,3) >= min(radius);
             
-            % Keep only those beams that can permeate in the voxel volume.
-            permbeams = beams;
-            permbeams(cat(3, del, del, del)) = [];
+            % Consider only those beams in the following.
+            beamsAzimuth = beams(:,:,1);
+            beamsElevation = beams(:,:,2);
+            beamsRadius = beams(:,:,3);
+            permbeams = cat(3, beamsAzimuth(keep), ...
+                beamsElevation(keep), beamsRadius(keep));
             
             % Find out how many beams really permeate the voxel volume.
             perms = 0;
@@ -105,11 +111,12 @@ for x = limits(1,1) : res : limits(1,2)
             end
             
             % Plot the voxel.
-            if (hits > 1)
+            if (hits > 0)
+                alpha = hits / perms;
                 cube([x + res/2, y + res/2, z + res/2], res, ...
-                    'FaceColor', 'red', 'FaceAlpha', 0.5);
+                    'FaceColor', 'red', 'FaceAlpha', alpha);
                 drawnow;
-            end            
+            end  
         end
     end
 end
