@@ -114,20 +114,15 @@ for x = limits(1,1) : res : limits(1,2)
             center = [x + res/2, y + res/2, z + res/2];
             if (perms > 0)
                 % If at least one beam permeated the voxel, plot it red.
-                % Otherwise, plot it yellow.
-                if (hits > 0)
-                    alpha = hits / perms;
-                    cube(center, res, 'FaceColor', 'red', ...
-                        'FaceAlpha', alpha, 'LineStyle', 'none');
-                else
-                    cube(center, res, 'FaceColor', 'yellow', ...
-                        'FaceAlpha', 0.1, 'LineStyle', 'none');
-                end
-            else
-                % If no beam permeated the voxel, plot it gray to indicate
-                % no knowledge about the volume.
-                cube(center, res, 'FaceColor', [0, 0, 0], ...
-                    'FaceAlpha', 0.05, 'LineStyle', 'none');
+                % Otherwise, plot it gray.
+                 if (hits > 0)
+                     alpha = hits / perms;
+                     cube(center, res, 'FaceColor', 'red', ...
+                         'FaceAlpha', alpha, 'LineStyle', 'none');
+                 else
+                    cube(center, res, 'FaceColor', [0, 0, 0], ...
+                        'FaceAlpha', 0.05, 'LineStyle', 'none');
+                 end
             end
         end
     end
