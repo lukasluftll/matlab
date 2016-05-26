@@ -14,10 +14,8 @@ function beams = pc2sph(points)
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
-% Check if the user provided enough input arguments.
-if nargin < 1
-    error('Not enough input arguments.');
-end
+% Check if the user provided the correct number of input arguments.
+narginchk(1, 1);
 
 % Check if the input point cloud is organized.
 if size(points, 3) ~= 3
