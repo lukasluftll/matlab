@@ -1,30 +1,26 @@
-function cube(center, edgeLength, color)
-% cube Plot a 3D cube.
-%   cube(center, edgeLength) plots an axis-aligned cube.
+function cube(center, edgeLength, varargin)
+% CUBE Plot a 3D cube.
+%   CUBE(CENTER, EDGELENGTH) plots an axis-aligned cube.
 %
-%   cube(center, edgeLength, color) plots a cube with a color indicated by
-%   the MATLAB ColorSpec specification. Its faces are aligned with the
-%   x, y, and z axis.
+%   CUBE(CENTER, EDGELENGTH, VARARGIN) plots a cube with the properties 
+%   indicated by a color indicated by the name-value pair arguments
+%   varargin. For possible name-value pairs, see the documentation of 
+%   function PATCH.
 %
 %   Example
-%      cube([0, 5, 3], 1, 'y');
+%      cube([0, 5, 3], 1, 'FaceColor', 'yellow');
 %
 % Copyright 2016 Alexander Schaefer
 
+% TODO
+% + Specify face color.
+% - Vectorize input.
+% - Use face-vertex arguments of patch.
+
 %% Validate input.
-% If there is no center given, assume it is the origin.
-if (nargin < 1)
-    center = zeros(1, 3);
-end
-
-% If there is no edge length given, assume unity.
-if (nargin < 2)
-    edgeLength = 1;
-end
-
-% If there is no color specification given, plot green faces.
-if (nargin < 3)
-    color = 'green';
+% Check if the user provided enough input arguments.
+if nargin < 2
+    error('Not enough input arguments.');
 end
 
 %% Plot the cube.
@@ -45,7 +41,7 @@ combination = [1, 2, 4, 3; ...
 % Plot all faces.
 for c = 1 : size(combination, 1)
     face = corner(combination(c,:), :);
-    patch(face(:,1), face(:,2), face(:,3), color);
+    patch(face(:,1), face(:,2), face(:,3), varargin{:});
 end
 
 end
