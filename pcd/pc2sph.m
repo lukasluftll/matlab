@@ -20,7 +20,7 @@ function beams = pc2sph(points)
 narginchk(1, 1);
 
 % Check if the input point cloud is organized.
-if size(points, 3) ~= 3
+if size(points, 3) ~= 3 || ndims(points) ~= 3
     error('Input point cloud must be of size MxNx3].');
 end
 
