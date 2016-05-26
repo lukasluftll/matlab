@@ -199,10 +199,10 @@ z = data(:, strmatch('z', fields));
 % In case the point cloud is ordered, save the point coordinates to a 
 % 3D matrix.
 if (height > 1)
-    x = reshape(x, height, width); 
-    y = reshape(y, height, width);
-    z = reshape(z, height, width);
-    location = cat(3, x, y, z);
+    x = reshape(x, width, height); 
+    y = reshape(y, width, height);
+    z = reshape(z, width, height);
+    location = cat(3, x', y', z');
 else
     location = [x, y, z];
 end
