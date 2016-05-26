@@ -122,7 +122,7 @@ for x = limits(1,1) : res : limits(1,2)
                  if (hits > 0)
                      alpha = hits / perms;
                      cube(center, res, 'FaceColor', 'red', ...
-                         'FaceAlpha', alpha, 'LineStyle', 'none');
+                         'FaceAlpha', alpha * 0.8 + 0.2, 'LineStyle', 'none');
                  else
                     cube(center, res, 'FaceColor', [0, 0, 0], ...
                         'FaceAlpha', 0.05, 'LineStyle', 'none');
