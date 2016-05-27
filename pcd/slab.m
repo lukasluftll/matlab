@@ -44,6 +44,6 @@ t = [max(t(:,1)), min(t(:,2))];
 intersects = diff(t) > 0;
 
 % In case the ray and the box do not intersect, set t to NaN.
-t([intersects, intersects]) = NaN;
+t([~intersects, ~intersects]) = NaN;
 
 end
