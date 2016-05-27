@@ -15,8 +15,8 @@ function [intersects, t] = slab(support, ray, box)
 %   where the ray leaves the box. If the ray does not intersect with the 
 %   box, T is NaN.
 %
-%   Note
-%   ----
+%   Notes
+%   -----
 %   Intersecting means that the ray travels some distance inside the box. 
 %   In case the ray only touches a corner or an edge, SLAB reports no
 %   intersection.
@@ -30,6 +30,10 @@ function [intersects, t] = slab(support, ray, box)
 %   See also NAN.
 
 % Copyright 2016 Alexander Schaefer
+%
+% SLAB implements the raycasting algorithm proposed by Smits:
+% Brian Smits. Efficiency issues for ray tracing. 
+% Journal of Graphics Tools, 3(2):1–14, 1998
 
 % Compute the line parameters of the intersections with the 
 % pairwise parallel infinite planes that confine the box. 
