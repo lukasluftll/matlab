@@ -38,8 +38,8 @@ drawnow;
 % Iterate over all voxels and for each one compute the reflection 
 % probability.
 voxelcount = (limits(:,2) - limits(:,1))' / res;
-mu = cell(voxelcount);
-cov = cell(voxelcount);
+mu = zeros([3, voxelcount]);
+cov = zeros([3, 3, voxelcount]);
 alpha = 0.5 * ones(voxelcount);
 ix = 1;
 for x = limits(1,1) : res : limits(1,2)
@@ -139,8 +139,8 @@ for x = limits(1,1) : res : limits(1,2)
             
             % Calculate the properties of the Gaussian distribution of
             % the points.
-            mu{ix,iy,iz} = mean(roiPoints, 1);
-            cov{ix,iy,iz} = roiPoints' * roiPoints;
+            mu(:,ix,iy,iz) = mean(roiPoints, 1);
+            cov(:,:,ix,iy,iz) = roiPoints' * roiPoints;
             
             iz = iz + 1;
         end
@@ -148,3 +148,20 @@ for x = limits(1,1) : res : limits(1,2)
     end
     ix = ix + 1;
 end
+
+% Create a figure in which to plot the reflection probabilities.
+figure('Name', 'Reflection probability', 'NumberTitle', 'Off');
+
+% Compute the coordinates of the centers of all voxels.
+limits = limits + res/2;
+[centerX, centerY, centerZ] = meshgrid(limits(1,1) : res : limits(1,2), ...
+    limits(2,1) : res : limits(2,2), ...
+    limits(3,1) : res : limits(3,2));
+center = [reshape(centerX, numel(centerX), 1), ...
+    reshape(centerY, numel(centerY), 1), ...
+    reshape(centerZ, numel(centerZ), 1)];
+
+% Compute the reflection probability for each voxel.
+% for ix = 1 : numel(limits(1,1) : res 
+%     for iy = 1 : size(centerY, 
+% mvnpdf(center, mu, cov)
