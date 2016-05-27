@@ -2,7 +2,7 @@ function [intersects, t] = slab(support, ray, box)
 % SLAB Compute intersection of ray with axis-aligned box in 3D.
 %   INTERSECTS = SLAB(SUPPORT, RAY, BOX) returns whether the infinite ray 
 %   characterized by SUPPORT and RAY intersects with the 3D axis-aligned 
-%   box described by BOX. 
+%   box described by BOX.
 %
 %   SUPPORT and RAY are 3-element column vectors. SUPPORT contains the
 %   coordinates of the ray's point of support, RAY indicates the direction 
@@ -14,6 +14,12 @@ function [intersects, t] = slab(support, ray, box)
 %   point where the ray enters the box, SUPPORT + T(2)*RAY is the point
 %   where the ray leaves the box. If the ray does not intersect with the 
 %   box, T is NaN.
+%
+%   Note
+%   ----
+%   Intersecting means that the ray travels some distance inside the box. 
+%   In case the ray only touches a corner or an edge, SLAB reports no
+%   intersection.
 %
 %   Example:
 %   support = zeros(3, 1);
@@ -35,7 +41,9 @@ t = [max(t(:,1)), min(t(:,2))];
 
 % Check whether some part of the ray remains after computing the entry 
 % and leaving point.
-intersects = diff(t) >= 0;
+intersects = diff(t) > 0;
+
+% In case the ray and the box do not intersect, set t to NaN.
 t([intersects, intersects]) = NaN;
 
 end
