@@ -8,7 +8,7 @@ function [hit, t] = slab(support, ray, box)
 %   SUPPORT contains the coordinates of the ray's point of support.
 %   RAY indicates the direction of the ray. 
 %   BOX is a 3x2 matrix whose columns contain the minimum and
-%   maximum coordinates of the box. The rows correspond to the coordinates.
+%   maximum limits of the box. The rows correspond to the coordinates.
 %
 %   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns a 2-element row vector. 
 %   SUPPORT + T(1)*RAY is the coordinate of the point where the ray enters 
