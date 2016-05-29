@@ -1,7 +1,5 @@
 % Voxelizes the volume occupied by a Lidar scan and computes for each
 % voxel the reflection probability.
-% The reflection probability is computed under the assumption that the 
-% points in each voxel are Gauss-distributed.
 
 % Define the voxel map resolution.
 res = 1;
@@ -14,17 +12,18 @@ pointcount = numel(points(:,:,1));
 % Compute the spherical coordinates of the points w.r.t. the sensor frame.
 beams = pc2sph(points);
 
-% Compute the volume occupied by the Lidar scan.
+% Compute the corners of the axis-aligned rectangle occupied by the 
+% Lidar scan.
 limits = [cloud.pointCloud.XLimits; ...
     cloud.pointCloud.YLimits; ...
     cloud.pointCloud.ZLimits];
 
 % Make sure the limits are multiples of the resolution so the voxels
-% are alinged along the planes spanned by the axis pairs.
+% are axis-alinged.
 limits = [floor(limits(:,1) / res) * res, ceil(limits(:,2) / res) * res];
 
-% Compute the diameter of the point cloud.
-diameter = norm(limits(:,2) - limits(:,1));
+% Compute the length of the longest beam.
+maxRadius = sqrt(max(sum(limits .^ 2, 1)));
 
 % Create the figure where to plot the occupancy map.
 fig = figure('Name', 'Occupancy map', 'NumberTitle', 'Off');
@@ -35,9 +34,9 @@ axis equal;
 pcshow(cloud.pointCloud, 'MarkerSize', 80);
 drawnow;
 
-% Iterate over all voxels and for each one compute the reflection 
+% Iterate over all voxels; for each one compute the reflection 
 % probability.
-voxelcount = (limits(:,2) - limits(:,1))' / res;
+voxelcount = diff(limits, 1, 2)' / res;
 mu = zeros([3, voxelcount]);
 cov = zeros([3, 3, voxelcount]);
 alpha = 0.5 * ones(voxelcount);
@@ -89,33 +88,45 @@ for x = limits(1,1) : res : limits(1,2)
             beamsAzimuth = beams(:,:,1);
             beamsElevation = beams(:,:,2);
             beamsRadius = beams(:,:,3);
-            permbeams = cat(3, beamsAzimuth(keep), ...
-                beamsElevation(keep), beamsRadius(keep));
+            permbeams = [beamsAzimuth(keep), ...
+                beamsElevation(keep), beamsRadius(keep)];
             
             % Find out how many beams really permeate the voxel volume.
             perms = 0;
-            for row = 1 : size(permbeams, 1)
-                for col = 1 : size(permbeams, 2)
-                    % NaN beams are infinitely long; set their radius to 
-                    % the diameter of the point cloud.
-                    if isnan(permbeams(row,col,3))
-                        permbeams(row,col,3) = diameter;
-                    end
+            permbeams([false(size(permbeams, 1), 2),...
+                isnan(permbeams(:,3))]) = maxRadius + res;
 
-                    % Compute the intersection of the beam and the voxel.
-                    origin = zeros(1, 3);
-                    [dirx, diry, dirz] = sph2cart(permbeams(row,col,1), ...
-                        permbeams(row,col,2), permbeams(row,col,3));
+            % Compute the intersection of each beam with the voxel.
+            [dirX, dirY, dirZ] = sph2cart(permbeams(:,1), ...
+                permbeams(:,2), permbeams(:,3));
+            for i = 1 : size(permbeams, 1)
+                [hit, t] = slab(zeros(3, 1), ...
+                    [dirX(i); dirY(i); dirZ(i)], ...
+                    voxel + repmat([realmin, 0], 3, 1));
+                
                     vmin = voxel(:,1);
                     vmax = voxel(:,2);
                     [flag, tmin] = rayBoxIntersection(...
-                        origin, [dirx, diry, dirz], vmin, vmax);
-
-                    % Check whether the beam permeates the voxel volume.
-                    if (tmin < 1)
-                        perms = perms + 1;
-                    end
+                        zeros(3, 1), [dirX(i); dirY(i); dirZ(i)], ...
+                        vmin + [realmin; realmin; realmin], vmax);
+                    
+                if flag ~= hit
+                    figure
+                    grid on
+                    axis equal
+                    xlabel('x')
+                    ylabel('y')
+                    zlabel('z')
+                    hold on
+                    cube(mean(voxel, 2)', 1, 'FaceAlpha', 0.2);
+                    plot3([0, dirX(i)], [0, dirY(i)], [0, dirZ(i)]);
+                    hold off
                 end
+   
+                % Check whether the beam permeates the voxel volume.
+                if hit
+                    perms = perms + (t(1) < 1);
+               end
             end
             
             % Plot the voxel.
@@ -150,7 +161,7 @@ for x = limits(1,1) : res : limits(1,2)
 end
 
 % Create a figure in which to plot the reflection probabilities.
-figure('Name', 'Reflection probability', 'NumberTitle', 'Off');
+%figure('Name', 'Reflection probability', 'NumberTitle', 'Off');
 
 % Compute the coordinates of the centers of all voxels.
 limits = limits + res/2;
