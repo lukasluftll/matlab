@@ -18,11 +18,13 @@ function cuboid(limits, varargin)
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
-% Check if the user provided enough input arguments.
-narginchk(2, inf);
+% Check if the user provided an input argument.
+narginchk(1, inf);
 
 % Make sure the limits matrix has the right size.
-if size(limits) < [2, 3, 1]
+if size(limits, 1) ~= 2 ...
+        || size(limits, 2) ~= 3 ...
+        || size(limits, 3) < 1
     error('LIMITS must be a 2x3xN matrix.');
 end
 
