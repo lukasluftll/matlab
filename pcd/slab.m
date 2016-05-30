@@ -34,10 +34,10 @@ function [hit, t] = slab(support, ray, box)
 %   with both boxes at the same time.
 %
 %   Example:
-%   support = zeros(3, 1);
-%   ray = ones(3, 1);
-%   box = [2*ones(3, 1); 3*ones(3, 1)];
-%   [hit, t] = slab(support, ray, box)
+%      support = zeros(3, 1);
+%      ray = ones(3, 1);
+%      box = [2*ones(3, 1); 3*ones(3, 1)];
+%      [hit, t] = slab(support, ray, box)
 %
 %   See also NAN, REALMIN.
 
