@@ -1,40 +1,41 @@
 function [hit, t] = slab(support, ray, box)
 % SLAB Compute intersection of ray with axis-aligned box in 3D.
 %   HIT = SLAB(SUPPORT, RAY, BOX) returns whether the infinite ray 
-%   characterized by SUPPORT and RAY intersects with the 3D axis-aligned 
-%   box described by BOX.
+%   characterized by SUPPORT and RAY has at least one point in common with
+%   the 3D axis-aligned box described by BOX.
 %
+%   In case you want to compute the intersection of one ray with one box,
 %   SUPPORT and RAY are 3-element column vectors. 
 %   SUPPORT contains the coordinates of the ray's point of support.
 %   RAY indicates the direction of the ray. 
-%   BOX is a 3x2 matrix whose columns contain the minimum and
-%   maximum limits of the box. The rows correspond to the coordinates.
+%   BOX is a 6-element column vector [xmin; ymin; zmin; xmax; ymax; zmax]
+%   describing the limits of the box, including the endpoints.
 %
-%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns a 2-element row vector. 
-%   SUPPORT + T(1)*RAY is the coordinate of the point where the ray enters 
-%   the box, SUPPORT + T(2)*RAY is the point where the ray leaves the box. 
-%   If the ray does not intersect with the box, T is NaN.
+%   In case you want to compute N intersections of different rays with 
+%   different boxes, SUPPORT and RAY are 3xN matrices.
+%   The columns of SUPPORT contain the coordinates of each ray's point of
+%   support.
+%   The columns of RAY indicate the direction of each ray.
+%   BOX is a 6xN matrix whose columns describe the limits of each box.
 %
-%   Definition of intersection
-%   --------------------------
-%   "The ray intersects the box" means the ray travels some distance 
-%   inside or on the surface of the box. 
+%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns a 2xN matrix T. 
+%   SUPPORT(:,N) + T(1,N)*RAY(:,N) is the coordinate of the point where the 
+%   N-th ray enters the N-th box;
+%   SUPPORT(:,N) + T(2,N)*RAY(:,N) is the point where the ray leaves the 
+%   box. 
+%   If the N-th ray does not intersect with the N-th box, T(:,N) is NaN.
 %
-%   Ray on box surface
-%   ------------------
-%   In case SLAB is used on a connected volume of voxels, the voxel 
-%   surfaces should be REALMIN apart to avoid rays being counted twice 
-%   when travelling on the joint face of two voxels.
-%
-%   Ray touching box corners and edges
-%   ----------------------------------
-%   In case the ray only touches a corner or an edge, SLAB reports a hit.
-%   However, T is zero.
+%   SLAB on connected volumes
+%   -------------------------
+%   In case SLAB is used on a connected volume of boxes, neighboring box
+%   faces should be REALMIN apart. Otherwise, the neigboring faces of the 
+%   two boxes overlap, and rays that travel on the joint face intersect 
+%   with both boxes at the same time.
 %
 %   Example:
 %   support = zeros(3, 1);
 %   ray = ones(3, 1);
-%   box = [2*ones(3, 1), 3*ones(3, 1)];
+%   box = [2*ones(3, 1); 3*ones(3, 1)];
 %   [hit, t] = slab(support, ray, box)
 %
 %   See also NAN, REALMIN.
@@ -43,7 +44,7 @@ function [hit, t] = slab(support, ray, box)
 %
 % SLAB implements the raycasting algorithm proposed by Smits:
 % Brian Smits. Efficiency issues for ray tracing. 
-% Journal of Graphics Tools, 3(2):1–14, 1998
+% Journal of Graphics Tools, 3(2):1-14, 1998
 
 % Compute the line parameters of the intersections of the ray and the 
 % infinite planes that confine the box. 
