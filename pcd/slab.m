@@ -12,14 +12,14 @@ function [hit, t] = slab(support, ray, box)
 %   describing the limits of the box, including the endpoints.
 %
 %   In case you want to compute N intersections of different rays with 
-%   different boxes, HIT is an N-element logical row vector, 
-%   SUPPORT and RAY are 3xN matrices.
+%   different boxes, SUPPORT and RAY are 3xN matrices.
 %   The columns of SUPPORT contain the coordinates of each ray's point of
 %   support.
 %   The columns of RAY indicate the direction of each ray.
 %   BOX is a 6xN matrix whose columns describe the limits of each box.
+%   HIT is an N-element logical row vector. 
 %
-%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns a 2xN matrix T. 
+%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T. 
 %   SUPPORT(:,N) + T(1,N)*RAY(:,N) is the coordinate of the point where the 
 %   N-th ray enters the N-th box;
 %   SUPPORT(:,N) + T(2,N)*RAY(:,N) is the point where the ray leaves the 
