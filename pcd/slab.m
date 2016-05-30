@@ -12,7 +12,8 @@ function [hit, t] = slab(support, ray, box)
 %   describing the limits of the box, including the endpoints.
 %
 %   In case you want to compute N intersections of different rays with 
-%   different boxes, SUPPORT and RAY are 3xN matrices.
+%   different boxes, HIT is an N-element logical row vector, 
+%   SUPPORT and RAY are 3xN matrices.
 %   The columns of SUPPORT contain the coordinates of each ray's point of
 %   support.
 %   The columns of RAY indicate the direction of each ray.
@@ -47,18 +48,19 @@ function [hit, t] = slab(support, ray, box)
 % Journal of Graphics Tools, 3(2):1-14, 1998
 
 % Compute the line parameters of the intersections of the ray and the 
-% infinite planes that confine the box. 
-t = sort((box - [support, support]) ./ [ray, ray], 2);
+% infinite planes that confine the box.
+t = (box - [support; support]) ./ [ray; ray];
+t = sort(reshape(t, 3, 2, []), 2);
 
-% Compute the parameters corresponding to the points where ray enters the
-% box and where it leaves it.
-t = [max(t(:,1)), min(t(:,2))];
+% Compute the parameters corresponding to the points where the ray enters 
+% and leaves the box.
+t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
 % Check whether some part of the ray remains after computing the entry 
 % and leaving point.
-hit = diff(t) >= 0;
+hit = diff(t, 1) >= 0;
 
 % In case the ray and the box do not intersect, set t to NaN.
-t([~hit, ~hit]) = NaN;
+t([~hit; ~hit]) = NaN;
 
 end
