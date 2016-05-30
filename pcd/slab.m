@@ -58,7 +58,7 @@ t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
 % Check whether some part of the ray remains after computing the entry 
 % and leaving point.
-hit = diff(t, 1) >= 0;
+hit = diff(t) >= 0;
 
 % In case the ray and the box do not intersect, set t to NaN.
 t([~hit; ~hit]) = NaN;
