@@ -37,35 +37,38 @@ function i = trav(origin, ray, vol, edge)
 % A Fast Voxel Traversal Algorithm for Ray Tracing.
 % Eurographics 1987, pp. 3-10, 1987.
 
+%% Validate input.
+narginchk(4, 4);
+
 %% Initialization phase: calculate index of point of support.
 % Compute the intersections of the ray with the volume.
 [hit, t] = slab(origin, ray, vol);
 
-% If the ray does not intersect with the volume, return an 
-% empty index matrix.
+% If the ray does not intersect with the volume, return an empty index 
+% matrix.
 if ~hit || t(2) <= 0
     i = [];
     return
 end
 
-% If the point of supp the volume, move it towards the 
+% If the starting point lies outside the volume, move it towards the 
 % volume until it touches its surface.
 origin = origin + t([t(1)>0, false]) * ray;
 
-% Calculate the index of the point of support.
-i(:,1) = floor((origin - vol(1:3)) ./ edge + 1);
+% Calculate the index of the starting point.
+i(:,1) = floor((origin - vol(1:3)) ./ edge + ones(3, 1));
 
 %% Incremental phase: calculate indices of traversed voxels.
-% Compute the line parameters of the intersections of the ray and the 
-% infinite planes that confine the voxel.
-
-while true   
-    
-    box = [i(:,end) - ones(3, 1); i(:,end)];
-    if box > vol
+% Compute the next index until the ray leaves the grid.
+while min(box(1:3))
+    % Compute the bounds of the current voxel.
+    voxel = [(i(:,end)-ones(3, 1) .* edge) + vol(1:3); i(:,end)];
+    if voxel > vol
         return
     end
-    t = (box - [origin; origin]) ./ [ray; ray];
+    % Compute the line parameters of the intersections of the ray and the
+% infinite planes that confine the voxel.
+    t = (voxel - [origin; origin]) ./ [ray; ray];
     
     [~, m] = max(t);
     mplus = [0; 0; 0];
