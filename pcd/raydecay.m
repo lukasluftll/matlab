@@ -21,9 +21,9 @@ function lambda = raydecay(cloud, box)
 %   the box divided by the sum of the lengths of all rays travelling 
 %   through the box:
 %
-%                 n_returns
-%     lambda = ---------------
-%               sum(length_i)
+%                  n_returns
+%      lambda = ---------------
+%                sum(length_i)
 %
 %   The higher the sum of the ray lengths, the more accurate the
 %   approximation of the decay rate.
@@ -34,6 +34,10 @@ function lambda = raydecay(cloud, box)
 %   box faces should be REALMIN apart. Otherwise, the neigboring faces of 
 %   the two boxes overlap, and returns from inside joint face are counted 
 %   twice.
+%
+%   Example:
+%      cloud = pcread('teapot.ply');
+%      lambda = raydecay(cloud, [0; 0; 0; 1; 1; 1]);
 %
 % See also POINTCLOUD.
 
