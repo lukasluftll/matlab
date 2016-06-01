@@ -38,7 +38,17 @@ function i = trav(origin, ray, vol, edge)
 % Eurographics 1987, pp. 3-10, 1987.
 
 %% Validate input.
+% Make sure the user specified enough input arguments.
 narginchk(4, 4);
+
+% Check if the arguments have the expected sizes.
+expectedSize = [3, 1; 3, 1; 6, 1; 1, 1];
+for argin = 1 : nargin
+    if size(eval(inputname(argin))) ~= expectedSize(argin,:)
+        error([inputname(argin), ' must be a ', expectedSize(argin,1), ...
+            'x', expectedSize(argin,2), ' matrix.'])
+    end
+end
 
 %% Initialization phase: calculate index of point of support.
 % Compute the intersections of the ray with the volume.
@@ -60,9 +70,9 @@ i(:,1) = floor((origin - vol(1:3)) ./ edge + ones(3, 1));
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the next index until the ray leaves the grid.
-while min(box(1:3))
+while all(voxel(4:6) >= vol(1:3)) || all(voxel(1:3) <= vol(4:6))
     % Compute the bounds of the current voxel.
-    voxel = [(i(:,end)-ones(3, 1) .* edge) + vol(1:3); i(:,end)];
+    voxel = [i(:,end)-ones(3, 1); i(:,end)] .* edge + vol([1:3, 1:3]);
     if voxel > vol
         return
     end
