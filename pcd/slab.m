@@ -45,7 +45,7 @@ function [hit, t] = slab(support, ray, box)
 %
 % SLAB implements the raycasting algorithm proposed by Smits:
 % Brian Smits. Efficiency issues for ray tracing. 
-% Journal of Graphics Tools, 3(2):1-14, 1998
+% Journal of Graphics Tools, 3(2):1-14, 1998.
 
 % Compute the line parameters of the intersections of the ray and the 
 % infinite planes that confine the box.
