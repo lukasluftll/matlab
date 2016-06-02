@@ -71,7 +71,7 @@ origin = origin + max(0, t(1)) * ray;
 i(1,:) = floor((origin - vol(1:3))' ./ edge + ones(1, 3));
 
 % Compute the bounds of the starting voxel.
-voxel = [i(end,:) - ones(1, 3); i(end,:)]' * edge + [vol(1:3), vol(1:3)];
+voxel = [i(end,:) - ones(1, 3), i(end,:)]' * edge + [vol(1:3); vol(1:3)];
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
