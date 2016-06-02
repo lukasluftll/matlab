@@ -19,8 +19,9 @@ function [i, t] = trav(origin, ray, vol, edge)
 %
 %   [I, T] = TRAV(ORIGIN, RAY, VOL, EDGE) also returns the M-element 
 %   column vector T. Its m-th row contains the line parameter that encodes
-%   the first point of the ray that lies outside the m-th voxel. This 
-%   point can be reconstructed by computing ORIGIN + T(m) * RAY.
+%   the intersection of the ray with the joint face of the m-th and the 
+%   m+1st voxel. This point can be reconstructed by computing 
+%   ORIGIN + T(m) * RAY.
 %
 %   Space spanned by one voxel
 %   --------------------------
@@ -30,7 +31,7 @@ function [i, t] = trav(origin, ray, vol, edge)
 %
 %   Example
 %      origin = [-3; 1; 3];
-%      ray = [0; 0; 2];
+%      ray = [0; 0; -1];
 %      vol = [-10; -10; -10; 10; 10; 10];
 %      [i, t] = trav(origin, ray, vol, 1)
 %
