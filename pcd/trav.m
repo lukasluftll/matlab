@@ -31,8 +31,9 @@ function i = trav(origin, ray, vol, edge)
 %
 % TRAV implements the voxel traversal algorithm proposed by Amanatides and 
 % Woo:
-% John Amanatides and Andrew Woo. A Fast Voxel Traversal Algorithm for 
-% Ray Tracing. Eurographics 1987, pp. 3-10, 1987.
+% John Amanatides and Andrew Woo. 
+% A Fast Voxel Traversal Algorithm for Ray Tracing. 
+% Eurographics 1987, pp. 3-10, 1987.
 
 %% Validate input.
 % Make sure the user specified enough input arguments.
