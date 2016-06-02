@@ -5,7 +5,7 @@
 res = 1;
 
 % Read the point cloud.
-cloud = pcdread('data/campus.pcd');
+cloud = pcdread('campus.pcd');
 points = cloud.pointCloud.Location;
 pointcount = numel(points(:,:,1));
 
@@ -102,7 +102,7 @@ for x = limits(1,1) : res : limits(1,2)
             for i = 1 : size(permbeams, 1)
                 [hit, t] = slab(zeros(3, 1), ...
                     [dirX(i); dirY(i); dirZ(i)], ...
-                    voxel + repmat([realmin, 0], 3, 1));
+                    [voxel(1:3)'; voxel(4:6)' - eps(voxel(4:6)')]);
                 
                     vmin = voxel(:,1);
                     vmax = voxel(:,2);
@@ -111,7 +111,6 @@ for x = limits(1,1) : res : limits(1,2)
                         vmin + [realmin; realmin; realmin], vmax);
                     
                 if flag ~= hit
-                    figure
                     grid on
                     axis equal
                     xlabel('x')
@@ -126,7 +125,19 @@ for x = limits(1,1) : res : limits(1,2)
                 % Check whether the beam permeates the voxel volume.
                 if hit
                     perms = perms + (t(1) < 1);
-               end
+                end
+               
+                origin = zeros(3, 1);
+                direction = [dirX(i); dirY(i); dirZ(i)];
+                vgrid.nx = diff(limits(1,:));
+                vgrid.ny = diff(limits(2,:));
+                vgrid.nz = diff(limits(3,:));
+                vgrid.minBound = limits(:,1);
+                vgrid.maxBound = limits(:,2);
+                amanatidesWooAlgorithm(origin, direction, vgrid, false) ...
+                    - trav(origin, direction, ...
+                        [vgrid.minBound; vgrid.maxBound], 1)
+                
             end
             
             % Plot the voxel.
