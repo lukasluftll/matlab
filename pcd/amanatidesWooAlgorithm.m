@@ -1,4 +1,4 @@
-function amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
+function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
 % A fast and simple voxel traversal algorithm through a 3D space partition (grid)
 % proposed by J. Amanatides and A. Woo (1987).
 %
@@ -7,8 +7,8 @@ function amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
 %    direction.
 %    grid3D: grid dimensions (nx, ny, nz, minBound, maxBound).
 % Author: 
-%    Jesús P. Mena-Chalco.
-
+%    Jesus P. Mena-Chalco.
+    i = [];
     if (verbose)
         figure;
         hold on;
@@ -24,7 +24,7 @@ function amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
         set(h, 'FaceAlpha', 0.1);
 
         view(60,30);
-        axis tight;
+        axis equal;
         xlabel('x');
         ylabel('y');
         zlabel('z');
@@ -96,7 +96,7 @@ function amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
         tDeltaZ    = voxelSizeZ/abs(direction(3));
                 
         while ( (x<=grid3D.nx)&&(x>=1) && (y<=grid3D.ny)&&(y>=1) && (z<=grid3D.nz)&&(z>=1) )
-
+            i = [i; [x y z]]; %#ok<AGROW>
             if (verbose)
                 fprintf('\nIntersection: voxel = [%d %d %d]', [x y z]);
                 
