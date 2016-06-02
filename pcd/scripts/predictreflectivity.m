@@ -117,7 +117,7 @@ for x = limits(1,1) : res : limits(1,2)
                     ylabel('y')
                     zlabel('z')
                     hold on
-                    cube(mean(voxel, 2)', 1, 'FaceAlpha', 0.2);
+                    %cube(mean(voxel, 2)', 1, 'FaceAlpha', 0.2);
                     plot3([0, dirX(i)], [0, dirY(i)], [0, dirZ(i)]);
                     hold off
                 end
@@ -135,12 +135,11 @@ for x = limits(1,1) : res : limits(1,2)
                 vgrid.minBound = limits(:,1);
                 vgrid.maxBound = limits(:,2);
                 
-                d = amanatidesWooAlgorithm(origin, direction, vgrid, false) ...
-                    - trav(origin, direction, ...
-                        [vgrid.minBound; vgrid.maxBound], 1)
+                d = amanatidesWooAlgorithm(origin, direction, vgrid, true) ...
+                    - trav(origin, direction, [vgrid.minBound; vgrid.maxBound], 1)
                 
                 if sum(sum(abs(d))) ~= 0
-                    error('Difference between amanatidesWooAlgorithm and trav.');
+                    error('amanatidesWooAlgorithm and trav differ.');
                 end
                 
             end
@@ -155,12 +154,12 @@ for x = limits(1,1) : res : limits(1,2)
                 % If the voxel did never reflect a beam, color it gray.
                  if (hits > 0)
                      alpha(ix,iy,iz) = hits / perms;
-                     cube(center, res, 'FaceColor', 'red', ...
-                         'FaceAlpha', alpha(ix,iy,iz)*0.8 + 0.2, ...
-                         'LineStyle', 'none');
-                 else
-                    cube(center, res, 'FaceColor', [0, 0, 0], ...
-                        'FaceAlpha', 0.05, 'LineStyle', 'none');
+                 %    cube(center, res, 'FaceColor', 'red', ...
+                 %        'FaceAlpha', alpha(ix,iy,iz)*0.8 + 0.2, ...
+                 %        'LineStyle', 'none');
+                 %else
+                 %   cube(center, res, 'FaceColor', [0, 0, 0], ...
+                 %       'FaceAlpha', 0.05, 'LineStyle', 'none');
                  end
             end
             
