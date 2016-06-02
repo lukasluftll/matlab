@@ -14,7 +14,7 @@ function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
         hold on;
         text(origin(1), origin(2), origin(3), 'origin');
         plot3(origin(1), origin(2), origin(3), 'k.', 'MarkerSize', 15);
-        quiver3(origin(1), origin(2), origin(3), direction(1), direction(2), direction(3), 30);
+        quiver3(origin(1), origin(2), origin(3), direction(1), direction(2), direction(3));
         
         vmin = grid3D.minBound';
         vmax = grid3D.maxBound';
