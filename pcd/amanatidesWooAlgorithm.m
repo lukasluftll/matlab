@@ -10,7 +10,6 @@ function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
 %    Jesus P. Mena-Chalco.
     i = [];
     if (verbose)
-        figure;
         hold on;
         text(origin(1), origin(2), origin(3), 'origin');
         plot3(origin(1), origin(2), origin(3), 'k.', 'MarkerSize', 15);
@@ -96,22 +95,24 @@ function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
         tDeltaZ    = voxelSizeZ/abs(direction(3));
                 
         while ( (x<=grid3D.nx)&&(x>=1) && (y<=grid3D.ny)&&(y>=1) && (z<=grid3D.nz)&&(z>=1) )
-            i = [i; [x y z]]; %#ok<AGROW>
-            if (verbose)
-                fprintf('\nIntersection: voxel = [%d %d %d]', [x y z]);
-                
-                t1 = [(x-1)/grid3D.nx, (y-1)/grid3D.ny, (z-1)/grid3D.nz ]';
-                t2 = [  (x)/grid3D.nx,  (y)/grid3D.ny,    (z)/grid3D.nz ]';        
 
-                vmin = (grid3D.minBound + t1.*boxSize)';
-                vmax = (grid3D.minBound + t2.*boxSize)';
+            t1 = [(x-1)/grid3D.nx, (y-1)/grid3D.ny, (z-1)/grid3D.nz ]';
+            t2 = [  (x)/grid3D.nx,  (y)/grid3D.ny,    (z)/grid3D.nz ]';        
+
+            vmin = (grid3D.minBound + t1.*boxSize)';
+            vmax = (grid3D.minBound + t2.*boxSize)';
+
+            if slab(origin, direction, [vmin, vmax]')
+                i = [i; [x y z]]; %#ok<AGROW>
+
+                fprintf('\nIntersection: voxel = [%d %d %d]', [x y z]);
 
                 smallBoxVertices = [vmax(1) vmin(2) vmin(3); vmax(1) vmax(2) vmin(3); vmin(1) vmax(2) vmin(3); vmin(1) vmax(2) vmax(3); vmin(1) vmin(2) vmax(3); vmax(1) vmin(2) vmax(3); vmin; vmax ];
                 smallBoxFaces    = [1 2 3 7; 1 2 8 6; 1 6 5 7; 7 5 4 3; 2 8 4 3; 8 6 5 4];
- 
+
                 h = patch('Vertices', smallBoxVertices, 'Faces', smallBoxFaces, 'FaceColor', 'blue', 'EdgeColor', 'white');
                 set(h,'FaceAlpha',0.2);
-            end;
+            end               
             
             % ---------------------------------------------------------- %
             % check if voxel [x,y,z] contains any intersection with the ray
