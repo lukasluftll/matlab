@@ -8,10 +8,10 @@ function i = trav(origin, ray, vol, edge)
 %   the starting point of the ray.
 %   RAY is a 3-element column vector indicating the direction of the ray.
 %   VOL is a 6-element column vector [xmin; ymin; zmin; xmax; ymax; zmax]
-%   that describes the limits of the grid volume, including the starting 
-%   points, excluding the endpoints. The voxels are axis-aligned. This 
-%   means that the edges of the voxels closest to the coordinate axes 
-%   coincide with the axes.
+%   that describes the limits of the grid volume, including the minima, 
+%   excluding the maxima. The voxels are axis-aligned. This means that the
+%   the edges of the voxels closest to the coordinate axes coincide with 
+%   the axes.
 %   EDGE is a scalar that defines the edge length of all voxels.
 %   I is a Mx3 matrix whose rows contain the x, y, and z indices of the
 %   voxels the ray traverses.
@@ -20,7 +20,7 @@ function i = trav(origin, ray, vol, edge)
 %   --------------------------
 %   A voxel contains all points [x, y, z] that satisfy the inequality:
 %      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
-%   with vxmin, vxmax, vymin, etc. being the limits of the voxel.
+%   with vxmin, vxmax, vymin, vymax etc. being the limits of the voxel.
 %
 %   Example
 %      i = trav([-3; 1; 3], [0; 0; 1], [-10; -10; -10; 10; 10; 10], 1)
