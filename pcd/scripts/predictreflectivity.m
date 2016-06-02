@@ -117,7 +117,7 @@ for x = limits(1,1) : res : limits(1,2)
                     ylabel('y')
                     zlabel('z')
                     hold on
-                    %cube(mean(voxel, 2)', 1, 'FaceAlpha', 0.2);
+                    cuboid(voxel, 'FaceAlpha', 0.2);
                     plot3([0, dirX(i)], [0, dirY(i)], [0, dirZ(i)]);
                     hold off
                 end
