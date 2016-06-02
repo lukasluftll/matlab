@@ -29,7 +29,10 @@ function [i, t] = trav(origin, ray, vol, edge)
 %   with vxmin, vxmax, vymin, vymax etc. being the limits of the voxel.
 %
 %   Example
-%      i = trav([-3; 1; 3], [0; 0; 1], [-10; -10; -10; 10; 10; 10], 1)
+%      origin = [-3; 1; 3];
+%      ray = [0; 0; 2];
+%      vol = [-10; -10; -10; 10; 10; 10];
+%      [i, t] = trav(origin, ray, vol, 1)
 %
 %   See also SLAB.
 
