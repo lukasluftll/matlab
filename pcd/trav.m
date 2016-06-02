@@ -50,7 +50,7 @@ for argin = 1 : nargin
 end
 
 % Change the volume vector so it includes the endpoints.
-vol(4:6) = vol(4:6) - repmat(realmin, 3, 1);
+vol(4:6) = vol(4:6) - eps(vol(4:6));
 
 %% Initialization phase: calculate index of point of support.
 % Compute the intersections of the ray with the grid volume.
@@ -68,7 +68,7 @@ end
 origin = origin + max(0, t(1)) * ray;
 
 % Calculate the index of the starting point.
-i(1,:) = floor((origin - vol(1:3))' ./ edge + ones(1, 3));
+i(1,:) = floor((origin - vol(1:3))' / edge + ones(1, 3));
 
 % Compute the bounds of the starting voxel.
 voxel = [i(end,:) - ones(1, 3), i(end,:)]' * edge + [vol(1:3); vol(1:3)];
@@ -88,11 +88,11 @@ while true
         + [1; 1] * sign(ray(stepCoord)) * edge;
     
     % Check if the new voxel still belongs to the grid volume.
-    if all(voxel(1:3) <= vol(4:6)) && all(voxel(4:6) >= vol(1:3));
-        % Add the index of the voxel to the return matrix.
-        i(end+1,:) = i(end,:); %#ok<AGROW>
-        i(end,stepCoord) = i(end,stepCoord) + sign(ray(stepCoord));
-    else
+    if ~(all(voxel(1:3) <= vol(4:6)) && all(voxel(4:6) > vol(1:3)))
         return
     end
+    
+    % Add the index of the voxel to the return matrix.
+    i(end+1,:) = i(end,:); %#ok<AGROW>
+    i(end,stepCoord) = i(end,stepCoord) + sign(ray(stepCoord));
 end
