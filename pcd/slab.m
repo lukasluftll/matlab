@@ -9,7 +9,10 @@ function [hit, t] = slab(support, ray, box)
 %   SUPPORT contains the coordinates of the ray's point of support.
 %   RAY indicates the direction of the ray. 
 %   BOX is a 6-element column vector [xmin; ymin; zmin; xmax; ymax; zmax]
-%   describing the limits of the box, including the endpoints.
+%   describing the limits of the box, including the minima, excluding the
+%   maxima. That means a point [x, y, z] lies inside the box if it 
+%   satisfies the inequalities:
+%      (xmin <= x < ymax) && (ymin <= y < ymax) && (zmin <= z < zmax)
 %
 %   In case you want to compute N intersections of different rays with 
 %   different boxes, SUPPORT and RAY are 3xN matrices.
@@ -26,34 +29,31 @@ function [hit, t] = slab(support, ray, box)
 %   box. 
 %   If the N-th ray does not intersect with the N-th box, T(:,N) is NaN.
 %
-%   SLAB on connected volumes
-%   -------------------------
-%   In case SLAB is used on a connected volume of boxes, neighboring box
-%   faces should be EPS(VERTEX) apart. Otherwise, the neigboring faces of 
-%   the two boxes overlap, and rays that travel on the joint face intersect 
-%   with both boxes at the same time.
-%
 %   Example:
 %      support = zeros(3, 1);
 %      ray = [1; 1; 1];
 %      box = [[2; 2; 2]; [3; 3; 3] - eps([3; 3; 3])];
 %      [hit, t] = slab(support, ray, box)
 %
-%   See also NAN, EPS.
+%   See also NAN, TRAV.
 
 % Copyright 2016 Alexander Schaefer
 %
 % SLAB implements the raycasting algorithm proposed by Smits:
-% Brian Smits. Efficiency issues for ray tracing. 
+% Brian Smits. Efficiency issues for ray tracing.
 % Journal of Graphics Tools, 3(2):1-14, 1998.
 
 % Compute the line parameters of the intersections of the ray and the 
 % infinite planes that confine the box.
 t = (box - [support; support]) ./ [ray; ray];
-t = sort(reshape(t, 3, 2, []), 2);
+
+% Consider that rays have already left the box when they intersect with
+% the planes describing the maximum coordinates of the box.
+t(4:6,:) = t(4:6,:) - eps(t(4:6,:)) .* sign(ray);
 
 % Compute the parameters corresponding to the points where the ray enters 
 % and leaves the box.
+t = sort(reshape(t, 3, 2, []), 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
 % Check whether some part of the ray remains after computing the entry 
