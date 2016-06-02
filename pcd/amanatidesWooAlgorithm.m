@@ -33,7 +33,7 @@ function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
     [flag, tmin] = rayBoxIntersection(origin, direction, grid3D.minBound, grid3D.maxBound);
 
     if (flag==0)
-        disp('\n The ray does not intersect the grid');
+        disp('The ray does not intersect with the grid');
     else
         if (tmin<0)
             tmin = 0;
