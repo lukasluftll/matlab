@@ -1,4 +1,4 @@
-function i = trav(origin, ray, vol, edge)
+function [i, t] = trav(origin, ray, vol, edge)
 % TRAV Ray tracing in voxel grid.
 %   I = TRAV(ORIGIN, RAY, VOL, EDGE) returns the indices of all voxels that 
 %   a ray traverses on its way from its starting point to the border of the 
@@ -14,7 +14,13 @@ function i = trav(origin, ray, vol, edge)
 %   the axes.
 %   EDGE is a scalar that defines the edge length of all voxels.
 %   I is a Mx3 matrix whose rows contain the x, y, and z indices of the
-%   voxels the ray traverses.
+%   voxels the ray traverses, with M being the number of all voxels
+%   traversed.
+%
+%   [I, T] = TRAV(ORIGIN, RAY, VOL, EDGE) also returns the M-element 
+%   column vector T. Its m-th row contains the line parameter that encodes
+%   the first point of the ray that lies outside the m-th voxel. This 
+%   point can be reconstructed by computing ORIGIN + T(m) * RAY.
 %
 %   Space spanned by one voxel
 %   --------------------------
@@ -54,23 +60,25 @@ for argin = 1 : nargin
     end
 end
 
-% Change the volume vector so it includes the endpoints.
+% Change the volume endpoints so that they lie within the voxel volume.
 vol(4:6) = vol(4:6) - eps(vol(4:6));
 
 %% Initialization phase: calculate index of point of support.
+% Initialize return values.
+i = []; t = [];
+
 % Compute the intersections of the ray with the grid volume.
-[hit, t] = slab(origin, ray, vol);
+[hit, tvol] = slab(origin, ray, vol);
 
 % If the ray does not intersect with the volume, return an empty index 
 % matrix.
-if ~hit || t(2) < 0
-    i = [];
+if ~hit || tvol(2) < 0
     return
 end
 
 % If the starting point lies outside the volume, move it towards the 
 % volume until it touches its surface.
-origin = origin + max(0, t(1)) * ray;
+origin = origin + max(0, tvol(1)) * ray;
 
 % Calculate the index of the starting point.
 i(1,:) = floor((origin - vol(1:3))' / edge + ones(1, 3));
@@ -83,16 +91,20 @@ voxel = [i(end,:) - ones(1, 3), i(end,:)]' * edge + [vol(1:3); vol(1:3)];
 while true
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the voxel.
-    t = (voxel - [origin; origin]) ./ [ray; ray];
+    tvox = (voxel - [origin; origin]) ./ [ray; ray];
+    
+    % Compute the line parameter of the point where the ray leaves the
+    % voxel.
+    tvox = max(reshape(tvox, 3, 2), [], 2);
+    t = [t; min(tvox)]; %#ok<AGROW>
     
     % Determine the index step into the next voxel.
-    tmax = max(reshape(t, 3, 2), [], 2);
-    iStep = (tmax == min(tmax)) .* sign(ray);
+    iStep = (tvox == t(end)) .* sign(ray);
             
-    % Compute the bounds of the voxel we are stepping into.
+    % Compute the bounds of the next voxel.
     voxel = voxel + [iStep; iStep] * edge;
     
-    % Check if the new voxel still belongs to the grid volume.
+    % Check if the next voxel still belongs to the grid volume.
     if ~(all(voxel(1:3) <= vol(4:6)) && all(voxel(4:6) > vol(1:3)))
         return
     end
