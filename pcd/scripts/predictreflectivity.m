@@ -134,9 +134,14 @@ for x = limits(1,1) : res : limits(1,2)
                 vgrid.nz = diff(limits(3,:));
                 vgrid.minBound = limits(:,1);
                 vgrid.maxBound = limits(:,2);
-                amanatidesWooAlgorithm(origin, direction, vgrid, false) ...
+                
+                d = amanatidesWooAlgorithm(origin, direction, vgrid, false) ...
                     - trav(origin, direction, ...
                         [vgrid.minBound; vgrid.maxBound], 1)
+                
+                if sum(sum(abs(d))) ~= 0
+                    error('Difference between amanatidesWooAlgorithm and trav.');
+                end
                 
             end
             
