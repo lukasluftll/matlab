@@ -29,17 +29,17 @@ function [hit, t] = slab(support, ray, box)
 %   SLAB on connected volumes
 %   -------------------------
 %   In case SLAB is used on a connected volume of boxes, neighboring box
-%   faces should be REALMIN apart. Otherwise, the neigboring faces of the 
-%   two boxes overlap, and rays that travel on the joint face intersect 
+%   faces should be EPS(VERTEX) apart. Otherwise, the neigboring faces of 
+%   the two boxes overlap, and rays that travel on the joint face intersect 
 %   with both boxes at the same time.
 %
 %   Example:
 %      support = zeros(3, 1);
-%      ray = ones(3, 1);
-%      box = [2*ones(3, 1); 3*ones(3, 1)];
+%      ray = [1; 1; 1];
+%      box = [[2; 2; 2]; [3; 3; 3] - eps([3; 3; 3])];
 %      [hit, t] = slab(support, ray, box)
 %
-%   See also NAN, REALMIN.
+%   See also NAN, EPS.
 
 % Copyright 2016 Alexander Schaefer
 %
