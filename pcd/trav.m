@@ -80,12 +80,12 @@ while true
     % infinite planes that confine the voxel.
     t = (voxel - [origin; origin]) ./ [ray; ray];
     
-    % Determine the coordinate along which to step into the next voxel.
-    [~, stepCoord] = min(max(reshape(t, 3, 2), [], 2));
+    % Determine the index step into the next voxel.
+    tmax = max(reshape(t, 3, 2), [], 2);
+    iStep = (tmax == min(tmax)) .* sign(ray);
             
     % Compute the bounds of the voxel we are stepping into.
-    voxel([stepCoord; stepCoord+3]) = voxel([stepCoord; stepCoord+3]) ...
-        + [1; 1] * sign(ray(stepCoord)) * edge;
+    voxel = voxel + [iStep; iStep] * edge;
     
     % Check if the new voxel still belongs to the grid volume.
     if ~(all(voxel(1:3) <= vol(4:6)) && all(voxel(4:6) > vol(1:3)))
@@ -93,6 +93,5 @@ while true
     end
     
     % Add the index of the voxel to the return matrix.
-    i(end+1,:) = i(end,:); %#ok<AGROW>
-    i(end,stepCoord) = i(end,stepCoord) + sign(ray(stepCoord));
+    i(end+1,:) = i(end,:) + iStep'; %#ok<AGROW>
 end
