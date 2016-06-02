@@ -29,11 +29,15 @@ function i = trav(origin, ray, vol, edge)
 
 % Copyright 2016 Alexander Schaefer
 %
-% TRAV implements the voxel traversal algorithm proposed by Amanatides and 
-% Woo:
+% TRAV is an advancement on the voxel traversal algorithm proposed by 
+% Amanatides and Woo: 
 % John Amanatides and Andrew Woo. 
 % A Fast Voxel Traversal Algorithm for Ray Tracing. 
 % Eurographics 1987, pp. 3-10, 1987.
+%
+% Instead on limiting the index increment from voxel to voxel to one
+% dimension (for example [0 1 0]), this implementation also allows
+% steps in two or three dimensions (like [-1 0 1]).
 
 %% Validate input.
 % Make sure the user specified enough input arguments.
