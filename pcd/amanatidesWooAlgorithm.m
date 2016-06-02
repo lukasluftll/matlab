@@ -104,14 +104,16 @@ function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
 
             if slab(origin, direction, [vmin, vmax]')
                 i = [i; [x y z]]; %#ok<AGROW>
+    
+                if (verbose)
+                    fprintf('\nIntersection: voxel = [%d %d %d]', [x y z]);
 
-                fprintf('\nIntersection: voxel = [%d %d %d]', [x y z]);
+                    smallBoxVertices = [vmax(1) vmin(2) vmin(3); vmax(1) vmax(2) vmin(3); vmin(1) vmax(2) vmin(3); vmin(1) vmax(2) vmax(3); vmin(1) vmin(2) vmax(3); vmax(1) vmin(2) vmax(3); vmin; vmax ];
+                    smallBoxFaces    = [1 2 3 7; 1 2 8 6; 1 6 5 7; 7 5 4 3; 2 8 4 3; 8 6 5 4];
 
-                smallBoxVertices = [vmax(1) vmin(2) vmin(3); vmax(1) vmax(2) vmin(3); vmin(1) vmax(2) vmin(3); vmin(1) vmax(2) vmax(3); vmin(1) vmin(2) vmax(3); vmax(1) vmin(2) vmax(3); vmin; vmax ];
-                smallBoxFaces    = [1 2 3 7; 1 2 8 6; 1 6 5 7; 7 5 4 3; 2 8 4 3; 8 6 5 4];
-
-                h = patch('Vertices', smallBoxVertices, 'Faces', smallBoxFaces, 'FaceColor', 'blue', 'EdgeColor', 'white');
-                set(h,'FaceAlpha',0.2);
+                    h = patch('Vertices', smallBoxVertices, 'Faces', smallBoxFaces, 'FaceColor', 'blue', 'EdgeColor', 'white');
+                    set(h,'FaceAlpha',0.2);
+                end
             end               
             
             % ---------------------------------------------------------- %
