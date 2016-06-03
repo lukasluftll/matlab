@@ -29,9 +29,9 @@ function [i, t] = trav(origin, ray, vol, res)
 %   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
 %
 %   Example:
-%      origin = [-3, 1, 3];
-%      ray = [0, 0, -1];
-%      vol = [-10, -10, -10, 10, 10, 10];
+%      origin = [5, 2, 2];
+%      ray = [-1, 0, 0];
+%      vol = [-2, -2, -2, 2, 2, 2];
 %      [i, t] = trav(origin, ray, vol, 1)
 %
 %   See also SLAB.
@@ -68,7 +68,8 @@ reshape(sort([vol(1:3), vol(4:6)], 2), 6, 1);
 
 %% Initialization phase: calculate index of point of support.
 % Initialize return values.
-i = []; t = [];
+i = []; 
+t = [];
 
 % Compute the intersections of the ray with the grid volume.
 [hit, tvol] = slab(origin, ray, vol);
@@ -82,6 +83,7 @@ end
 % If the starting point lies outside the volume, move it towards the 
 % volume until it touches its surface.
 origin = origin + max(0, tvol(1)) * ray;
+origin = origin - (origin == vol(4:6)) .* eps(origin);
 
 % Calculate the index of the starting point.
 i(1,:) = floor((origin - vol(1:3))' / res + ones(1, 3));
