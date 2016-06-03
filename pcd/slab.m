@@ -22,12 +22,11 @@ function [hit, t] = slab(support, ray, box)
 %   BOX is a Nx6 matrix whose rows describe the limits of each box.
 %   HIT is an N-element logical row vector. 
 %
-%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the Nx2 matrix T. 
-%   SUPPORT(N,:) + T(N,1)*RAY(N,:) is the coordinate of the point where the 
-%   N-th ray enters the N-th box;
-%   SUPPORT(N,:) + T(N,2)*RAY(N,:) is the point where the ray leaves the 
-%   box. 
-%   If the N-th ray does not intersect with the N-th box, T(N,:) is NaN.
+%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T. 
+%   SUPPORT(N,:) + T(1,N)*RAY(N,:) is the coordinate of the point where the 
+%   N-th ray enters the N-th box; SUPPORT(N,:) + T(2,N)*RAY(N,:) is the 
+%   point where the ray leaves the box. 
+%   If the N-th ray does not intersect with the N-th box, T(:,N) is NaN.
 %
 %   Example for one ray and one box:
 %      support = zeros(1, 3);
@@ -38,7 +37,7 @@ function [hit, t] = slab(support, ray, box)
 %   Example for multiple rays and multiple boxes:
 %      support = zeros(2, 3);
 %      ray = [1, 1, 1; 0, 1, 0];
-%      box = [2, 2, 2, 3, 4, 5; -10, -10, -10, 15, 20, 11];
+%      box = [2, 2, 2, 3, 4, 5; 10, 10, 10, 15, 20, 11];
 %      [hit, t] = slab(support, ray, box)
 %
 %   See also NAN, TRAV.
