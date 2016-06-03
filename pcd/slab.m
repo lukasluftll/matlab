@@ -29,10 +29,16 @@ function [hit, t] = slab(support, ray, box)
 %   box. 
 %   If the N-th ray does not intersect with the N-th box, T(:,N) is NaN.
 %
-%   Example:
+%   Example for one ray and one box:
 %      support = zeros(3, 1);
 %      ray = [1; 1; 1];
-%      box = [[2; 2; 2]; [3; 3; 3] - eps([3; 3; 3])];
+%      box = [2; 2; 2; 3; 4; 5];
+%      [hit, t] = slab(support, ray, box)
+%   
+%   Example for multiple rays and multiple boxes:
+%      support = zeros(3, 2);
+%      ray = [[1; 1; 1], [0; 1; 0];
+%      box = [[2; 2; 2; 3; 4; 5], [-10; -10; -10; 15; 20; 11]];
 %      [hit, t] = slab(support, ray, box)
 %
 %   See also NAN, TRAV.
