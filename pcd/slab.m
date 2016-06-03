@@ -75,7 +75,7 @@ t = (box - [support, support]) ./ [ray, ray];
 % Compute the parameters corresponding to the points where the rays enter 
 % and leave the box.
 t = reshape(t', 3, 2, []);
-t(repmat(any(isnan(t), 2), 1, 2)) = [NaN, NaN];
+t(repmat(any(isnan(t), 2), 1, 2)) = NaN;
 t = sort(t, 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
