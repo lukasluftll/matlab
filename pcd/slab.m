@@ -22,11 +22,13 @@ function [hit, t] = slab(support, ray, box)
 %   BOX is a Nx6 matrix whose rows describe the limits of each box.
 %   HIT is an N-element logical row vector. 
 %
-%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T. 
-%   SUPPORT(N,:) + T(1,N)*RAY(N,:) is the coordinate of the point where the 
-%   N-th ray enters the N-th box; SUPPORT(N,:) + T(2,N)*RAY(N,:) is the 
-%   point where the ray leaves the box. 
-%   If the N-th ray does not intersect with the N-th box, T(:,N) is NaN.
+%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T 
+%   containing the line parameters that encode where the rays enter and 
+%   leave the boxes. SUPPORT(n,:) + T(1,n)*RAY(n,:) is the coordinate of 
+%   the point where the n-th ray enters the n-th box; 
+%   SUPPORT(n,:) + T(2,n)*RAY(n,:) is the first point on the ray after 
+%   the box. 
+%   If the ray does not intersect with the N-th box, T(:,n) is NaN.
 %
 %   Example for one ray and one box:
 %      support = zeros(1, 3);
@@ -36,8 +38,8 @@ function [hit, t] = slab(support, ray, box)
 %   
 %   Example for multiple rays and multiple boxes:
 %      support = zeros(2, 3);
-%      ray = [1, 1, 1; 0, 1, 0];
-%      box = [2, 2, 2, 3, 4, 5; 10, 10, 10, 15, 20, 11];
+%      ray = [1, 0, 1; 0, 1, 0];
+%      box = [1, 0, 0, 2, 1, 1; 10, 10, 10, 15, 20, 11];
 %      [hit, t] = slab(support, ray, box)
 %
 %   See also NAN, TRAV.
@@ -62,28 +64,31 @@ if size(support, 1) ~= size(ray, 1) || size(support, 1) ~= size(box, 1)
     error('Input argument column lengths must be equal.')
 end
 
+% Make sure the box limits are sorted.
+reshape(sort([box(1:3), box(4:6)], 2), 6, 1);
+
 %% Compute intersection.
 % Compute the line parameters of the intersections of the ray and the 
 % infinite planes that confine the box.
 t = (box - [support, support]) ./ [ray, ray];
 
-% Shorten the ray parameters by an infinite amount to account for the fact
-% that the rays have already left the box when they intersect with
-% the planes describing the maximum coordinates of the box.
-epsilon = -eps(t(:,4:6)) .* sign(ray);
-epsilon(isnan(epsilon)) = 0;
-t(:,4:6) = t(:,4:6) + epsilon;
-
-% Compute the parameters corresponding to the points where the ray enters 
-% and leaves the box.
-t = sort(reshape(t', 3, 2, []), 2);
+% Compute the parameters corresponding to the points where the rays enter 
+% and leave the box.
+t = reshape(t', 3, 2, []);
+t(repmat(any(isnan(t), 2), 1, 2)) = [NaN, NaN];
+t = sort(t, 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
-% Check whether some part of the ray remains after computing the entry 
+% Check whether some parts of the rays remain after computing the entry 
 % and leaving point.
-hit = diff(t) >= 0;
+hit = diff(t) > 0;
+touch = diff(t) == 0;
+contact = support + repmat(t(1,:), 3, 1)' .* ray;
+boxmax = box(:, 4:6);
+icomp = repmat(touch, 3, 1)';
+hit(touch) = ~any(reshape(contact(icomp) == boxmax(icomp), 3, []));
 
-% In case the ray and the box do not intersect, set t to NaN.
+% In case a ray and a box do not intersect, set t to NaN.
 t([~hit; ~hit]) = NaN;
 
 end
