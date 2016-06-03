@@ -102,7 +102,7 @@ function i = amanatidesWooAlgorithm(origin, direction, grid3D, verbose)
             vmin = (grid3D.minBound + t1.*boxSize)';
             vmax = (grid3D.minBound + t2.*boxSize)';
 
-            if slab(origin, direction, [vmin, vmax]')
+            if slab(origin', direction', [vmin, vmax])
                 i = [i; [x y z]]; %#ok<AGROW>
     
                 if (verbose)

@@ -100,9 +100,7 @@ for x = limits(1,1) : res : limits(1,2)
             [dirX, dirY, dirZ] = sph2cart(permbeams(:,1), ...
                 permbeams(:,2), permbeams(:,3));
             for i = 1 : size(permbeams, 1)
-                [hit, t] = slab(zeros(3, 1), ...
-                    [dirX(i); dirY(i); dirZ(i)], ...
-                    [voxel(1:3)'; voxel(4:6)' - eps(voxel(4:6)')]);
+                [hit, t] = slab(zeros(1,3), [dirX(i), dirY(i), dirZ(i)], reshape(voxel, 1, []));
                 
                     vmin = voxel(:,1);
                     vmax = voxel(:,2);
