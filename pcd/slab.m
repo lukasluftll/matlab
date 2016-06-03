@@ -51,7 +51,17 @@ function [hit, t] = slab(support, ray, box)
 
 %% Validate input.
 % Check the number of input arguments.
+narginchk(3, 3);
 
+% Check if the input arguments have the expected numbers of columns.
+if size(support, 2) ~= 3 || size(ray, 2) ~= 3 || size(box, 2) ~= 6
+    error('Input arguments have incorrect row lengths.')
+end
+
+% Check if the numbers of rows of the input arguments match.
+if size(support, 1) ~= size(ray, 1) || size(support, 1) ~= size(box, 1)
+    error('Input argument column lengths must be equal.')
+end
 
 %% Compute intersection.
 % Compute the line parameters of the intersections of the ray and the 
