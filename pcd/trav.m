@@ -1,38 +1,37 @@
-function [i, t] = trav(origin, ray, vol, edge)
+function [i, t] = trav(origin, ray, vol, res)
 % TRAV Ray tracing in voxel grid.
-%   I = TRAV(ORIGIN, RAY, VOL, EDGE) returns the indices of all voxels that 
+%   I = TRAV(ORIGIN, RAY, VOL, RES) returns the indices of all voxels that 
 %   a ray traverses on its way from its starting point to the border of the 
 %   axis-aligned grid.
 %
-%   ORIGIN is a 3-element column vector that contains the coordinates of
+%   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
-%   RAY is a 3-element column vector indicating the direction of the ray.
-%   VOL is a 6-element column vector [xmin; ymin; zmin; xmax; ymax; zmax]
+%   RAY is a 3-element row vector indicating the direction of the ray.
+%   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
 %   that describes the limits of the grid volume, including the minima, 
 %   excluding the maxima. The voxels are axis-aligned. This means that the
-%   the edges of the voxels closest to the coordinate axes coincide with 
+%   edges of the voxels closest to the coordinate axes coincide with 
 %   the axes.
-%   EDGE is a scalar that defines the edge length of all voxels.
-%   I is a Mx3 matrix whose rows contain the x, y, and z indices of the
-%   voxels the ray traverses, with M being the number of all voxels
+%   RES is a scalar that defines the edge length of all voxels.
+%   I is an Mx3 matrix whose rows contain the x, y, and z indices of the
+%   voxels that the ray traverses, with M being the number of all voxels
 %   traversed.
 %
-%   [I, T] = TRAV(ORIGIN, RAY, VOL, EDGE) also returns the M-element 
-%   column vector T. Its m-th row contains the line parameter that encodes
-%   the intersection of the ray with the joint face of the m-th and the 
-%   m+1st voxel. This point can be reconstructed by computing 
-%   ORIGIN + T(m) * RAY.
+%   [I, T] = TRAV(ORIGIN, RAY, VOL, RES) also returns the M-element 
+%   column vector T. It contains the line parameters that encode the 
+%   intersections of the ray with the planes that separate the voxels. 
+%   The m-th intersection is computed as ORIGIN + T(m)*RAY.
 %
 %   Space spanned by one voxel
 %   --------------------------
 %   A voxel contains all points [x, y, z] that satisfy the inequality:
 %      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
-%   with vxmin, vxmax, vymin, vymax etc. being the limits of the voxel.
+%   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
 %
-%   Example
-%      origin = [-3; 1; 3];
-%      ray = [0; 0; -1];
-%      vol = [-10; -10; -10; 10; 10; 10];
+%   Example:
+%      origin = [-3, 1, 3];
+%      ray = [0, 0, -1];
+%      vol = [-10, -10, -10, 10, 10, 10];
 %      [i, t] = trav(origin, ray, vol, 1)
 %
 %   See also SLAB.
@@ -46,16 +45,16 @@ function [i, t] = trav(origin, ray, vol, edge)
 % Eurographics 1987, pp. 3-10, 1987.
 %
 % Instead on limiting the index increment from voxel to voxel to one
-% dimension (for example [0 1 0]), this implementation also allows
-% steps in two or three dimensions (like [-1 0 1]).
+% dimension (for example [0, 1, 0]), this implementation also allows
+% steps in two or three dimensions (like [-1, 0, 1]).
 
 %% Validate input.
 % Make sure the user specified enough input arguments.
 narginchk(4, 4);
 
 % Check if the arguments have the expected sizes.
-inputnames = {'origin', 'ray', 'vol', 'edge'};
-expectedSize = [3, 1; 3, 1; 6, 1; 1, 1];
+inputnames = {'origin', 'ray', 'vol', 'res'};
+expectedSize = [1, 3; 1, 3; 1, 6; 1, 1];
 for argin = 1 : nargin
     if any(size(eval(inputnames{argin})) ~= expectedSize(argin,:))
         error([upper(inputnames{argin}), ' must be a ', ...
@@ -64,8 +63,8 @@ for argin = 1 : nargin
     end
 end
 
-% Change the volume endpoints so that they lie within the voxel volume.
-vol(4:6) = vol(4:6) - eps(vol(4:6));
+% Make sure the volume limits are sorted.
+reshape(sort([vol(1:3), vol(4:6)], 2), 6, 1);
 
 %% Initialization phase: calculate index of point of support.
 % Initialize return values.
@@ -85,10 +84,10 @@ end
 origin = origin + max(0, tvol(1)) * ray;
 
 % Calculate the index of the starting point.
-i(1,:) = floor((origin - vol(1:3))' / edge + ones(1, 3));
+i(1,:) = floor((origin - vol(1:3))' / res + ones(1, 3));
 
 % Compute the bounds of the starting voxel.
-voxel = [i(end,:) - ones(1, 3), i(end,:)]' * edge + [vol(1:3); vol(1:3)];
+voxel = [i(end,:) - ones(1, 3), i(end,:)]' * res + [vol(1:3); vol(1:3)];
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
@@ -97,8 +96,8 @@ while true
     % infinite planes that confine the voxel.
     tvox = (voxel - [origin; origin]) ./ [ray; ray];
     
-    % Compute the line parameter of the point where the ray leaves the
-    % voxel.
+    % Compute the line parameter of the intersection point of the ray with
+    % the joint face of the current and the next voxel.
     tvox = max(reshape(tvox, 3, 2), [], 2);
     t = [t; min(tvox)]; %#ok<AGROW>
     
@@ -106,7 +105,7 @@ while true
     iStep = (tvox == t(end)) .* sign(ray);
             
     % Compute the bounds of the next voxel.
-    voxel = voxel + [iStep; iStep] * edge;
+    voxel = voxel + [iStep; iStep] * res;
     
     % Check if the next voxel still belongs to the grid volume.
     if ~(all(voxel(1:3) <= vol(4:6)) && all(voxel(4:6) > vol(1:3)))
