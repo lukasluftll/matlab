@@ -74,10 +74,6 @@ reshape(sort([box(1:3), box(4:6)], 2), 6, 1);
 % infinite planes that confine the box.
 t = (box - [support, support]) ./ [ray, ray];
 
-% Rays that lie inside the planes that confine the box to the maximum 
-% cannot intersect with the box.
-hit = t(2
-
 % Compute the parameters corresponding to the points where the rays enter 
 % and leave the box.
 t = reshape(t', 3, 2, []);
