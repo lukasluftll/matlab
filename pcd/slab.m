@@ -24,10 +24,12 @@ function [hit, t] = slab(support, ray, box)
 %
 %   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T 
 %   containing the line parameters that encode where the rays enter and 
-%   leave the boxes. SUPPORT(n,:) + T(1,n)*RAY(n,:) is the coordinate of 
-%   the point where the n-th ray enters the n-th box; 
-%   SUPPORT(n,:) + T(2,n)*RAY(n,:) is the first point on the ray after 
-%   the box. 
+%   leave the boxes. 
+%   SUPPORT(n,:) + T(1,n)*RAY(n,:) is the point where the n-th ray 
+%   intersects with the minimum limits of the n-th box. 
+%   SUPPORT(n,:) + T(2,n)*RAY(n,:) is the point where the n-th ray 
+%   intersects with the maximum limits of the n-th box; this point does not
+%   belong to the box.
 %   If the ray does not intersect with the N-th box, T(:,n) is NaN.
 %
 %   Example for one ray and one box:
@@ -71,6 +73,10 @@ reshape(sort([box(1:3), box(4:6)], 2), 6, 1);
 % Compute the line parameters of the intersections of the ray and the 
 % infinite planes that confine the box.
 t = (box - [support, support]) ./ [ray, ray];
+
+% Rays that lie inside the planes that confine the box to the maximum 
+% cannot intersect with the box.
+hit = t(2
 
 % Compute the parameters corresponding to the points where the rays enter 
 % and leave the box.
