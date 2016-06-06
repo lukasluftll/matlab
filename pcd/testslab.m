@@ -1,4 +1,4 @@
-% Unit test for function slab.
+% Unit test for SLAB.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -47,15 +47,15 @@ assert(all(t == [55; 65]), paramsIncorrectExcpt.identifier, ...
     paramsIncorrectExcpt.message);
 
 %% Ray through edge outside box
-support = [1, 0, 1];
+support = [2, 0, 1];
 ray = [-1, 0, 0];
 box = [0, 0, 0, 1, 1, 1];
 [hit, t] = slab(support, ray, box);
 
 assert(hit == false, hitFalsePositiveExcpt.identifier, ...
     hitFalsePositiveExcpt.message);
-assert(all(t == [0; 1]), paramsIncorrectExcpt.identifier, ...
-    paramsIncorrectExcpt.message);
+assert(all(isnan(t)), paramsIncorrectExcpt.identifier, ...
+    paramsNotNanExcpt.message);
 
 %% Ray on surface inside box
 support = [-5, -5, -1];
@@ -78,3 +78,11 @@ assert(hit == false, hitFalseNegativeExcpt.identifier, ...
     hitFalseNegativeExcpt.message);
 assert(all(isnan(t)), paramsNotNanExcpt.identifier, ...
     paramsNotNanExcpt.message);
+
+% Intersection
+
+%% Multiple rays and boxes
+support = [2, 0, 1; 2, 0, 1];
+ray = [-1, 0, 0; -1, 0, 0];
+box = [0, 0, 0, 1, 1, 1; 0, 0, 0, 1, 1, 1];
+[hit, t] = slab(support, ray, box);
