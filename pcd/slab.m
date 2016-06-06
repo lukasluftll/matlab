@@ -71,31 +71,26 @@ reshape(sort([box(1:3), box(4:6)], 2), 6, 1);
 % Compute the line parameters of the intersections of the ray and the 
 % infinite planes that confine the box.
 t = (box - [support, support]) ./ [ray, ray];
-
-% Compute the parameters corresponding to the points where the rays enter 
-% and leave the box.
 t = reshape(t', 3, 2, []);
 
-hit = ~all([t(1,1,:)-t(2,1,:); t(2,1,:)-t(3,1,:); t(1,1,:)-t(3,1,:)]);
-hit = reshape(hit, 1, []);
+%% Check for intersection.
+% Check if the ray touches the intersection of at least two lower limit
+% planes.
+touch = ~all([t(1,1,:)-t(2,1,:); t(2,1,:)-t(3,1,:); t(1,1,:)-t(3,1,:)]);
 
-ts = t;
+% Check if the ray lies inside an upper limit plane.
+insideUpper = any(isnan(t(:,2,:)));
+
+% Compute the parameters corresponding to the points where the ray enters 
+% and leaves the box.
 t(repmat(any(isnan(t), 2), 1, 2)) = NaN;
 t = sort(t, 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
-%% Check for intersection.
-% Intersection means the ray travels some distance inside the box.
-hit = diff(t) > 0;
-
-% If the ray touches an edge or a corner of the box, this can only be 
-% counted as a hit if no coordinate of the intersection represents an upper
-% limit of the box.
-touch = diff(t) == 0;
-contactPoint = support + repmat(t(1,:), 3, 1)' .* ray;
-boxmax = box(:, 4:6);
-icomp = repmat(touch, 3, 1)';
-hit(touch) = ~any(reshape(contactPoint(icomp) == boxmax(icomp), 3, []));
+% The ray intersects with the box if it travels some distance through the 
+% box, not on an upper limit plane, or if it touches an lower limit edge.
+hit = (diff(t) > 0 & ~insideUpper) | touch;
+hit = reshape(hit, 1, []);
 
 % In case there is no intersection, set t to NaN.
 t([~hit; ~hit]) = NaN;
