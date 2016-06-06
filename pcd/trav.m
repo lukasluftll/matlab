@@ -63,8 +63,10 @@ for argin = 1 : nargin
     end
 end
 
-% Make sure the volume limits are sorted.
-vol = reshape(sort(reshape(vol', 3, 2), 2), 6, [])';
+% Check the volume limits.
+if any(diff(reshape(vol', 3, 2), 1, 2) < zeros(3, 2))
+    error('Invalid volume limits.')
+end
 
 %% Initialization phase: calculate index of point of support.
 % Initialize return values.
