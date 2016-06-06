@@ -71,7 +71,12 @@ if any(diff(reshape(vol', 3, 2), 1, 2) < 0)
     error('Invalid volume limits.')
 end
 
-%% Initialization phase: calculate index of point of support.
+% Check the resolution.
+if res <= 0
+    error('Resolution must be positive.');
+end
+
+%% Initialization phase: calculate index of entry point.
 % Initialize return values.
 i = []; t = [];
 
@@ -84,27 +89,25 @@ if tvol(2) < 0
     return
 end
 
-% Compute the line parameter of the intersection of the ray with the grid.
-if tvol(1) >= 0
-    t = tvol(1);
-end
+% Compute the line parameter corresponding to the entry point to the grid.
+t = max([0, tvol(1)]);
 
 % Calculate the index of the starting point.
-i(1,:) = floor(origin + t*ray - vol(1:3))' / res + ones(1, 3);
+i = floor(origin + t*ray - vol(1:3)) / res + ones(1, 3);
 
 % Compute the bounds of the starting voxel.
-voxel = [i(end,:) - ones(1, 3), i(end,:)]' * res + [vol(1:3); vol(1:3)];
+voxel = [i(end,:) - ones(1, 3); i(end,:)] * res + [vol(1:3); vol(1:3)];
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
 while true
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the voxel.
-    tvox = (voxel - repmat(origin + t(end)*ray, 1, 2)) ./ [ray; ray];
+    tvox = (voxel - repmat(origin + t(end)*ray, 2, 1)) ./ [ray; ray];
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
-    tvox = max(reshape(tvox, 3, 2), [], 2);
+    tvox = sort(tvox);
     t = [t; min(tvox)]; %#ok<AGROW>
     
     % Determine the index step into the next voxel.
@@ -121,3 +124,6 @@ while true
     % Add the index of the voxel to the return matrix.
     i(end+1,:) = i(end,:) + iStep'; %#ok<AGROW>
 end
+
+% Check if the first indices point to a voxel inside the grid.
+%t(t==0) = NaN;
