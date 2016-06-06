@@ -74,9 +74,9 @@ t = (box - [support, support]) ./ [ray, ray];
 t = reshape(t', 3, 2, []);
 
 %% Check for intersection.
-% Check if the ray touches the intersection of at least two lower limit
-% planes.
-touch = any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
+% Check if the ray passes through the intersection of at least two 
+% lower limit planes.
+throughEdge = any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
     t(2,1,:) == t(3,1,:) & t(2,1,:) ~= t(1,2,:); ...
     t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]);
 
@@ -90,8 +90,9 @@ t = sort(t, 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
 % The ray intersects with the box if it travels some distance through the 
-% box, not on an upper limit plane, or if it touches an lower limit edge.
-hit = (diff(t) > 0 & ~insideUpper) | touch;
+% box or if it passes through an lower limit edge, but it must not lie 
+% inside an upper limit plane.
+hit = (diff(t) > 0 | throughEdge) & ~insideUpper;
 hit = reshape(hit, 1, []);
 
 % In case there is no intersection, set t to NaN.
