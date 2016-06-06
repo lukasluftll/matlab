@@ -79,9 +79,10 @@ t = reshape(t', 3, 2, []);
 throughEdge = any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
     t(2,1,:) == t(3,1,:) & t(2,1,:) ~= t(1,2,:); ...
     t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]);
+throughEdge = reshape(throughEdge, 1, []);
 
 % Check if the ray lies inside an upper limit plane.
-insideUpper = any(isnan(t(:,2,:)));
+insideUpper = reshape(any(isnan(t(:,2,:))), 1, []);
 
 % Compute the parameters corresponding to the points where the ray enters 
 % and leaves the box.
