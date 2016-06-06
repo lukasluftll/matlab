@@ -20,15 +20,15 @@ function [hit, t] = slab(support, ray, box)
 %   support.
 %   The rows of RAY indicate the direction of each ray.
 %   BOX is a Nx6 matrix whose rows describe the limits of each box.
-%   HIT is an N-element logical row vector. 
+%   HIT is an N-element logical column vector. 
 %
-%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T 
+%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the Nx2 matrix T 
 %   containing the line parameters that encode where the rays intersect
 %   with the planes that confine the boxes.
-%   SUPPORT(n,:) + T(1,n)*RAY(n,:) is the point where the n-th ray enters
+%   SUPPORT(n,:) + T(n,1)*RAY(n,:) is the point where the n-th ray enters
 %   the n-th box.
-%   SUPPORT(n,:) + T(2,n)*RAY(n,:) is the leaving point.
-%   If the ray does not intersect with the N-th box, T(:,n) is NaN.
+%   SUPPORT(n,:) + T(n,2)*RAY(n,:) is the leaving point.
+%   If the ray does not intersect with the N-th box, T(n,:) is NaN.
 %
 %   Example for one ray and one box:
 %      support = zeros(1, 3);
@@ -78,18 +78,18 @@ t = reshape(t', 3, 2, []);
 %% Check for intersection.
 % Check if the ray passes through the intersection of at least two 
 % lower limit planes.
-throughEdge = reshape(any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
-    t(2,1,:) == t(3,1,:) & t(2,1,:) ~= t(1,2,:); ...
-    t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]), 1, []);
+throughEdge = reshape(any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:), ...
+    t(2,1,:) == t(3,1,:) & t(2,1,:) ~= t(1,2,:), ...
+    t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]), [], 1);
 
 % Check if the ray lies inside an upper limit plane.
-insideUpper = reshape(any(isnan(t(:,2,:))), 1, []);
+insideUpper = reshape(any(isnan(t(:,2,:))), [], 1);
 
 % Compute the line parameters corresponding to the points where the ray 
 % enters and leaves the box.
 t(repmat(any(isnan(t), 2), 1, 2)) = NaN;
 t = sort(t, 2);
-t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
+t = reshape([max(t(:,1,:)), min(t(:,2,:))], [], 2);
 
 % The ray intersects with the box if it travels some distance through the 
 % box or if it passes through a lower limit edge, but it must not lie 
@@ -97,6 +97,6 @@ t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 hit = (diff(t) > 0 | throughEdge) & ~insideUpper;
 
 % In case there is no intersection, set t to NaN.
-t([~hit; ~hit]) = NaN;
+t([~hit, ~hit]) = NaN;
 
 end
