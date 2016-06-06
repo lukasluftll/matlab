@@ -46,8 +46,7 @@ function [hit, t] = slab(support, ray, box)
 
 % Copyright 2016 Alexander Schaefer
 %
-% SLAB implements an augmented version of the raycasting algorithm proposed
-% by Smits:
+% SLAB implements and augments the raycasting algorithm proposed by Smits:
 % Brian Smits. Efficiency issues for ray tracing.
 % Journal of Graphics Tools, 3(2):1-14, 1998.
 
@@ -77,25 +76,23 @@ t = reshape(t', 3, 2, []);
 %% Check for intersection.
 % Check if the ray passes through the intersection of at least two 
 % lower limit planes.
-throughEdge = any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
+throughEdge = reshape(any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
     t(2,1,:) == t(3,1,:) & t(2,1,:) ~= t(1,2,:); ...
-    t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]);
-throughEdge = reshape(throughEdge, 1, []);
+    t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]), 1, []);
 
 % Check if the ray lies inside an upper limit plane.
 insideUpper = reshape(any(isnan(t(:,2,:))), 1, []);
 
-% Compute the parameters corresponding to the points where the ray enters 
-% and leaves the box.
+% Compute the line parameters corresponding to the points where the ray 
+% enters and leaves the box.
 t(repmat(any(isnan(t), 2), 1, 2)) = NaN;
 t = sort(t, 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
 
 % The ray intersects with the box if it travels some distance through the 
-% box or if it passes through an lower limit edge, but it must not lie 
+% box or if it passes through a lower limit edge, but it must not lie 
 % inside an upper limit plane.
 hit = (diff(t) > 0 | throughEdge) & ~insideUpper;
-hit = reshape(hit, 1, []);
 
 % In case there is no intersection, set t to NaN.
 t([~hit; ~hit]) = NaN;
