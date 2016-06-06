@@ -64,8 +64,10 @@ if size(support, 1) ~= size(ray, 1) || size(support, 1) ~= size(box, 1)
     error('Input argument column lengths must be equal.')
 end
 
-% Make sure the box limits are sorted.
-box = reshape(sort(reshape(box', 3, 2, []), 2), 6, [])';
+% Check the box limits.
+if any(any(diff(reshape(box', 3, 2, []), 1, 2)<zeros(3, 1, size(box, 1))))
+    error('Invalid box limits.')
+end
 
 %% Compute line parameters of intersection.
 % Compute the line parameters of the intersections of the ray and the 
