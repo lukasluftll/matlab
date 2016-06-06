@@ -46,7 +46,8 @@ function [hit, t] = slab(support, ray, box)
 
 % Copyright 2016 Alexander Schaefer
 %
-% SLAB implements the raycasting algorithm proposed by Smits:
+% SLAB implements an augmented version of the raycasting algorithm proposed
+% by Smits:
 % Brian Smits. Efficiency issues for ray tracing.
 % Journal of Graphics Tools, 3(2):1-14, 1998.
 
@@ -65,7 +66,7 @@ if size(support, 1) ~= size(ray, 1) || size(support, 1) ~= size(box, 1)
 end
 
 % Make sure the box limits are sorted.
-reshape(sort([box(1:3), box(4:6)], 2), 6, 1);
+box = reshape(sort(reshape(box', 3, 2, []), 2), 6, [])';
 
 %% Compute line parameters of intersection.
 % Compute the line parameters of the intersections of the ray and the 
