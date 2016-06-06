@@ -76,7 +76,9 @@ t = reshape(t', 3, 2, []);
 %% Check for intersection.
 % Check if the ray touches the intersection of at least two lower limit
 % planes.
-touch = ~all([t(1,1,:)-t(2,1,:); t(2,1,:)-t(3,1,:); t(1,1,:)-t(3,1,:)]);
+touch = any([t(1,1,:) == t(2,1,:) & t(1,1,:) ~= t(3,2,:); ...
+    t(2,1,:) == t(3,1,:) & t(2,1,:) ~= t(1,2,:); ...
+    t(1,1,:) == t(3,1,:) & t(1,1,:) ~= t(2,2,:)]);
 
 % Check if the ray lies inside an upper limit plane.
 insideUpper = any(isnan(t(:,2,:)));
