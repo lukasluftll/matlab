@@ -1,8 +1,8 @@
 function [i, t] = trav(origin, ray, vol, res)
 % TRAV Ray tracing in voxel grid.
 %   I = TRAV(ORIGIN, RAY, VOL, RES) returns the indices of all voxels that 
-%   a ray traverses on its way from its starting point to the border of the 
-%   axis-aligned grid.
+%   a semi-infinite ray traverses on its way from its starting point to the
+%   border of the axis-aligned grid.
 %
 %   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
@@ -83,7 +83,6 @@ end
 % If the starting point lies outside the volume, move it towards the 
 % volume until it touches its surface.
 origin = origin + max(0, tvol(1)) * ray;
-origin = origin - (origin == vol(4:6)) .* eps(origin);
 
 % Calculate the index of the starting point.
 i(1,:) = floor((origin - vol(1:3))' / res + ones(1, 3));
