@@ -64,7 +64,7 @@ for argin = 1 : nargin
 end
 
 % Make sure the volume limits are sorted.
-reshape(sort([vol(1:3), vol(4:6)], 2), 6, 1);
+vol = reshape(sort(reshape(vol', 3, 2), 2), 6, [])';
 
 %% Initialization phase: calculate index of point of support.
 % Initialize return values.
