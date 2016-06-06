@@ -23,13 +23,11 @@ function [hit, t] = slab(support, ray, box)
 %   HIT is an N-element logical row vector. 
 %
 %   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the 2xN matrix T 
-%   containing the line parameters that encode where the rays enter and 
-%   leave the boxes. 
-%   SUPPORT(n,:) + T(1,n)*RAY(n,:) is the point where the n-th ray 
-%   intersects with the minimum limits of the n-th box. 
-%   SUPPORT(n,:) + T(2,n)*RAY(n,:) is the point where the n-th ray 
-%   intersects with the maximum limits of the n-th box; this point does not
-%   belong to the box.
+%   containing the line parameters that encode where the rays intersect
+%   with the planes that confine the boxes.
+%   SUPPORT(n,:) + T(1,n)*RAY(n,:) is the point where the n-th ray enters
+%   the n-th box.
+%   SUPPORT(n,:) + T(2,n)*RAY(n,:) is the leaving point.
 %   If the ray does not intersect with the N-th box, T(:,n) is NaN.
 %
 %   Example for one ray and one box:
@@ -77,6 +75,11 @@ t = (box - [support, support]) ./ [ray, ray];
 % Compute the parameters corresponding to the points where the rays enter 
 % and leave the box.
 t = reshape(t', 3, 2, []);
+
+hit = ~all([t(1,1,:)-t(2,1,:); t(2,1,:)-t(3,1,:); t(1,1,:)-t(3,1,:)]);
+hit = reshape(hit, 1, []);
+
+ts = t;
 t(repmat(any(isnan(t), 2), 1, 2)) = NaN;
 t = sort(t, 2);
 t = reshape([max(t(:,1,:)), min(t(:,2,:))], 2, []);
