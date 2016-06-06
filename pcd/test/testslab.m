@@ -36,7 +36,7 @@ assert(all(isnan(t)), paramsNotNanExcpt.identifier, ...
     paramsNotNanExcpt.message);
 
 %% Ray through edge inside box
-support = [11, 5, 5];
+support = [-22, -44, 5];
 ray = [0, 0, -1];
 box = [-22, -44, -60, 11, 5, -50];
 [hit, t] = slab(support, ray, box);
