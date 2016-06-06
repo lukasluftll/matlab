@@ -22,10 +22,13 @@ function [i, t] = trav(origin, ray, vol, res)
 %   the ray starts, the last row corresponds to the voxel where the ray 
 %   leaves the grid.
 %
-%   [I, T] = TRAV(ORIGIN, RAY, VOL, RES) also returns the M-element 
+%   [I, T] = TRAV(ORIGIN, RAY, VOL, RES) also returns the M+1-element 
 %   column vector T. It contains the line parameters that encode the 
-%   intersections of the ray with the planes that separate the voxels. 
-%   The m-th intersection is computed as ORIGIN + T(m)*RAY.
+%   intersections of the ray with the planes that separate the voxels.
+%   The first element corresponds to the entry point into the first voxel;
+%   in case the ray starts inside a voxel, it is NaN. The transition point
+%   from the m-th to the m+1st voxel is computed ORIGIN + T(m+1)*RAY.
+%   The point where the ray leaves the volume is ORIGIN + T(end)*RAY.
 %
 %   Example:
 %      origin = [5, 2, 2];
@@ -33,7 +36,7 @@ function [i, t] = trav(origin, ray, vol, res)
 %      vol = [-2, -2, -2, 2, 2, 2];
 %      [i, t] = trav(origin, ray, vol, 1)
 %
-%   See also SLAB.
+%   See also SLAB, NAN, END.
 
 % Copyright 2016 Alexander Schaefer
 %
@@ -64,30 +67,30 @@ for argin = 1 : nargin
 end
 
 % Check the volume limits.
-if any(diff(reshape(vol', 3, 2), 1, 2) < zeros(3, 2))
+if any(diff(reshape(vol', 3, 2), 1, 2) < 0)
     error('Invalid volume limits.')
 end
 
 %% Initialization phase: calculate index of point of support.
 % Initialize return values.
-i = []; 
-t = [];
+i = []; t = [];
 
 % Compute the intersections of the ray with the grid volume.
-[hit, tvol] = slab(origin, ray, vol);
+[~, tvol] = slab(origin, ray, vol);
 
 % If the ray does not intersect with the volume, return an empty index 
 % matrix.
-if ~hit || tvol(2) < 0
+if tvol(2) < 0
     return
 end
 
-% If the starting point lies outside the volume, move it towards the 
-% volume until it touches its surface.
-origin = origin + max(0, tvol(1)) * ray;
+% Compute the line parameter of the intersection of the ray with the grid.
+if tvol(1) >= 0
+    t = tvol(1);
+end
 
 % Calculate the index of the starting point.
-i(1,:) = floor((origin - vol(1:3))' / res + ones(1, 3));
+i(1,:) = floor(origin + t*ray - vol(1:3))' / res + ones(1, 3);
 
 % Compute the bounds of the starting voxel.
 voxel = [i(end,:) - ones(1, 3), i(end,:)]' * res + [vol(1:3); vol(1:3)];
@@ -97,7 +100,7 @@ voxel = [i(end,:) - ones(1, 3), i(end,:)]' * res + [vol(1:3); vol(1:3)];
 while true
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the voxel.
-    tvox = (voxel - [origin; origin]) ./ [ray; ray];
+    tvox = (voxel - repmat(origin + t(end)*ray, 1, 2)) ./ [ray; ray];
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
