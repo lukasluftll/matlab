@@ -65,7 +65,7 @@ if size(support, 1) ~= size(ray, 1) || size(support, 1) ~= size(box, 1)
 end
 
 % Check the box limits.
-if any(any(diff(reshape(box', 3, 2, []), 1, 2)<zeros(3, 1, size(box, 1))))
+if any(any(diff(reshape(box', 3, 2, []), 1, 2) < 0))
     error('Invalid box limits.')
 end
 
