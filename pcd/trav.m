@@ -9,24 +9,23 @@ function [i, t] = trav(origin, ray, vol, res)
 %   RAY is a 3-element row vector indicating the direction of the ray.
 %   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
 %   that describes the limits of the grid volume, including the minima, 
-%   excluding the maxima. The voxels are axis-aligned. This means that the
-%   edges of the voxels closest to the coordinate axes coincide with 
-%   the axes.
+%   excluding the maxima. A voxel contains all points [x, y, z] that 
+%   satisfy the inequality:
+%      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
+%   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
+%   The voxels are axis-aligned. This means that the edges of the voxels 
+%   closest to the coordinate axes coincide with the axes.
 %   RES is a scalar that defines the edge length of all voxels.
 %   I is an Mx3 matrix whose rows contain the x, y, and z indices of the
 %   voxels that the ray traverses, with M being the number of all voxels
-%   traversed.
+%   traversed. I is ordered: The first row corresponds to the voxel where 
+%   the ray starts, the last row corresponds to the voxel where the ray 
+%   leaves the grid.
 %
 %   [I, T] = TRAV(ORIGIN, RAY, VOL, RES) also returns the M-element 
 %   column vector T. It contains the line parameters that encode the 
 %   intersections of the ray with the planes that separate the voxels. 
 %   The m-th intersection is computed as ORIGIN + T(m)*RAY.
-%
-%   Space spanned by one voxel
-%   --------------------------
-%   A voxel contains all points [x, y, z] that satisfy the inequality:
-%      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
-%   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
 %
 %   Example:
 %      origin = [5, 2, 2];
@@ -44,9 +43,10 @@ function [i, t] = trav(origin, ray, vol, res)
 % A Fast Voxel Traversal Algorithm for Ray Tracing. 
 % Eurographics 1987, pp. 3-10, 1987.
 %
-% Instead on limiting the index increment from voxel to voxel to one
-% dimension (for example [0, 1, 0]), this implementation also allows
-% steps in two or three dimensions (like [-1, 0, 1]).
+% As an advancement on the paper by Amanatides and Woo, this implementation
+% does not limit the index increment from voxel to voxel to one dimension
+% (for example [0, 1, 0]), but it also allows steps in two or three 
+% dimensions (like [-1, 0, 1] or [1, 1, 1]).
 
 %% Validate input.
 % Make sure the user specified enough input arguments.
