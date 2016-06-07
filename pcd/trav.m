@@ -111,7 +111,7 @@ while true
     % the joint face of the current and the next voxel.
     %tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = max(tvox);
-    t = [t; min(tvox)]; %#ok<AGROW>
+    t(end+1,1) = min(tvox); %#ok<AGROW>
     
     % Determine the index step into the next voxel.
     iStep = (tvox==t(end)) .* sign(ray);
@@ -130,8 +130,9 @@ end
 
 % If the first index is not part of the grid, remove it and the
 % corresponding line parameter.
-i(t(1)==t(2),:) = [];
-t(t(1)==t(2)) = [];
+if any(i(1,:) < ones(1,3) | i(1,:) > floor(vol(4:6)-floor(vol(1:3))))
+    i(1,:) = []; t(1) = [];
+end
 
 % If the ray starts inside the volume, set the first line parameter to NaN.
 t(t(1)==0) = NaN;
