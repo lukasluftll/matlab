@@ -95,7 +95,7 @@ t = max([0, tvol(1)]);
 % Calculate the index of the voxel corresponding to the starting point. 
 % This index lies outside the volume if the ray intersects with a maximum 
 % limit plane.
-i = floor(origin + t*ray - vol(1:3)) / res + 1;
+i = floor((origin + t*ray - vol(1:3)) / res) + 1;
 
 % Compute the bounds of the starting voxel.
 voxel = [vol(1:3); vol(1:3)] + [i-1; i] * res;
@@ -130,7 +130,7 @@ end
 
 % If the first index is not part of the grid, remove it and the
 % corresponding line parameter.
-if any(i(1,:) < ones(1,3) | i(1,:) > floor(vol(4:6)-floor(vol(1:3))))
+if any(i(1,:) < 1 | i(1,:) > floor(vol(4:6)/res - floor(vol(1:3)/res)))
     i(1,:) = []; t(1) = [];
 end
 
