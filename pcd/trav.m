@@ -107,22 +107,23 @@ while true
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
+    tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = sort(tvox);
-    t = [t; min(tvox)]; %#ok<AGROW>
+    t = [t; min(tvox(2,:))]; %#ok<AGROW>
     
     % Determine the index step into the next voxel.
-    iStep = (tvox == t(end)) .* sign(ray);
+    iStep = (tvox(2,:) == t(end)) .* sign(ray);
             
     % Compute the bounds of the next voxel.
     voxel = voxel + [iStep; iStep] * res;
     
     % Check if the next voxel still belongs to the grid volume.
-    if ~(all(voxel(1:3) <= vol(4:6)) && all(voxel(4:6) > vol(1:3)))
+    if any(voxel(1:3) > vol(4:6) | voxel(4:6) <= vol(1:3))
         return
     end
     
     % Add the index of the voxel to the return matrix.
-    i(end+1,:) = i(end,:) + iStep'; %#ok<AGROW>
+    i(end+1,:) = i(end,:) + iStep; %#ok<AGROW>
 end
 
 % Check if the first indices point to a voxel inside the grid.
