@@ -81,11 +81,11 @@ end
 i = []; t = [];
 
 % Compute the intersections of the ray with the grid volume.
-[~, tvol] = slab(origin, ray, vol);
+[hit, tvol] = slab(origin, ray, vol);
 
 % If the ray does not intersect with the volume, return an empty index 
 % matrix.
-if tvol(2) < 0
+if ~hit || tvol(2) < 0
     return
 end
 
@@ -105,7 +105,7 @@ voxel = [vol(1:3); vol(1:3)] + [i-1; i] * res;
 while true
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the voxel.
-    tvox = (voxel - repmat(origin + t(end)*ray, 2, 1)) ./ [ray; ray];
+    tvox = (voxel - repmat(origin, 2, 1)) ./ [ray; ray];
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
@@ -120,7 +120,7 @@ while true
     voxel = voxel + [iStep; iStep] * res;
     
     % Check if the next voxel still belongs to the grid volume.
-    if any(voxel(1:3) >= vol(4:6) | voxel(4:6) <= vol(1:3))
+    if any(voxel(1,:) >= vol(4:6) | voxel(2,:) <= vol(1:3))
         break
     end
     
