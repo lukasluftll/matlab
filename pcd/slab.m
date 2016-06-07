@@ -89,12 +89,12 @@ insideUpper = reshape(any(isnan(t(:,2,:))), [], 1);
 % enters and leaves the box.
 t(repmat(any(isnan(t), 2), 1, 2)) = NaN;
 t = sort(t, 2);
-t = reshape([max(t(:,1,:)), min(t(:,2,:))], [], 2);
+t = permute([max(t(:,1,:)), min(t(:,2,:))], [3, 2, 1]);
 
 % The ray intersects with the box if it travels some distance through the 
 % box or if it passes through a lower limit edge, but it must not lie 
 % inside an upper limit plane.
-hit = (diff(t) > 0 | throughEdge) & ~insideUpper;
+hit = (diff(t, [], 2) > 0 | throughEdge) & ~insideUpper;
 
 % In case there is no intersection, set t to NaN.
 t([~hit, ~hit]) = NaN;
