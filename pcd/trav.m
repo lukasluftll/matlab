@@ -92,11 +92,13 @@ end
 % Compute the line parameter corresponding to the entry point to the grid.
 t = max([0, tvol(1)]);
 
-% Calculate the index of the starting point.
-i = floor(origin + t*ray - vol(1:3)) / res + ones(1, 3);
+% Calculate the index of the voxel corresponding to the starting point. 
+% This index lies outside the volume if the ray intersects with a maximum 
+% limit plane.
+i = floor(origin + t*ray - vol(1:3)) / res + 1;
 
 % Compute the bounds of the starting voxel.
-voxel = [i(end,:) - ones(1, 3); i(end,:)] * res + [vol(1:3); vol(1:3)];
+voxel = [vol(1:3); vol(1:3)] + [i-1; i] * res;
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
@@ -107,24 +109,31 @@ while true
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
-    tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
-    tvox = sort(tvox);
-    t = [t; min(tvox(2,:))]; %#ok<AGROW>
+    %tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
+    tvox = max(tvox);
+    t = [t; min(tvox)]; %#ok<AGROW>
     
     % Determine the index step into the next voxel.
-    iStep = (tvox(2,:) == t(end)) .* sign(ray);
+    iStep = (tvox==t(end)) .* sign(ray);
             
     % Compute the bounds of the next voxel.
     voxel = voxel + [iStep; iStep] * res;
     
     % Check if the next voxel still belongs to the grid volume.
-    if any(voxel(1:3) > vol(4:6) | voxel(4:6) <= vol(1:3))
-        return
+    if any(voxel(1:3) >= vol(4:6) | voxel(4:6) <= vol(1:3))
+        break
     end
     
     % Add the index of the voxel to the return matrix.
     i(end+1,:) = i(end,:) + iStep; %#ok<AGROW>
 end
 
-% Check if the first indices point to a voxel inside the grid.
-%t(t==0) = NaN;
+% If the first index is not part of the grid, remove it and the
+% corresponding line parameter.
+i(t(1)==t(2),:) = [];
+t(t(1)==t(2)) = [];
+
+% If the ray starts inside the volume, set the first line parameter to NaN.
+t(t(1)==0) = NaN;
+
+end
