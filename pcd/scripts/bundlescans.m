@@ -1,4 +1,4 @@
-% Draws to figures: one of a single Velodyne VLP-16 scan and another 
+% Draws two figures: one of a single Velodyne VLP-16 scan and another 
 % of a bundle of scans.
 
 % Define parameters.
