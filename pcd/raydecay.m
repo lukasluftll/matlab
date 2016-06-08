@@ -53,7 +53,7 @@ function lambda = raydecay(cloud, res, vol)
 % Check number of input arguments.
 narginchk(2, 3);
 
-% If the grid volume is not given, use the extent of the point cloud.
+% If the grid volume is not given, set it to the extent of the point cloud.
 if nargin < 3
     vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
 end
@@ -70,33 +70,52 @@ end
 
 % Check the resolution.
 if res <= 0
-    error('RES must be positive.')
+    error('Resolution must be positive.')
 end
 
 %% Sum up ray lengths.
-maxIndex = ceil(vol(4:6)/res) - floor(vol(1:3)/res);
-raylength = zeros(maxIndex);
+% Construct the matrix that stores the cumulated ray lengths for each
+% voxel.
+raylength = zeros(ceil(vol(4:6)/res) - floor(vol(1:3)/res));
+
+% Calculate the normalized ray vectors. Do not discard NaN readings.
 ray = pc2sph(cloud.Location);
 [ray(:,:,1), ray(:,:,2), ray(:,:,3)] = sph2cart(...
     ray(:,:,1), ray(:,:,2), ones(size(ray(:,:,3))));
 
+% Loop over all rays and add the distance they travel through each voxel to
+% the matrix that stores the ray lengths.
 for elevation = 1 : size(ray, 1)
     for azimuth = 1 : size(ray, 2)
-        tmpRay = permute(ray(elevation,azimuth,:), [1,3,2]);
+        % Compute the indices of the voxels through which the ray travels.
+        tmpRay = permute(ray(elevation,azimuth,:), [1, 3, 2]);
         [i, t] = trav(zeros(1, 3), tmpRay, vol, res);
+        
+        % Add the length of the ray that is apportioned to a specific voxel
+        % to the cumulated ray length of this voxel.
         i = sub2ind(size(raylength), i(:,1), i(:,2), i(:,3));
         raylength(i) = raylength(i) + diff(t);
     end
 end
 
 %% Count returns per voxel.
-ret = zeros(maxIndex);
-for x = 1 : size(raylength, 1)
-    for y = 1 : size(raylength, 2)
-        for z = 1 : size(raylength, 3)
-            roi = [x-1, x; y-1, y; z-1, z]*res ...
-                + repmat(floor(vol(1:3)'/res)*res, 1, 2);
+% Construct the matrix that stores the numbers of returns coming from a
+% voxel.
+ret = zeros(size(raylength));
+
+% Loop over all voxels and detect the numbers of points in each voxel.
+for x = 1 : size(ret, 1)
+    for y = 1 : size(ret, 2)
+        for z = 1 : size(ret, 3)
+            % Define the limits of the voxel.
+            roi = [x-1, x; y-1, y; z-1, z] * res ...
+                + repmat(floor(vol(1:3)'/res) * res, 1, 2);
+            
+            % Make sure points on the joint face of two voxels are only
+            % counted once.
             roi(:,2) = roi(:,2) - eps(roi(:,2));
+            
+            % Determine the number of points inside the voxel.
             ret(x,y,z) = ret(x,y,z) + numel(findPointsInROI(cloud, roi));
         end
     end
