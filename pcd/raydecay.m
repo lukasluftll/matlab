@@ -79,16 +79,26 @@ ray = pc2sph(cloud.Location);
 [ray(:,:,1), ray(:,:,2), ray(:,:,3)] = sph2cart(...
     ray(:,:,1), ray(:,:,2), ones(size(ray(:,:,3))));
 
-for x = 1 : size(ray, 2)
-    for y = 1 : size(ray, 1)
-        [i, t] = trav(zeros(1, 3), permute(ray(x,y,:), [1,3,2]), vol, res);
+for elevation = 1 : size(ray, 1)
+    for azimuth = 1 : size(ray, 2)
+        tmpRay = permute(ray(elevation,azimuth,:), [1,3,2]);
+        [i, t] = trav(zeros(1, 3), tmpRay, vol, res);
         i = sub2ind(size(raylength), i(:,1), i(:,2), i(:,3));
         raylength(i) = raylength(i) + diff(t);
     end
 end
 
 %% Count returns per voxel.
-
-
+ret = zeros(maxIndex);
+for x = 1 : size(raylength, 1)
+    for y = 1 : size(raylength, 2)
+        for z = 1 : size(raylength, 3)
+            roi = [x-1, x; y-1, y; z-1, z]*res ...
+                + repmat(floor(vol(1:3)'/res)*res, 1, 2);
+            roi(:,2) = roi(:,2) - eps(roi(:,2));
+            ret(x,y,z) = ret(x,y,z) + numel(findPointsInROI(cloud, roi));
+        end
+    end
+end
 
 end
