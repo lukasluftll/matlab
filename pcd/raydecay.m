@@ -59,7 +59,7 @@ end
 
 % Check the size of the volume vector.
 if numel(vol) ~= 6
-    error('Volume vector must have 6 elements.')
+    error('VOL must have 6 elements.')
 end
 
 % Check the volume limits.
@@ -69,19 +69,23 @@ end
 
 % Check the resolution.
 if res <= 0
-    error('Resolution must be positive.')
+    error('RES must be positive.')
 end
 
 %% Sum up ray lengths.
+maxIndex = ceil(vol(4:6)/res) - floor(vol(1:3)/res);
+raylength = zeros(maxIndex);
 ray = pc2sph(cloud.Location);
-ray = sph2cart(ray(:,:,1), ray(:,:,2), ones(ray(:,:,3)));
+[ray(:,:,1), ray(:,:,2), ray(:,:,3)] = sph2cart(...
+    ray(:,:,1), ray(:,:,2), ones(size(ray(:,:,3))));
 
 for x = 1 : size(ray, 2)
     for y = 1 : size(ray, 1)
-        [i, t] = trav(zero(1, 3), ray(x,y,:), vol, res);
+        [i, t] = trav(zeros(1, 3), permute(ray(x,y,:), [1,3,2]), vol, res);
+        i = sub2ind(size(raylength), i(:,1), i(:,2), i(:,3));
+        raylength(i) = raylength(i) + diff(t);
     end
 end
-
 
 %% Count returns per voxel.
 
