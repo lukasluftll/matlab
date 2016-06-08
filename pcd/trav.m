@@ -17,7 +17,7 @@ function [i, t] = trav(origin, ray, vol, res)
 %   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
 %   The voxels are axis-aligned. This means that the edges of the voxels 
 %   closest to the coordinate axes coincide with the axes.
-
+%
 %   I is an Mx3 matrix whose rows contain the x, y, and z indices of the
 %   voxels that the ray traverses, with M being the number of all voxels
 %   traversed. I is ordered: The first row corresponds to the voxel where 
