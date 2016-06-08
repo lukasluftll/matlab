@@ -137,7 +137,7 @@ end
 
 % If the first index is not part of the grid, remove it and the
 % corresponding line parameter.
-if any(i(1,:) < 1 | i(1,:) > floor(vol(4:6)/res - floor(vol(1:3)/res)))
+if any(i(1,:) < 1 | i(1,:) > ceil(vol(4:6)/res) - floor(vol(1:3)/res))
     i(1,:) = []; t(1) = [];
 end
 
