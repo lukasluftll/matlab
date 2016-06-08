@@ -4,8 +4,8 @@ function lambda = raydecay(cloud, vol, res)
 %   compute the mean ray decay rate LAMBDA for each of the voxels of the 
 %   grid volume defined by VOL and RES.
 %
-%   CLOUD is an organized pointCloud object that contains the readings of 
-%   a Lidar sensor. All rays must have originated in the origin [0, 0, 0].
+%   CLOUD is a pointCloud object that contains the readings of a Lidar 
+%   sensor. All rays must have originated in the origin [0, 0, 0].
 %   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
 %   that describes the limits of the axis-aligned grid volume, including  
 %   the minima, excluding the maxima. 
@@ -45,7 +45,30 @@ function lambda = raydecay(cloud, vol, res)
 
 % Copyright 2016 Alexander Schaefer
 
-% Compute the intersection of each beam with each box.
+%% Validate input.
+% Check number of input arguments.
+narginchk(3, 3);
+
+% Check the size of the volume vector.
+if numel(vol) ~= 6
+    error('Volume vector must have 6 elements.')
+end
+
+% Check the volume limits.
+if any(diff(reshape(vol', 3, 2), 1, 2) < 0)
+    error('Invalid volume limits.')
+end
+
+% Check the resolution.
+if res <= 0
+    error('Resolution must be positive.')
+end
+
+%% Sum up ray lengths.
+
+
+%% Count returns per voxel.
+
 
 
 end

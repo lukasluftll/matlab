@@ -75,7 +75,7 @@ end
 
 % Check the resolution.
 if res <= 0
-    error('Resolution must be positive.');
+    error('Resolution must be positive.')
 end
 
 %% Initialization phase: calculate index of entry point.
