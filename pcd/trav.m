@@ -61,6 +61,11 @@ narginchk(4, 4);
 inputnames = {'origin', 'ray', 'vol', 'res'};
 expectedSize = [1, 3; 1, 3; 1, 6; 1, 1];
 for argin = 1 : nargin
+    if ndims(eval(inputnames{argin})) ~= ndims(expectedSize)
+        error([upper(inputnames{argin}), ' must have ', ...
+            int2str(ndims(expectedSize)), ' dimensions.'])
+    end
+    
     if any(size(eval(inputnames{argin})) ~= expectedSize(argin,:))
         error([upper(inputnames{argin}), ' must be a ', ...
             int2str(expectedSize(argin,1)), 'x', ...
