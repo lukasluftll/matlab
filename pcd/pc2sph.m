@@ -1,9 +1,12 @@
-function beams = pc2sph(points)
+function ray = pc2sph(points)
 % PC2SPH Convert a point cloud to spherical coordinates.
-%   BEAMS = PC2SPH(POINTS) takes an [M x N x 3] matrix that contains an 
-%   organized point cloud and converts the points to spherical coordinates. 
-%   The columns of the returned [M x N x 3] matrix beams contain the 
-%   azimuth, elevation, and range of the points.
+%   RAY = PC2SPH(POINTS) takes an MxNx3 matrix that contains an 
+%   organized point cloud in Cartesian coordinates and converts it 
+%   to spherical coordinates. 
+%   RAY is the resulting MxNx3 matrix.
+%   RAY(:,:,1) are the azimuth angles in radians,
+%   RAY(:,:,2) are the elevation angles in radians, 
+%   RAY(:,:,3) are the range values.
 %
 %   Conversion of NaN points
 %   ------------------------
@@ -28,12 +31,12 @@ end
 % Convert the Cartesian coordinates to spherical coordinates.
 p = reshape(points, numel(points(:,:,1)), 3);
 [azimuth, elevation, radius] = cart2sph(p(:,1), p(:,2), p(:,3));
-beams = reshape([azimuth, elevation, radius], size(points));
+ray = reshape([azimuth, elevation, radius], size(points));
 
 % Compute the mean azimuth angles of the point columns and the mean 
 % elevation angles of the point rows.
-azimuth = nanmean(beams(:,:,1), 1);
-elevation = nanmean(beams(:,:,2), 2);
+azimuth = nanmean(ray(:,:,1), 1);
+elevation = nanmean(ray(:,:,2), 2);
 
 % If a row or a colums contains NaN values only, interpolate the 
 % corresponding azimuth or elevation angle using the mean angles 
@@ -46,10 +49,10 @@ elevation(isnan(elevation)) ...
     = interp1(elevationIndex, elevation, elevationIndex(isnan(elevation)));
 
 % Set the azimuth and elevation angles of all NaN points.
-for row = 1 : size(beams, 1)
-    for col = 1 : size(beams, 2)
-        if isnan(beams(row,col,:))
-            beams(row,col,1:2) = [azimuth(col), elevation(row)];
+for row = 1 : size(ray, 1)
+    for col = 1 : size(ray, 2)
+        if isnan(ray(row,col,:))
+            ray(row,col,1:2) = [azimuth(col), elevation(row)];
         end
     end
 end
