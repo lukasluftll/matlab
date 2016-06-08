@@ -21,7 +21,8 @@ function lambda = raydecay(cloud, res, vol)
 %   closest to the coordinate axes coincide with the axes.
 %   LAMBDA is a XxYxZ matrix that contains the mean decay rate of each 
 %   voxel, where X, Y, and Z are the numbers of voxels in x, y, and z
-%   direction.
+%   direction. The lambda value of a voxel that has not been visited by any
+%   ray is set to NaN.
 %
 %   Concept of ray decay rate
 %   -------------------------
@@ -44,7 +45,7 @@ function lambda = raydecay(cloud, res, vol)
 %      pc = pcread('teapot.ply');
 %      lambda = raydecay(pc, 0.1)
 %
-%   See also POINTCLOUD.
+%   See also POINTCLOUD, NAN.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -100,5 +101,8 @@ for x = 1 : size(raylength, 1)
         end
     end
 end
+
+%% Compute ray decay rate.
+lambda = ret ./ raylength;
 
 end
