@@ -1,11 +1,14 @@
-function lambda = raydecay(cloud, vol, res)
+function lambda = raydecay(cloud, res, vol)
 % RAYDECAY Compute decay rate of different Lidar sensor rays.
-%   LAMBDA = RAYDECAY(CLOUD, VOL, RES) uses the pointCloud object CLOUD to 
+%   LAMBDA = RAYDECAY(CLOUD, RES) uses the pointCloud object CLOUD to 
 %   compute the mean ray decay rate LAMBDA for each of the voxels of the 
-%   grid volume defined by VOL and RES.
+%   grid volume spanned by CLOUD with the resolution RES.
 %
-%   CLOUD is a pointCloud object that contains the readings of a Lidar 
-%   sensor. All rays must have originated in the origin [0, 0, 0].
+%   LAMBDA = RAYDECAY(CLOUD, RES, VOL) computes the mean decay rates of the
+%   voxels in a grid volume with resolution RES and extent VOL.
+%
+%   CLOUD is an organized pointCloud object that contains the readings of a
+%   Lidar sensor. All rays must have originated in the origin [0, 0, 0].
 %   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
 %   that describes the limits of the axis-aligned grid volume, including  
 %   the minima, excluding the maxima. 
@@ -39,7 +42,7 @@ function lambda = raydecay(cloud, vol, res)
 %
 %   Example:
 %      pc = pcread('teapot.ply');
-%      lambda = raydecay(pc, [pc.XLimits, pc.YLimits, pc.ZLimits)
+%      lambda = raydecay(pc, 0.1)
 %
 %   See also POINTCLOUD.
 
@@ -47,7 +50,12 @@ function lambda = raydecay(cloud, vol, res)
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(3, 3);
+narginchk(2, 3);
+
+% If the grid volume is not given, use the extent of the point cloud.
+if nargin < 3
+    vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
+end
 
 % Check the size of the volume vector.
 if numel(vol) ~= 6
@@ -65,6 +73,14 @@ if res <= 0
 end
 
 %% Sum up ray lengths.
+ray = pc2sph(cloud.Location);
+ray = sph2cart(ray(:,:,1), ray(:,:,2), ones(ray(:,:,3)));
+
+for x = 1 : size(ray, 2)
+    for y = 1 : size(ray, 1)
+        [i, t] = trav(zero(1, 3), ray(x,y,:), vol, res);
+    end
+end
 
 
 %% Count returns per voxel.
