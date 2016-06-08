@@ -165,7 +165,7 @@ res = 1;
 assert(all(~size(i)));
 assert(all(~size(t)));
 
-%% Resolution ~= 1
+%% Resolution not equal 1
 origin = [100, 47, 48];
 ray = [-1, 0, 0];
 vol = [45, 45, 45, 55, 55, 55];
@@ -177,7 +177,7 @@ iExpected = [2, 1, 1;
 tExpected = [45; 50; 55];
 checktrav(i, iExpected, t, tExpected);
 
-%% Ray length ~= 1
+%% Ray length not equal 1
 origin = [-2, -0.5, -0.5];
 ray = [0.01, 0, 0];
 vol = [-1, -1, -1, 1, 1, 1];
