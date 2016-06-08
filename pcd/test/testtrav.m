@@ -16,7 +16,7 @@ iExpected = [6, 6, 6;
     8, 6, 6;
     9, 6, 6;
     10, 6, 6];
-tExpected = [NaN; 1; 2; 3; 4; 5];
+tExpected = [0; 1; 2; 3; 4; 5];
 checktrav(i, iExpected, t, tExpected);
 
 %% Origin ray in y direction
@@ -30,7 +30,7 @@ iExpected = [4, 5, 6;
     4, 6, 6;
     4, 7, 6;
     4, 8, 6];
-tExpected = [NaN; 1; 2; 3; 4];
+tExpected = [0; 1; 2; 3; 4];
 checktrav(i, iExpected, t, tExpected);
 
 %% Origin ray in z direction
@@ -43,7 +43,7 @@ res = 1;
 iExpected = [2, 3, 4;
     2, 3, 5;
     2, 3, 6];
-tExpected = [NaN; 1; 2; 3];
+tExpected = [0; 1; 2; 3];
 checktrav(i, iExpected, t, tExpected);
 
 %% Origin ray in x-y direction
@@ -58,7 +58,7 @@ iExpected = [6, 6, 6;
     8, 8, 6;
     9, 9, 6;
     10, 10, 6];
-tExpected = [NaN; 1; 2; 3; 4; 5];
+tExpected = [0; 1; 2; 3; 4; 5];
 checktrav(i, iExpected, t, tExpected);
 
 %% Ray in x-z direction
@@ -73,7 +73,7 @@ iExpected = [6, 6, 6;
     8, 6, 8;
     9, 6, 9;
     10, 6, 10];
-tExpected = [NaN; 1; 2; 3; 4; 5];
+tExpected = [0; 1; 2; 3; 4; 5];
 checktrav(i, iExpected, t, tExpected);
 
 %% Ray in y-z direction
@@ -88,7 +88,7 @@ iExpected = [6, 6, 6;
     6, 8, 8;
     6, 9, 9;
     6, 10, 10];
-tExpected = [NaN; 1; 2; 3; 4; 5];
+tExpected = [0; 1; 2; 3; 4; 5];
 checktrav(i, iExpected, t, tExpected);
 
 %% Ray in x-y-z direction

@@ -26,7 +26,7 @@ function [i, t] = trav(origin, ray, vol, res)
 %   column vector T. It contains the line parameters that encode the 
 %   intersections of the ray with the planes that separate the voxels.
 %   The first element corresponds to the entry point into the first voxel;
-%   in case the ray starts inside a voxel, it is NaN. The transition point
+%   in case the ray starts inside a voxel, it is 0. The transition point
 %   from the m-th to the m+1st voxel is computed ORIGIN + T(m+1)*RAY.
 %   The point where the ray leaves the volume is ORIGIN + T(end)*RAY.
 %
@@ -36,7 +36,7 @@ function [i, t] = trav(origin, ray, vol, res)
 %      vol = [-2, -2, -2, 2, 2, 2];
 %      [i, t] = trav(origin, ray, vol, 1)
 %
-%   See also SLAB, NAN, END.
+%   See also SLAB, END.
 
 % Copyright 2016 Alexander Schaefer
 %
@@ -133,8 +133,5 @@ end
 if any(i(1,:) < 1 | i(1,:) > floor(vol(4:6)/res - floor(vol(1:3)/res)))
     i(1,:) = []; t(1) = [];
 end
-
-% If the ray starts inside the volume, set the first line parameter to NaN.
-t(t(1)==0) = NaN;
 
 end
