@@ -58,6 +58,9 @@ narginchk(2, 3);
 % If the grid volume is not given, set it to the extent of the point cloud.
 if nargin < 3
     vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
+    
+    % Make sure the points lying in the maximum limit planes are included.
+    vol(4:6) = vol(4:6) + eps(vol(4:6));
 end
 
 % Check the size of the volume vector.
