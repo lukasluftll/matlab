@@ -188,3 +188,12 @@ iExpected = [1, 1, 1;
     2, 1, 1];
 tExpected = [100; 200; 300];
 checktrav(i, iExpected, t, tExpected);
+
+%% Arbitrary arguments
+origin = [0, 0, 0];
+ray = [-0.8887, -0.3785, 0.2588];
+vol = [-8.5380, -3.6631, -5.9373, 22.1352, 18.7318, 5.0340];
+res = 0.1;
+[i, t] = trav(origin, ray, vol, res);
+
+checktrav(i);
