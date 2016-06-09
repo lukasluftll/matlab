@@ -118,7 +118,7 @@ while true
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
-    %tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
+    tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = max(tvox);
     t(end+1,1) = min(tvox); %#ok<AGROW>
     
