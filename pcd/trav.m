@@ -75,6 +75,11 @@ for argin = 1 : nargin
     end
 end
 
+% Check the ray value.
+if any(isnan(ray) | isinf(ray))
+    error('Ray values must not be NaN or Inf.')
+end
+
 % Check the volume limits.
 if any(diff(reshape(vol', 3, 2), 1, 2) < 0)
     error('Invalid volume limits.')
