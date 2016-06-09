@@ -45,7 +45,7 @@ function lambda = raydecay(cloud, res, vol)
 %
 %   Example:
 %      pc = pcdread('campus.pcd');
-%      lambda = raydecay(pc.pointCloud, 0.1)
+%      lambda = raydecay(pc.pointCloud, 5)
 %
 %   See also POINTCLOUD, NAN.
 
@@ -112,7 +112,7 @@ for x = 1 : size(ret, 1)
             % Define the limits of the voxel.
             roi = [x-1, x; y-1, y; z-1, z] * res ...
                 + repmat(floor(vol(1:3)'/res) * res, 1, 2);
-            
+
             % Make sure points on the joint face of two voxels are only
             % counted once.
             roi(:,2) = roi(:,2) - eps(roi(:,2));
