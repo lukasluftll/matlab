@@ -104,10 +104,10 @@ t = max([0, tvol(1)]);
 % Calculate the index of the voxel corresponding to the starting point. 
 % This index lies outside the volume if the ray intersects with a maximum 
 % limit plane.
-i = floor((origin + t*ray - vol(1:3)) / res) + 1;
+i = floor((origin + t*ray) / res) - floor(vol(1:3) / res) + 1;
 
 % Compute the bounds of the starting voxel.
-voxel = [vol(1:3); vol(1:3)] + [i-1; i] * res;
+voxel = (floor([vol(1:3); vol(1:3)]/res) + [i-1; i]) * res;
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
