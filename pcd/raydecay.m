@@ -9,18 +9,20 @@ function lambda = raydecay(cloud, res, vol)
 %
 %   CLOUD is an organized pointCloud object that contains the readings of a
 %   Lidar sensor. All rays must have originated in the origin [0, 0, 0].
-%   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
-%   that describes the limits of the axis-aligned grid volume, including  
-%   the minima, excluding the maxima. 
+%
 %   RES is a scalar that defines the edge length of all voxels that build
-%   the grid volume.
+%   the grid volume. The voxels are axis-aligned. This means that the edges
+%   of the voxels closest to the coordinate axes coincide with the axes.
 %   A voxel contains all points [x, y, z]  that satisfy the inequality:
 %      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
 %   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
-%   The voxels are axis-aligned. This means that the edges of the voxels 
-%   closest to the coordinate axes coincide with the axes.
-%   LAMBDA is a XxYxZ matrix that contains the mean decay rate of each 
-%   voxel, where X, Y, and Z are the numbers of voxels in x, y, and z
+%
+%   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
+%   that describes the limits of the axis-aligned grid volume, including  
+%   the minima, excluding the maxima. 
+%
+%   LAMBDA is a AxBxC matrix that contains the mean decay rate of each 
+%   voxel, where A, C, and C are the counts of voxels in x, y, and z
 %   direction. The lambda value of a voxel that has not been visited by any
 %   ray is set to NaN.
 %
@@ -42,8 +44,8 @@ function lambda = raydecay(cloud, res, vol)
 %   approximation of the decay rate.
 %
 %   Example:
-%      pc = pcread('teapot.ply');
-%      lambda = raydecay(pc, 0.1)
+%      pc = pcdread('campus.pcd');
+%      lambda = raydecay(pc.pointCloud, 0.1)
 %
 %   See also POINTCLOUD, NAN.
 

@@ -6,17 +6,19 @@ function [i, t] = trav(origin, ray, vol, res)
 %
 %   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
+%
 %   RAY is a 3-element row vector indicating the direction of the ray.
+%
 %   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
 %   that describes the limits of the axis-aligned grid volume, including  
 %   the minima, excluding the maxima. 
+%
 %   RES is a scalar that defines the edge length of all voxels that build
-%   the grid volume.
+%   the grid volume. The voxels are axis-aligned. This means that the edges 
+%   of the voxels closest to the coordinate axes coincide with the axes.
 %   A voxel contains all points [x, y, z]  that satisfy the inequality:
 %      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
 %   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
-%   The voxels are axis-aligned. This means that the edges of the voxels 
-%   closest to the coordinate axes coincide with the axes.
 %
 %   I is an Mx3 matrix whose rows contain the x, y, and z indices of the
 %   voxels that the ray traverses, with M being the number of all voxels
