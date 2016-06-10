@@ -27,7 +27,7 @@ narginchk(1, 2)
 
 % Check if the input point cloud is organized.
 if size(point, 3) ~= 3 || ndims(point) ~= 3
-    error('Input point cloud must be of size MxNx3].')
+    error('Input point cloud must be of size MxNx3.')
 end
 
 % If no sensor model argument is provided, set it to default.
@@ -39,7 +39,7 @@ end
 [a, e, r] = cart2sph(point(:,:,1), point(:,:,2), point(:,:,3));
 
 %% Perform model-specific angle reconstruction.
-switch model
+switch lower(model)
     case 'vlp16'
         % Check if the rows are properly organized.
         esign = sign(diff(e));
@@ -86,6 +86,8 @@ switch model
         
         % Set radius of NaN points to Inf.
         r(isnan(r)) = Inf;
+    otherwise
+        error(['Model ''', model, ''' not available.'])
 end
 
 %% Construct return matrix.
