@@ -43,29 +43,30 @@ switch lower(model)
     case 'vlp16'
         % Check if the rows are properly organized.
         esign = sign(diff(e));
-        eorg = (all(esign(~isnan(esign))) == 1 ...
-            || all(esign(~isnan(esign))) == -1);
+        eorg = (all(esign(~isnan(esign)) == 1) ...
+            || all(esign(~isnan(esign)) == -1));
         if ~eorg
             error('Point cloud must be properly organized.')
         end
         
-        % Determine whether the point cloud contains single or dual
-        % returns.
-        i = repmat([1 0], size(a, 1), size(a, 2)/2);
-        singleReturn = all(a(i) ~= a(~i));
-        a = a(i);
-        e = e(i);
+        % If the point cloud contains dual returns, consider only every
+        % second column.
+        i = repmat([true false], size(a, 1), size(a, 2)/2);
+        singleReturn = ~all(a(i)==a(~i) | (isnan(a(i)) & isnan(a(~i))));
+        a = reshape(a(i), size(a, 1), []);
+        e = reshape(e(i), size(e, 1), []);
         
-        % Make sure the azimuth angles increase along the rows.
-        for col = 2 : size(a, 2)
-            a(:,col) = a(:,col) + 2*pi * (a(:,col)<a(:,col-1));
-        end
+        % Make sure the azimuth angles do not jump between -pi and +pi
+        % along one row.
+        jumpcol = repmat(any(abs(diff(a)) > pi), size(a, 1), 1);
+        a(jumpcol) = a(jumpcol) + (sign(a(jumpcol)) < 0) * 2*pi;
 
         % Reconstruct missing elevation values.
         em = repmat(nanmean(e, 2), 1, size(e, 2));
         e(isnan(e)) = em(isnan(e));
         
-        % Reconstruct missing azimuth values.
+        % Reconstruct missing azimuth values by interpolating/extrapolating
+        % along the rows.
         for row = 1 : size(a, 1)
             ari = 1 : size(a, 2);
             ar = a(row,:);
