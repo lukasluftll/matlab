@@ -45,16 +45,16 @@ switch lower(model)
     case 'vlp16'
         % Check if the rows are properly organized.
         esign = sign(diff(e));
-        eorg = (all(esign(~isnan(esign)) == 1) ...
-            || all(esign(~isnan(esign)) == -1));
-        if ~eorg
+        if ~(all(esign(~isnan(esign)) == 1) ...
+            || all(esign(~isnan(esign)) == -1))
             error('Point cloud must be properly organized.')
         end
         
         % If the point cloud contains dual returns, consider only every
         % second column.
         i = repmat([true false], size(a, 1), size(a, 2)/2);
-        singleReturn = ~all(a(i)==a(~i) | (isnan(a(i)) & isnan(a(~i))));
+        singleReturn = ~all(abs(a(i)-a(~i)) < 1e-3 ...
+            | isnan(a(i)) | isnan(a(~i)));
         a = reshape(a(i), size(a, 1), []);
         e = reshape(e(i), size(e, 1), []);
         
