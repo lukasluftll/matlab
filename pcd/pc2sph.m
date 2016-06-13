@@ -40,6 +40,8 @@ end
 
 %% Perform model-specific angle reconstruction.
 switch lower(model)
+    case 'generic'
+        % Do nothing.
     case 'vlp16'
         % Check if the rows are properly organized.
         esign = sign(diff(e));
