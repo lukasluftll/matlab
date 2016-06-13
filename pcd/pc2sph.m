@@ -58,14 +58,23 @@ switch lower(model)
         a = reshape(a(i), size(a, 1), []);
         e = reshape(e(i), size(e, 1), []);
         
-        % Make sure the azimuth angles do not jump between -pi and +pi
-        % along one row.
-        jumpcol = repmat(any(abs(diff(a)) > pi), size(a, 1), 1);
-        a(jumpcol) = a(jumpcol) + (sign(a(jumpcol)) < 0) * 2*pi;
-
         % Reconstruct missing elevation values.
         em = repmat(nanmean(e, 2), 1, size(e, 2));
-        e(isnan(e)) = em(isnan(e));
+        e(isnan(e)) = em(isnan(e));        
+        
+        % Make sure the azimuth angle always decreases along the rows.
+        for row = 1 : size(a, 1)
+            comp = a(row,1);
+            for col = 2 : size(a, 2)
+                % Remove jumps from -pi to +pi.
+                a(row,col) = a(row,col) - (a(row,col)-comp > pi) * 2*pi;
+                
+                % Store the last not-NaN value.
+                if ~isnan(a(row,col))
+                    comp = a(row,col);
+                end
+            end
+        end
         
         % Reconstruct missing azimuth values by interpolating/extrapolating
         % along the rows.
@@ -78,7 +87,7 @@ switch lower(model)
         end
         
         % Crop azimuth angles to (-pi; pi].
-        a(a > pi) = a(a > pi) - 2*pi;
+        a(a <= -pi) = a(a <= -pi) + 2*pi;
         
         % Expand azimuth and elevation matrices for dual return 
         % point clouds.
