@@ -48,7 +48,7 @@ function data = pcdread(filename)
  
 % Copyright 2016 Alexander Schaefer
 
-%% Validate PCD file name.
+%% Validate input.
 % Check the number of input arguments.
 narginchk(1, 1);
 
