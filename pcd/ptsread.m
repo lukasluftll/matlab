@@ -38,7 +38,7 @@ end
 
 % Verify that the file exists.
 fid = fopen(filename, 'r');
-if (fid == -1)
+if fid == -1
     if isempty(dir(filename))
         error(message('MATLAB:imagesci:imread:fileDoesNotExist', ...
               filename));
@@ -49,7 +49,7 @@ if (fid == -1)
 end
 
 % If there is no subsampling factor given, set it to 1.
-if (nargin < 2)
+if nargin < 2
     subsampling = 1;
 end
 
@@ -67,7 +67,7 @@ catch exception
 end
 
 % Check the file's validity.
-if (count ~= size(data, 1))
+if count ~= size(data, 1)
     warning('PTS file header specifies incorrect number of points.');
 end
 
@@ -76,21 +76,20 @@ location = data(1 : subsampling : size(data, 1), 1 : 3);
 
 % Read the intensities.
 outcloud.intensity = [];
-if (size(data, 2) >= 4)
+if size(data, 2) >= 4
     outcloud.intensity = data(1 : subsampling : size(data, 1), 4);
 end
 
 % Read the color values.
-if (size(data, 2) >= 7)
+if size(data, 2) >= 7
     color = uint8(data(1 : subsampling : size(data, 1), 5 : 7));
 end
        
 %% Create the point cloud.
-if (isempty(color))
+if isempty(color)
     outcloud.pointCloud = pointCloud(location);
 else
     outcloud.pointCloud = pointCloud(location, 'Color', color);
 end
 
 end
-
