@@ -1,9 +1,13 @@
 function data = pcdread(filename)
 % PCDREAD Read contents of point cloud from PCD file.
 %   DATA = PCDREAD(FILENAME) reads all data fields of the PCD file defined 
-%   by FILENAME and returns them in a struct DATA.
-%   If an accompanying DAT file is available, its contents are also added
-%   to DATA.
+%   by FILENAME and returns them in a struct DATA. Each field of DATA
+%   contains a matrix of size HEIGHTxWIDTHxCOUNT, with WIDTH and HEIGHT 
+%   being the width and height of the point cloud and COUNT being the data 
+%   element count specified in the PCD file header.
+%
+%   If an accompanying DAT file is available, its contents are also
+%   accessible via DATA.
 %
 %   DAT file naming convention
 %   --------------------------
@@ -15,7 +19,7 @@ function data = pcdread(filename)
 %   Recognized field names
 %   ----------------------
 %   PCDREAD recognizes the following data field names in the PCD file 
-%   header and returns the corresponding data types:
+%   header and in the DAT file and returns the corresponding data types:
 %
 %   'viewpoint'     affine3d object that represents the sensor frame 
 %                   defined in the PCD file
@@ -24,23 +28,11 @@ function data = pcdread(filename)
 %                   defined in the DAT file
 %
 %   'gps'           structure array that represents the GPS coordinates 
-%                   of the DAT file; it contains the following elements:
+%                   in the DAT file; it contains the following elements:
 %                   'time'            time stamp of the GPS reading
-%                   'longitude'       GPS	longitude
+%                   'longitude'       GPS longitude
 %                   'latitude'        GPS latitude
 %                   'elevation'       GPS elevation
-% 
-%   Organized vs. unorganized point clouds
-%   --------------------------------------
-%   If the PCD file header specifies a height value of 1, the point cloud
-%   is unorganized. In this case, the values of the data fields are stored 
-%   in matrices of size 1xWIDTHxCOUNT, with WIDTH being the width of the 
-%   point cloud and COUNT being the data element count from the PCD file 
-%   header. 
-%
-%   If the specified height value is greater than 1, the point cloud is
-%   organized and the values are stored in matrices of size
-%   HEIGHTxWIDTHxCOUNT.
 % 
 %   PCD file format
 %   ---------------
@@ -142,24 +134,24 @@ if pcdversion < 0.7
     warning('PCD file version is below 0.7: file format not well defined.')
 end
 
-% Make sure the PCD file's data type is ASCII. 
-if ~strcmpi(pcdtype, 'ascii')
-    error('This function only reads PCD files of type ''ascii''.')
-end
-
 % If the number of all points does not equal the point cloud height x
 % width, issue a warning.
 if count ~= width * height
     warning('Inconsistent PCD header fields: POINTS ~= WIDTH * HEIGHT.')
 end
 
+% Make sure the PCD file's data type is ASCII. 
+if ~strcmpi(pcdtype, 'ascii')
+    error('This function only reads PCD files of type ''ascii''.')
+end
+
+%% Read payload data.
 % Read raw data.
 rawdata = dlmread(filename, ' ', 11, 0);
 
-%% Read payload data.
 % Convert raw data to cell array. Each cell element contains a matrix of
-% size WIDTH x HEIGHT x FIELDCOUNT.
-data = cell(1, length(fieldcount));
+% size WIDTH x HEIGHT x COUNT.
+data = cell(length(fieldcount), 1);
 col = [0; cumsum(fieldcount)];
 for i = 1 : length(fieldcount)
     data{i} = rawdata(:, col(i)+1:col(i+1));
@@ -167,14 +159,15 @@ for i = 1 : length(fieldcount)
     data{i} = permute(data{i}, [2 1 3]);
 end
 
-% Convert data to the data types specified in the PCD file header.
+% If the data type of a raw data column is not double, convert it to the 
+% data type given in the PCD file header.
 uint = regexp(fieldtype', '[uU]');
 data(uint) = cellfun(@uint32, data(uint), 'UniformOutput', false);
 int = regexp(fieldtype', '[iI]');
 data(int) = cellfun(@int32, data(int), 'UniformOutput', false);
 
 % Transform the cell array into a structure array.
-data = cell2struct(data', fieldname, 1);
+data = cell2struct(data, fieldname, 1);
 
 %% Append viewpoint to return structure.
 viewpointMatrix = quat2rotm(viewpoint(4:7)');
@@ -182,8 +175,8 @@ viewpointMatrix(:, 4) = viewpoint(1:3)';
 viewpointMatrix(4, :) = [0, 0, 0, 1];
 data.viewpoint = affine3d(viewpointMatrix');
 
-%% Read DAT file and append information to return structure.
-% Create the DAT file name following naming convention.
+%% Read DAT file and append position information to return structure.
+% Create the DAT file name according to the naming convention.
 datFilename = [filename(1:end-length('.pcd')), '_info.dat'];
 
 % Read position information.
