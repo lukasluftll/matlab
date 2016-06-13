@@ -188,15 +188,14 @@ datFilename = [filename(1:end-length('.pcd')), '_info.dat'];
 
 % Read position information.
 fid = fopen(datFilename, 'r');
-pos = [];
 if fid ~= -1
     pos = posread(datFilename);
-end
-
-% Append position information to return structure.
-posfield = fieldnames(pos);
-for i = 1 : numel(posfield)
-    data.(posfield{i}) = pos.(posfield{i});
+    
+    % Append position information to return structure.
+    posfield = fieldnames(pos);
+    for i = 1 : numel(posfield)
+        data.(posfield{i}) = pos.(posfield{i});
+    end
 end
 
 end
