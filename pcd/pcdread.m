@@ -44,7 +44,7 @@ function data = pcdread(filename)
 %      cloud = pointCloud([data.x; data.y; data.z]');
 %      pcshow(cloud);
 %
-%   See also PCREAD, PTSREAD, POINTCLOUD, PCWRITE, PCSHOW.
+%   See also POSREAD, PCREAD, PTSREAD.
  
 % Copyright 2016 Alexander Schaefer
 
