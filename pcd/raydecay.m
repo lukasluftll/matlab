@@ -67,7 +67,7 @@ if any(size(azimuth) ~= size(elevation) | size(azimuth) ~= size(radius))
 end
 
 % Check the dimensionality of the spherical coordinate matrices.
-if ndims(azimuth) ~= 2 || ndims(elevation) ~=2 || ndims(radius) ~= 2
+if ~(ismatrix(azimuth) && ismatrix(elevation) && ismatrix(radius))
     error('AZIMUTH, ELEVATION, and RADIUS must have exactly 2 dimensions.')
 end
 
