@@ -1,18 +1,24 @@
-function lambda = raydecay(cloud, res, vol)
-% RAYDECAY Compute decay rate of different Lidar sensor rays.
-%   LAMBDA = RAYDECAY(CLOUD, RES) uses the pointCloud object CLOUD to 
-%   compute the mean ray decay rate LAMBDA for each of the voxels of the 
-%   grid volume spanned by CLOUD with the resolution RES.
+function lambda = raydecay(azimuth, elevation, radius, res, vol)
+% RAYDECAY Compute mean decay rate of Lidar rays in voxel.
+%   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, RES) uses the rays 
+%   represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
+%   compute the mean ray decay rate LAMBDA for each of the voxels in the 
+%   axis-aligned volume spanned by the rays. The voxels positions are
+%   chosen such that no voxel will intersect with the x-y, x-z, or y-z
+%   plane. Their edge lengths are given by the scalar RES.
 %
 %   LAMBDA = RAYDECAY(CLOUD, RES, VOL) computes the mean decay rates of the
 %   voxels in a grid volume with resolution RES and extent VOL.
 %
-%   CLOUD is an organized pointCloud object that contains the readings of a
-%   Lidar sensor. All rays must have originated in the origin [0, 0, 0].
+%   It is assumed that all rays originate in the origin [0, 0, 0].
+%
+%   AZIMUTH and ELEVATION are a HEIGHTxWIDTH matrices, where HEIGHT and 
+%   WIDTH describe the size of the point cloud. The angle unit is rad.
+%
+%   RADIUS is a HEIGHTxWIDTH matrix.
 %
 %   RES is a scalar that defines the edge length of all voxels that build
-%   the grid volume. The voxels are axis-aligned. This means that the edges
-%   of the voxels closest to the coordinate axes coincide with the axes.
+%   the grid volume. The voxels are axis-aligned. 
 %   A voxel contains all points [x, y, z]  that satisfy the inequality:
 %      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
 %   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
@@ -32,7 +38,7 @@ function lambda = raydecay(cloud, res, vol)
 %   the material through which the ray travels. This property can be 
 %   approximated by dividing the space into voxels and computing the mean 
 %   decay rate for each voxel. 
-%   The mean decay rate over a voxel i is the number of ray returns from 
+%   The mean decay rate over a voxel is the number of ray returns from 
 %   inside the voxel divided by the sum of the lengths of all rays 
 %   travelling through the voxel:
 %
@@ -44,20 +50,34 @@ function lambda = raydecay(cloud, res, vol)
 %   approximation of the decay rate.
 %
 %   Example:
-%      pc = pcdread('campus.pcd');
-%      lambda = raydecay(pc.pointCloud, 5)
+%      pc = pcdread('castle.pcd');
+%      lambda = raydecay(pc.azimuth, pc.elevation, pc.radius, 5)
 %
-%   See also POINTCLOUD, NAN.
+%   See also NAN.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(2, 3);
+narginchk(4, 5);
 
+% Check the spherical coordinate matrices all have the same size.
+if any(size(azimuth) ~= size(elevation) | size(azimuth) ~= size(radius))
+    error('AZIMUTH, ELEVATION, and RADIUS must all have the same size.')
+end
+
+% Check the dimensionality of the spherical coordinate matrices.
+if ndims(azimuth) ~= 2 || ndims(elevation) ~=2 || ndims(radius) ~= 2
+    error('AZIMUTH, ELEVATION, and RADIUS must have exactly 2 dimensions.')
+end
+
+% Convert the spherical to Cartesian coordinates.
+[x, y, z] = sph2cart(azimuth, elevation, radius);
+    
 % If the grid volume is not given, set it to the extent of the point cloud.
-if nargin < 3
-    vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
+if nargin < 5
+    vol = [min(x(:)), min(y(:)), min(z(:)), ...
+        max(x(:)), max(y(:)), max(z(:))];
     
     % Make sure the points lying in the maximum limit planes are included.
     vol(4:6) = vol(4:6) + eps(vol(4:6));
@@ -83,35 +103,33 @@ end
 % voxel.
 raylength = zeros(ceil(vol(4:6)/res) - floor(vol(1:3)/res));
 
-% Calculate the normalized ray vectors. Do not discard NaN readings.
-ray = pc2sph(cloud.Location);
-[ray(:,:,1), ray(:,:,2), ray(:,:,3)] = sph2cart(...
-    ray(:,:,1), ray(:,:,2), ones(size(ray(:,:,3))));
-
 % Loop over all rays and add the distance they travel through each voxel to
 % the matrix that stores the ray lengths.
-for elevation = 1 : size(ray, 1)
-    for azimuth = 1 : size(ray, 2)
-        % Compute the indices of the voxels through which the ray travels.
-        tmpRay = permute(ray(elevation,azimuth,:), [1, 3, 2]);
-        [i, t] = trav(zeros(1, 3), tmpRay, vol, res);
+for i = 1 : numel(azimuth)
+    % Compute the normalized direction vector of the ray.
+    [dirx, diry, dirz] = sph2cart(azimuth(i), elevation(i), 1);
+    
+    % Compute the indices of the voxels through which the ray travels.
+    [vi, t] = trav(zeros(1, 3), [dirx, diry, dirz], vol, res);
         
-        % Add the length of the ray that is apportioned to a specific voxel
-        % to the cumulated ray length of this voxel.
-        i = sub2ind(size(raylength), i(:,1), i(:,2), i(:,3));
-        raylength(i) = raylength(i) + diff(t);
-    end
+    % Add the length of the ray that is apportioned to a specific voxel
+    % to the cumulated ray length of this voxel.
+    vi = sub2ind(size(raylength), vi(:,1), vi(:,2), vi(:,3));
+    raylength(vi) = raylength(vi) + diff(t);
 end
 
 %% Count returns per voxel.
 % Construct the matrix that stores the numbers of returns coming from a
 % voxel.
-ret = zeros(size(raylength));
+nret = zeros(size(raylength));
+
+% Create a pointCloud object for easy point-per-voxel counting.
+cloud = pointCloud([x(:), y(:), z(:)]);
 
 % Loop over all voxels and detect the numbers of points in each voxel.
-for x = 1 : size(ret, 1)
-    for y = 1 : size(ret, 2)
-        for z = 1 : size(ret, 3)
+for x = 1 : size(nret, 1)
+    for y = 1 : size(nret, 2)
+        for z = 1 : size(nret, 3)
             % Define the limits of the voxel.
             roi = [x-1, x; y-1, y; z-1, z] * res ...
                 + repmat(floor(vol(1:3)'/res) * res, 1, 2);
@@ -121,12 +139,12 @@ for x = 1 : size(ret, 1)
             roi(:,2) = roi(:,2) - eps(roi(:,2));
             
             % Determine the number of points inside the voxel.
-            ret(x,y,z) = ret(x,y,z) + numel(findPointsInROI(cloud, roi));
+            nret(x,y,z) = nret(x,y,z) + numel(findPointsInROI(cloud, roi));
         end
     end
 end
 
 %% Compute ray decay rate.
-lambda = ret ./ raylength;
+lambda = nret ./ raylength;
 
 end
