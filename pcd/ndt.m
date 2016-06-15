@@ -21,13 +21,13 @@ function [mu, sigma] = ndt(cloud, res, vol)
 %   that describes the limits of the axis-aligned grid volume, including  
 %   the minima, excluding the maxima. 
 %
-%   MU is a AxBxCx3 matrix that contains the mean position of the points
+%   MU is a 3xAxBxC matrix that contains the mean position of the points
 %   in each voxel. A, B, and C are the counts of voxels in x, y, and z
-%   direction. MU(a,b,c,:) is the mean point position corresponding to the
+%   direction. MU(:,a,b,c) is the mean point position corresponding to the
 %   voxel with indices a, b, c. The mean of a voxel that contains no points 
 %   is set to NaN.
 %
-%   SIGMA is a AxBxCx3x3 matrix. SIGMA(a,b,c,:,:) is the 3x3 covariance 
+%   SIGMA is a 3x3xAxBxC matrix. SIGMA(:,:,a,b,c) is the 3x3 covariance 
 %   matrix of the voxel with indices a, b, c. The covariance of a voxel 
 %   that contains no points is set to NaN.
 %
@@ -72,8 +72,8 @@ end
 voxelcount = ceil(vol(4:6)/res) - floor(vol(1:3)/res);
 
 % Construct the return matrices.
-mu = NaN([voxelcount, 3]);
-sigma = NaN([voxelcount, 3, 3]);
+mu = NaN([3, voxelcount]);
+sigma = NaN([3, 3, voxelcount]);
 
 % Loop over all voxels and detect the numbers of points in each voxel.
 for x = 1 : voxelcount(1)
@@ -87,10 +87,10 @@ for x = 1 : voxelcount(1)
             % counted once.
             roi(:,2) = roi(:,2) - eps(roi(:,2));
             
-            % Get the points inside the voxel.
+            % Compute mean and covariance.
             voxelcloud = select(cloud, findPointsInROI(cloud, roi));
-            mu(x,y,z,:) = mean(voxelcloud.Location);
-            sigma(x,y,z,:,:) = cov(voxelcloud.Location);
+            mu(:,x,y,z) = mean(voxelcloud.Location);
+            sigma(:,:,x,y,z) = cov(voxelcloud.Location);
         end
     end
 end
