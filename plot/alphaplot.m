@@ -45,6 +45,11 @@ if nargin < 2
     vol = [0, 0, 0, size(data)];
 end
 
+% Check the volume limits.
+if any((vol(4:6) - vol(1:3)) <= 0)
+    error('Invalid argument VOL: VOL(1:3) >= VOL(4:6).')
+end
+
 %% Compute voxel limits.
 % Compute a Nx3 matrix whose columns contain the indices of all voxels.
 [xmin, ymin, zmin] = meshgrid(...
