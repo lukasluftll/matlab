@@ -10,7 +10,7 @@ cloud = pointCloud(cat(3, data.x, cat(3, data.y, data.z)));
 
 % Define the voxel resolution used to compute the normal distributed ray 
 % decay rates.
-res = 5;
+res = 1;
 
 % Compute the axis-aligned volume spanned by the point cloud.
 vol = [min(data.x(:)), min(data.y(:)), min(data.z(:)), ...
@@ -31,9 +31,12 @@ hold on
 % Calculate the ray decay rate.
 lambda = raydecay(data.azimuth, data.elevation, data.radius, res, vol);
 
+% Fit lambda into [0; 1].
+lambda = lambda / max(lambda(:));
+
 % Visualize the decay rate.
 alphaplot(lambda, vol);
 
 % Set the visualization parameters.
-axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid
+axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid on
 hold off
