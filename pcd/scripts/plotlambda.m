@@ -10,12 +10,15 @@ cloud = pointCloud(cat(3, data.x, cat(3, data.y, data.z)));
 res = 5;
 
 % Compute the axis-aligned volume spanned by the point cloud.
-vol = [floor([min(data.x(:)), min(data.y(:)), min(data.z(:))]/res), ...
-        ceil([max(data.x(:)), max(data.y(:)), max(data.z(:))]/res)] * res;
-
+vol = [min(data.x(:)), min(data.y(:)), min(data.z(:)), ...
+    max(data.x(:)), max(data.y(:)), max(data.z(:))];
+    
 % Make sure the points in the maximum plane of the volume are part of the
 % volume.
 vol(4:6) = vol(4:6) + eps(vol(4:6));
+
+% Compute the axis-aligned volume spanned by the point cloud.
+vol = [floor(vol(1:3) / res), ceil(vol(4:6) / res)] * res;
 
 %% Visualize decay rate for each voxel.
 % Calculate the ray decay rate.
@@ -24,9 +27,7 @@ lambda = raydecay(data.azimuth, data.elevation, data.radius, ...
 
 % Visualize the decay rate.
 alphaplot(lambda, vol);
-axis equal
-xlabel('x'); ylabel('y'); zlabel('z')
-grid
+axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid
 
 % Overlay the point cloud.
 hold on
