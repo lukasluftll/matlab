@@ -19,37 +19,54 @@ function alphaplot(data, vol, varargin)
 %   For possible name-value pairs, see the documentation of PATCH.
 % 
 %   Example:
-%      data = cat(3, magic(10) / 10^2, magic(10)' / 10^2);
+%      data = cat(3, magic(10) * 1e-3, magic(10)' * 1e-3);
 %      alphaplot(data);
 %
 %   See also: CUBOID, PATCH, CAT.
 
 % Copyright 2016 Alexander Schaefer
 
-
+%% Validate input.
+% Check if the user specified the correct number of input arguments.
 narginchk(1, inf)
 
-if ndims(x) ~= 3
-    error('X must have exactly 3 dimensions.')
+% Check if the data matrix has 3 dimensions.
+if ndims(data) ~= 3
+    error('DATA must have exactly 3 dimensions.')
 end
 
-if min(x(:)) < 0 || max(x(:)) > 1
+% Make sure the values of DATA are finite and stay in [0; 1].
+if min(data(:)) < 0 || max(data(:)) > 1
     error('X must be element of [0; 1].')
 end
 
+% If no volume limits are given, use cubic voxels with edge length 1.
 if nargin < 2
-    vol = [0, 0, 0, size(x)];
+    vol = [0, 0, 0, size(data)];
 end
 
-[x, y, z] = meshgrid(0 : size(x, 1)-1, 0 : size(x, 2)-1, 0 : size(x, 3)-1);
-length = (vol(4:6)-vol(1:3)) ./ size(x);
-vox = [x(:), y(:), z(:)] .* repmat(length, numel(x), 1) ...
-    + repmat(vol(1:3), numel(x), 1);
-vox = [vox, vox + repmat(length, size(vox, 1), 1)];
+%% Compute voxel limits.
+% Compute a Nx3 matrix whose columns contain the indices of all voxels.
+[xmin, ymin, zmin] = meshgrid(...
+    1 : size(data, 1), 1 : size(data, 2), 1 : size(data, 3));
+i = [xmin(:), ymin(:), zmin(:)];
 
-faceAlpha = x(:);
-cuboid(vox, 'EdgeColor', 'none', varargin{:}, ...
+% Compute the edge lengths of the voxels.
+edgelength = (vol(4:6)-vol(1:3)) ./ size(data);
+
+% Compute the minimum limits of the voxels.
+vox = repmat(vol(1:3), numel(xmin), 1) ...
+    + (i-1) .* repmat(edgelength, numel(xmin), 1);
+
+% Add the maximum limits.
+vox = [vox, vox + repmat(edgelength, size(vox, 1), 1)];
+
+% Change the order of the data elements to the order of the voxels.
+faceAlpha = data(sub2ind(size(data), i(:,1), i(:,2), i(:,3)));
+faceAlpha = kron(faceAlpha, ones(6, 1));
+
+%% Plot voxels.
+cuboid(vox, 'FaceColor', 'blue', 'EdgeColor', 'none', varargin{:}, ...
     'FaceVertexAlphaData', faceAlpha, 'FaceAlpha', 'flat');
 
 end
-
