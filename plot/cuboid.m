@@ -1,17 +1,13 @@
-function cuboid(limits, varargin)
+function cuboid(vol, varargin)
 % CUBOID Plot a 3D axis-aligned cuboid.
-%   CUBOID(LIMITS) plots an axis-aligned cuboid with the limits specified 
-%   by the 6-element vector or matrix LIMITS.
+%   CUBOID(VOL) plots an axis-aligned cuboid with the limits specified 
+%   by the 6-element vector or matrix VOL.
 %
-%   If LIMITS is a vector, it is composed of the minimum limits followed by
-%   the maximum limits: [xmin, ymin, zmin, xmax, ymax, zmax].
+%   VOL is composed of the minimum limits followed by the maximum limits: 
+%   VOL(:) = [xmin; ymin; zmin; xmax; ymax; zmax].
 %
-%   If LIMITS is a matrix, its columns contain the minimum and maximum 
-%   limits, respectively. The rows correspond to the coordinates:
-%   [xmin, xmax; ymin, ymax; zmin, zmax].
-%
-%   CUBOID(LIMITS, VARARGIN) plots a cuboid with the properties 
-%   indicated by the name-value pair arguments VARARGIN. 
+%   CUBOID(VOL, VARARGIN) plots a cuboid with the properties indicated by 
+%   the name-value pair arguments VARARGIN. 
 %   For possible name-value pairs, see the documentation of PATCH.
 %
 %   Example:
@@ -26,20 +22,20 @@ function cuboid(limits, varargin)
 narginchk(1, inf);
 
 % Make sure the limits matrix has the right size.
-if numel(limits) ~= 6
+if numel(vol) ~= 6
     error('LIMITS must have exactly 6 elements.');
 end
 
 %% Calculate the cube vertices and faces.
 % Compute the vertices.
-vertices = [limits(1), limits(2), limits(3);
-    limits(4), limits(2), limits(3);
-    limits(4), limits(5), limits(3);
-    limits(1), limits(5), limits(3);
-    limits(1), limits(2), limits(6);
-    limits(4), limits(2), limits(6);
-    limits(4), limits(5), limits(6);
-    limits(1), limits(5), limits(6)];
+vertices = [vol(1), vol(2), vol(3);
+    vol(4), vol(2), vol(3);
+    vol(4), vol(5), vol(3);
+    vol(1), vol(5), vol(3);
+    vol(1), vol(2), vol(6);
+    vol(4), vol(2), vol(6);
+    vol(4), vol(5), vol(6);
+    vol(1), vol(5), vol(6)];
 
 % Define all combinations of the corners to form all 6 faces.
 faces = [1, 2, 3, 4; ...
