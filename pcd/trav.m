@@ -121,7 +121,7 @@ voxel = (floor([vol(1:3); vol(1:3)]/res) + [i-1; i]) * res;
 while true
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the voxel.
-    tvox = (voxel - repmat(origin, 2, 1)) ./ [ray; ray];
+    tvox = (voxel - [origin; origin]) ./ [ray; ray];
     
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.

@@ -103,14 +103,14 @@ end
 % voxel.
 raylength = zeros(ceil(vol(4:6)/res) - floor(vol(1:3)/res));
 
+% Compute the normalized ray direction vectors.
+[dirx, diry, dirz] = sph2cart(azimuth, elevation, ones(size(azimuth)));
+
 % Loop over all rays and add the distance they travel through each voxel to
 % the matrix that stores the ray lengths.
-for i = 1 : numel(azimuth)
-    % Compute the normalized direction vector of the ray.
-    [dirx, diry, dirz] = sph2cart(azimuth(i), elevation(i), 1);
-    
+for i = 1 : numel(azimuth)   
     % Compute the indices of the voxels through which the ray travels.
-    [vi, t] = trav(zeros(1, 3), [dirx, diry, dirz], vol, res);
+    [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], vol, res);
         
     % Add the length of the ray that is apportioned to a specific voxel
     % to the cumulated ray length of this voxel.
