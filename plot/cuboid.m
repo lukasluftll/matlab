@@ -19,45 +19,43 @@ function cuboid(vol, varargin)
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
-% Check if the user provided the required input argument.
+% Check if the user provided the required number of input arguments.
 narginchk(1, inf)
 
-% Make sure the limits matrix has the right size.
+% Make sure the limits matrix contains finite values only.
+if ~all(isfinite(vol(:)))
+    error('VOL must contain finite values only.')
+end
+
+% Make sure the limits matrix has the correct size.
 if size(vol, 2) ~= 6
     error('VOL must have exactly 6 columns.')
 end
 
-%% Calculate the cube vertices and faces.
-% Define the indices of VOL that form the vertices of the first cuboid.
-vi = [1, 2, 3;
-    4, 2, 3;
-    4, 5, 3;
-    1, 5, 3;
-    1, 2, 6;
-    4, 2, 6;
-    4, 5, 6;
-    1, 5, 6];
+%% Calculate cuboid vertex coordinates.
+% Define the indices of VOL that form the coordinates of the vertices of 
+% the first cuboid.
+vi = [1, 2, 3; 4, 2, 3; 4, 5, 3; 1, 5, 3; ...
+    1, 2, 6; 4, 2, 6; 4, 5, 6; 1, 5, 6];
 
 % Compute the indices of VOL that form the vertices of all cuboids.
-vi = repmat(vi, size(vol, 1), 1) + kron((0:size(vol, 1)-1)', 6*ones(8, 3));
+vi = repmat(vi, size(vol, 1), 1) + ...
+    kron((0 : size(vol, 1)-1)', 6 * ones(size(vi)));
 
-% Compute the vertices.
+% Get the vertex values.
 volT = vol'; 
 vertices = volT(vi);
 
-% Define the combinations of the rows of the vertices that form the faces 
-% of the first cuboid.
-faces = [1, 2, 3, 4; ...
-    1, 2, 6, 5; ...
-    2, 3, 7, 6; ...
-    3, 4, 8, 7; ...
-    4, 1, 5, 8; ...
-    5, 6, 7, 8];
+%% Compute vertex combinations that form cuboid faces.
+% Define the combinations of vertices that form the faces of the first 
+% cuboid.
+faces = [1, 2, 3, 4; 1, 2, 6, 5; 2, 3, 7, 6; ...
+    3, 4, 8, 7; 4, 1, 5, 8; 5, 6, 7, 8];
 
-% Compute the combinations of the rows of the vertices that form the faces
-% of all cuboids.
+% Compute the combinations of the vertices that form the faces of all 
+% cuboids.
 faces = repmat(faces, size(vol, 1), 1) ...
-    + kron((0:size(vol, 1)-1)', 8*ones(6, 4));
+    + kron((0 : size(vol, 1)-1)', 8 * ones(size(faces)));
 
 %% Plot all faces.
 patch('Faces', faces, 'Vertices', vertices, varargin{:});
