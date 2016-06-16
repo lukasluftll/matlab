@@ -1,13 +1,12 @@
 function cuboid(vol, varargin)
-% CUBOID Plot a 3D axis-aligned cuboid.
-%   CUBOID(VOL) plots axis-aligned cuboids with the limits specified 
-%   by VOL.
+% CUBOID Plot axis-aligned cuboids.
+%   CUBOID(VOL) plots N axis-aligned cuboids with limits specified by VOL.
 %
 %   VOL is a Nx6 matrix. Its n-th row indicates the limits of the n-th
 %   cuboid: 
 %      VOL(n,:) = [xmin, ymin, zmin, xmax, ymax, zmax].
 %
-%   CUBOID(VOL, VARARGIN) plots a cuboid with the properties indicated by 
+%   CUBOID(VOL, VARARGIN) plots cuboids with the properties indicated by 
 %   the name-value pair arguments VARARGIN. 
 %   For possible name-value pairs, see the documentation of PATCH.
 %
