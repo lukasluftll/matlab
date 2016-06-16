@@ -1,3 +1,6 @@
+% Load the castle point cloud, divide it into voxels, and visualize the
+% lambda value of each voxel.
+
 %% Read data.
 % Load the point cloud data.
 data = pcdread('data/castle.pcd');
@@ -21,15 +24,16 @@ vol(4:6) = vol(4:6) + eps(vol(4:6));
 vol = [floor(vol(1:3) / res), ceil(vol(4:6) / res)] * res;
 
 %% Visualize decay rate for each voxel.
+% Plot the point cloud.
+pcshow(cloud, 'MarkerSize', 75);
+hold on
+
 % Calculate the ray decay rate.
-lambda = raydecay(data.azimuth, data.elevation, data.radius, ...
-    res, vol);
+lambda = raydecay(data.azimuth, data.elevation, data.radius, res, vol);
 
 % Visualize the decay rate.
 alphaplot(lambda, vol);
-axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid
 
-% Overlay the point cloud.
-hold on
-pcshow(cloud, 'MarkerSize', 75);
+% Set the visualization parameters.
+axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid
 hold off
