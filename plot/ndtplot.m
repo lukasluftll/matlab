@@ -1,5 +1,6 @@
 function ndtplot(cloud, ndtres, plotres)
 % NDTPLOT Plot normal distributions transform of point cloud.
+%   ... evaluated at the center of the voxel ...
 
 %% Validate input.
 narginchk(1,3)
@@ -40,19 +41,21 @@ cx = plotvol(1) : plotres : plotvol(4) + plotres/2;
 cy = plotvol(2) : plotres : plotvol(5) + plotres/2;
 cz = plotvol(3) : plotres : plotvol(6) + plotres/2;
 
-density = zeros(length(cx), length(cy), length(cz));
-for ix = 1 : length(cx)
-    for iy = 1 : length(cy)
-        for iz = 1 : length(cz)
-            density(ix,iy,iz) = density(ix,iy,iz) + sum(mvnpdf(...
-                repmat([cx(ix),cy(iy),cz(iz)], size(mu, 1), 1), mu, sigma));
-        end
-    end
+% Compute a Nx3 matrix that contains all center points.
+[y, x, z] = meshgrid(cy, cx, cz);
+c = [x(:), y(:), z(:)];
+
+% Evaluate the mixture of all Gaussians at the center points.
+density = zeros(size(c, 1), 1);
+for i = 1 : size(mu, 1)
+    density = density + mvnpdf(c, mu(i,:), sigma(:,:,i));
 end
+
+density = reshape(density, size(x));
 
 %% Visualize .
 % Plot the point cloud.
-pcshow(cloud, 'MarkerSize', 75);
+%pcshow(cloud, 'MarkerSize', 75);
 hold on
  
 % Fit lambda into [0; 1].
