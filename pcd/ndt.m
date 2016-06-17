@@ -76,6 +76,7 @@ mu = NaN([3, voxelcount]);
 sigma = NaN([3, 3, voxelcount]);
 
 % Loop over all voxels and detect the numbers of points in each voxel.
+location = reshape(cloud.Location, [], 3);
 for x = 1 : voxelcount(1)
     for y = 1 : voxelcount(2)
         for z = 1 : voxelcount(3)
@@ -96,10 +97,12 @@ for x = 1 : voxelcount(1)
                 continue
             end
             
+            % Get Cartesian coordinates of points inside voxel.
+            voxelcloud = location(i, :);
+            
             % Compute mean and covariance.
-            voxelcloud = select(cloud, i);
-            mu(:,x,y,z) = mean(voxelcloud.Location);
-            sigma(:,:,x,y,z) = cov(voxelcloud.Location);
+            mu(:,x,y,z) = mean(voxelcloud);
+            sigma(:,:,x,y,z) = cov(voxelcloud);
         end
     end
 end
