@@ -4,11 +4,6 @@ function ndtplot(cloud, ndtres, plotres)
 %% Validate input.
 narginchk(1,3)
 
-if nargin < 2
-    ndtres = 0.1;
-    plotres = 0.1;
-end
-
 %%
 % Compute the axis-aligned volume spanned by the point cloud.
 vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
