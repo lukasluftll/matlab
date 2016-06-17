@@ -3,7 +3,7 @@ function [mu, sigma] = ndt(cloud, res, vol)
 %   [MU, SIGMA] = NDT(CLOUD, RES) divides the axis-aligned volume 
 %   spanned by the point cloud CLOUD into cubic voxels with edge length 
 %   RES. Then, for each voxel the function calculates the mean and the 
-%   covariance of Gauss distribution of the point positions.
+%   covariance of a Gauss distribution of the point positions.
 %
 %   [MU, SIGMA] = NDT(CLOUD, RES, VOL) does not work on the volume 
 %   spanned by CLOUD, but on the axis-aligned cuboid with limits VOL.
@@ -87,8 +87,17 @@ for x = 1 : voxelcount(1)
             % counted once.
             roi(:,2) = roi(:,2) - eps(roi(:,2));
             
+            % Compute the indices of the points inside the voxel.
+            i = findPointsInROI(cloud, roi);
+            
+            % If there are less than 3 points inside the voxel, computation
+            % of the 3D covariance is impossible.
+            if numel(i) < 3
+                continue
+            end
+            
             % Compute mean and covariance.
-            voxelcloud = select(cloud, findPointsInROI(cloud, roi));
+            voxelcloud = select(cloud, i);
             mu(:,x,y,z) = mean(voxelcloud.Location);
             sigma(:,:,x,y,z) = cov(voxelcloud.Location);
         end
