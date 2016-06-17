@@ -53,19 +53,14 @@ end
 
 density = reshape(density, size(x));
 
-%% Visualize .
-% Plot the point cloud.
-%pcshow(cloud, 'MarkerSize', 75);
-hold on
- 
 % Fit lambda into [0; 1].
 density = density / max(density(:));
-% 
-% % Visualize the decay rate.
+
+%% Visualize .
+% Visualize the decay rate.
 alphaplot(density, plotvol);
-% 
+ 
 % Set the visualization parameters.
 axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid on
-hold off
 
 end
