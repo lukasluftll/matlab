@@ -91,14 +91,14 @@ for x = 1 : voxelcount(1)
             % Compute the indices of the points inside the voxel.
             i = findPointsInROI(cloud, roi);
             
-            % If there are less than 3 points inside the voxel, computation
-            % of the 3D covariance is impossible.
-            if numel(i) < 3
+            % If there are less than 2 points inside the voxel, computing
+            % the 3D covariance is impossible.
+            if numel(i) < 2
                 continue
             end
             
             % Get Cartesian coordinates of points inside voxel.
-            voxelcloud = location(i, :);
+            voxelcloud = location(i,:);
             
             % Compute mean and covariance.
             mu(:,x,y,z) = mean(voxelcloud);
