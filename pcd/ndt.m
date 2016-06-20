@@ -40,8 +40,8 @@ end
 
 %% Compute mean and covariance values.
 % Construct the return matrices.
-mu = NaN(size(center));
-sigma = NaN([3, 3, size(center, 1)]);
+mu = [];
+sigma = [];
 
 % Make sure the point coordinates are contained in a 2D matrix.
 location = reshape(cloud.Location, [], 3);
@@ -69,9 +69,15 @@ for i = 1 : size(center, 1)
     dsq = sum((roicloud - repmat(center(i,:), size(roicloud,1), 1)).^2, 2);
     spherecloud = roicloud(dsq<=radius^2,:);
     
-    % Compute mean and covariance of all points inside the sphere.
-    mu(i,:) = mean(spherecloud);
-    sigma(:,:,i) = cov(spherecloud);
+    % Compute the covariance of all points inside the sphere.
+    sigmaTmp = cov(spherecloud);
+    
+    % Add the mean and covariance to the respective matrices only if the
+    % covariance is positive definite.
+    if all(eig(sigmaTmp) >= 1e-12)
+        mu = [mu; mean(spherecloud)]; %#ok<*AGROW>
+        sigma = cat(3, sigma, sigmaTmp);
+    end
 end
 
 %% Create Gaussian mixture object.
