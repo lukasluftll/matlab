@@ -5,11 +5,15 @@ function ndtplot(cloud, ndtres, plotres)
 %% Validate input.
 narginchk(1,3)
 
+if ndtres <= 0 || plotres <= 0
+    error('Resolution must be positive.')
+end
+
 %%
 % Compute the axis-aligned volume spanned by the point cloud.
 vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
     
-% Make sure the points in the maximum plane of the volume are part of the
+% Make sure the points in the maximum planes of the volume are part of the
 % volume.
 vol(4:6) = vol(4:6) + eps(vol(4:6));
 
@@ -23,7 +27,7 @@ sigma = reshape(sigma(isfinite(sigma)), 3, 3, []);
 % Discard all voxels whose corresponding covariance matrices are not
 % positive definite.
 i = 1;
-while i <= size(mu, 1)
+while i <= size(sigma, 3)
     if any(eig(sigma(:,:,i)) < 1e-12)
         sigma(:,:,i) = [];
         mu(i,:) = [];
@@ -36,7 +40,7 @@ end
 % the end of the last.
 plotvol = [floor(vol(1:3)/plotres), ceil(vol(4:6)/plotres)] * plotres;
 
-% Compute the centers of the voxels.
+% Compute the centers of all voxels.
 cx = plotvol(1) : plotres : plotvol(4) + plotres/2;
 cy = plotvol(2) : plotres : plotvol(5) + plotres/2;
 cz = plotvol(3) : plotres : plotvol(6) + plotres/2;
@@ -45,7 +49,7 @@ cz = plotvol(3) : plotres : plotvol(6) + plotres/2;
 [y, x, z] = meshgrid(cy, cx, cz);
 c = [x(:), y(:), z(:)];
 
-% Evaluate the mixture of all Gaussians at the center points.
+% Evaluate the sum of all Gaussians at the voxel center points.
 density = zeros(size(c, 1), 1);
 for i = 1 : size(mu, 1)
     density = density + mvnpdf(c, mu(i,:), sigma(:,:,i));
@@ -59,7 +63,7 @@ density = density / max(density(:));
 %% Visualize .
 % Visualize the decay rate.
 alphaplot(density, plotvol);
- 
+
 % Set the visualization parameters.
 axis equal; xlabel('x'); ylabel('y'); zlabel('z'); grid on
 
