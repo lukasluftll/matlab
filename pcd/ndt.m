@@ -73,10 +73,12 @@ for i = 1 : size(center, 1)
     sigmaTmp = cov(spherecloud);
     
     % Add the mean and covariance to the respective matrices only if the
-    % covariance is positive definite.
-    if all(eig(sigmaTmp) >= 1e-12)
-        mu = [mu; mean(spherecloud)]; %#ok<*AGROW>
-        sigma = cat(3, sigma, sigmaTmp);
+    % covariance is finite and positive definite.
+    if all(isfinite(sigmaTmp(:)))
+        if all(eig(sigmaTmp()) >= 1e-12)
+            mu = [mu; mean(spherecloud)]; %#ok<*AGROW>
+            sigma = cat(3, sigma, sigmaTmp);
+        end
     end
 end
 
