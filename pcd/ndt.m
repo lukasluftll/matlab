@@ -55,12 +55,6 @@ for i = 1 : size(center, 1)
     % Compute the indices of the points inside the ROI boxes.
     index = findPointsInROI(cloud, roi(i,:));
 
-    % If there are less than 2 points inside the sphere, computing the 
-    % covariance is impossible.
-    if numel(index) < 2
-        continue
-    end
-
     % Get the Cartesian coordinates of the points inside the ROI box.
     roicloud = location(index,:);
     
@@ -68,6 +62,12 @@ for i = 1 : size(center, 1)
     % sphere.
     dsq = sum((roicloud - repmat(center(i,:), size(roicloud,1), 1)).^2, 2);
     spherecloud = roicloud(dsq<=radius^2,:);
+    
+    % If there are less than 2 points inside the sphere, computing the 
+    % covariance is impossible.
+    if size(spherecloud, 1) < 2
+        continue
+    end
     
     % Compute the covariance of all points inside the sphere.
     sigmaTmp = cov(spherecloud);
