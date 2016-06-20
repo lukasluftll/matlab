@@ -1,0 +1,11 @@
+cloud = pcread('teapot.ply');
+res = 0.1;
+xgv = cloud.XLimits(1) : res : cloud.XLimits(2);
+ygv = cloud.YLimits(1) : res : cloud.YLimits(2);
+zgv = cloud.ZLimits(1) : res : cloud.ZLimits(2);
+[x, y, z] = ndgrid(xgv, ygv, zgv);
+center = [x(:), y(:), z(:)];
+radius = 1;
+gm = ndt(cloud, center, radius);
+density = pdf(gm, center);
+isosurface(x(:), y(:), z(:), density, 0.5);
