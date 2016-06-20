@@ -1,8 +1,9 @@
-function [mu, sigma] = ndt(cloud, center, radius)
+function gm = ndt(cloud, center, radius)
 % NDT Normal distributions transform of point cloud.
-%   [MU, SIGMA] = NDT(CLOUD, CENTER, RADIUS) performs normal distributions 
+%   GM = NDT(CLOUD, CENTER, RADIUS) performs normal distributions 
 %   transforms on all points of the point cloud CLOUD that are contained in 
-%   the spheres defined by CENTER and RADIUS.
+%   the spheres defined by CENTER and RADIUS. The resulting Gaussian
+%   mixture is represented by the gmdistribution object GM.
 %
 %   CLOUD is a pointCloud object.
 %
@@ -12,17 +13,12 @@ function [mu, sigma] = ndt(cloud, center, radius)
 %   RADIUS is a scalar that defines the sphere radius. A point lies
 %   inside a sphere if its distance to the sphere center is at most RADIUS.
 %
-%   MU is an Nx3 matrix. MU(n,:) is the mean position of all cloud points
-%   inside the n-th sphere. The mean of a sphere that contains no points is 
-%   NaN.
-%
-%   SIGMA is a 3x3xN matrix. SIGMA(:,:,n) is the 3x3 covariance matrix of 
-%   the cloud points inside the n-th sphere. The covariance of a sphere 
-%   that contains no points is NaN.
+%   GM is a gmdistribution object that contains the means and covariances
+%   resulting from performing the NDTs.
 %
 %   Example:
 %      pc = pcread('teapot.ply');
-%      [mu, sigma] = ndt(pc, [1 1 1; 2 1 1], 3)
+%      gm = ndt(pc, [1 1 1; 2 1 1], 3)
 %
 %   See also NDTPLOT, POINTCLOUD, NAN.
 
@@ -77,5 +73,8 @@ for i = 1 : size(center, 1)
     mu(i,:) = mean(spherecloud);
     sigma(:,:,i) = cov(spherecloud);
 end
+
+%% Create Gaussian mixture object.
+gm = gmdistribution(mu, sigma);
 
 end

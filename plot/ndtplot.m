@@ -1,30 +1,39 @@
-function ndtplot(cloud, ndtres, plotres)
+function ndtplot(mu, sigma, vol, res)
 % NDTPLOT Plot normal distributions transform of point cloud.
-%   ... evaluated at the center of the voxel ...
 
 %% Validate input.
-narginchk(1,3)
+narginchk(2, 4)
 
-if ndtres <= 0 || plotres <= 0
-    error('Resolution must be positive.')
+if size(mu, 2) ~= 3
+    error('')
+end
+
+if size(sigma, 1) ~= 3 || size(sigma, 2) ~= 3
+    error('')
+end
+
+if size(mu, 1) ~= size(sigma, 3)
+    error('')
+end
+
+if nargin < 3
+    vol = [min(mu) max(mu)];
+end
+
+if any(vol(1:3) <= vol(4:6))
+    error('')
+end
+
+if nargin < 4
+    res = max(diff(reshape(vol, 3, 2), 1, 2)) / 100;
 end
 
 %%
-% Compute the axis-aligned volume spanned by the point cloud.
-vol = reshape([cloud.XLimits; cloud.YLimits; cloud.ZLimits], 1, 6);
-    
-% Make sure the points in the maximum planes of the volume are part of the
-% volume.
-vol(4:6) = vol(4:6) + eps(vol(4:6));
-
-% Perform the normal distributions transform.
-[mu, sigma] = ndt(cloud, ndtres);
-
 % Discard all NaN values.
-mu = reshape(mu(isfinite(mu)), 3, [])';
-sigma = reshape(sigma(isfinite(sigma)), 3, 3, []);
+mu = mu(all(isfinite(mu), 2),:);
+sigma = sigma(:,:,all(all(isfinite(sigma), 2)));
 
-% Discard all voxels whose corresponding covariance matrices are not
+% Discard all normal distributions whose covariance matrices are not
 % positive definite.
 i = 1;
 while i <= size(sigma, 3)
@@ -36,20 +45,15 @@ while i <= size(sigma, 3)
     end
 end
 
-% Compute the volume that spans from the beginning of the first voxel to 
-% the end of the last.
-plotvol = [floor(vol(1:3)/plotres), ceil(vol(4:6)/plotres)] * plotres;
+xgv = vol(1) : res : vol(4);
+ygv = vol(2) : res : vol(5);
+zgv = vol(3) : res : vol(6);
 
-% Compute the centers of all voxels.
-cx = plotvol(1) : plotres : plotvol(4) + plotres/2;
-cy = plotvol(2) : plotres : plotvol(5) + plotres/2;
-cz = plotvol(3) : plotres : plotvol(6) + plotres/2;
-
-% Compute a Nx3 matrix that contains all center points.
-[y, x, z] = meshgrid(cy, cx, cz);
+% Compute a Nx3 matrix that contains ...
+[x, y, z] = ndgrid(xgv, ygv, zgv);
 c = [x(:), y(:), z(:)];
 
-% Evaluate the sum of all Gaussians at the voxel center points.
+% Evaluate the sum of all Gaussians at .
 density = zeros(size(c, 1), 1);
 for i = 1 : size(mu, 1)
     density = density + mvnpdf(c, mu(i,:), sigma(:,:,i));
