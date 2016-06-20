@@ -24,7 +24,7 @@ function [mu, sigma] = ndt(cloud, center, radius)
 %      pc = pcread('teapot.ply');
 %      [mu, sigma] = ndt(pc, [1 1 1; 2 1 1], 3)
 %
-%   See also NDTPLOT, POINTCLOUD, NAN.
+%   See also NDTPDF, POINTCLOUD, NAN.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -44,8 +44,8 @@ end
 
 %% Compute mean and covariance values.
 % Construct the return matrices.
-mu = [];
-sigma = [];
+mu = NaN(size(center));
+sigma = NaN([3, 3, size(center, 1)]);
 
 % Make sure the point coordinates are contained in a 2D matrix.
 location = reshape(cloud.Location, [], 3);
@@ -73,17 +73,9 @@ for i = 1 : size(center, 1)
         continue
     end
     
-    % Compute the covariance of all points inside the sphere.
-    sigmaTmp = cov(spherecloud);
-    
-    % Add the mean and covariance to the respective matrices only if the
-    % covariance is finite and positive definite.
-    if all(isfinite(sigmaTmp(:)))
-        if all(eig(sigmaTmp()) >= 1e-12)
-            mu = [mu; mean(spherecloud)]; %#ok<*AGROW>
-            sigma = cat(3, sigma, sigmaTmp);
-        end
-    end
+    % Compute mean and covariance of all points inside the sphere.
+    mu(i,:) = mean(spherecloud);
+    sigma(:,:,i) = cov(spherecloud);
 end
 
 end
