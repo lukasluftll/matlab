@@ -24,7 +24,7 @@ function [mu, sigma] = ndt(cloud, center, radius)
 %      pc = pcread('teapot.ply');
 %      [mu, sigma] = ndt(pc, [1 1 1; 2 1 1], 3)
 %
-%   See also NDTPDF, POINTCLOUD, NAN.
+%   See also NDPDF, POINTCLOUD, NAN.
 
 % Copyright 2016 Alexander Schaefer
 
