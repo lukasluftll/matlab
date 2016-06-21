@@ -1,22 +1,21 @@
 function y = ndpdf(mu, sigma, x)
-% NDPDF Probability density function of multivariate normal distributions.
+% NDPDF Total probability density of multiple normal distributions.
 %   Y = NDPDF(MU, SIGMA, X) takes one or multiple multivariate normal 
-%   distributions characterized by their mean MU and their covariance SIGMA
-%   and for each point in X computes the sum of their probability
-%   densities.
+%   distributions characterized by their mean MU and covariance SIGMA and 
+%   for each point in X computes the sum of their probability densities.
 %
-%   MU is a MxD matrix. The rows contain the means of the D-dimensional
+%   MU is a MxD matrix. The rows contain the means of the M D-dimensional
 %   normal distributions.
 %
 %   SIGMA is a DxDxM matrix. Its pages contain the DxD covariance matrices
-%   of the normal distributions.
+%   of the M normal distributions.
 %
 %   X is a NxD matrix. Its rows contain the N points where the sum of all
 %   normal distributions is evaluated.
 %
 %   Y is a Nx1 matrix. Its elements contain the sum of the probability
-%   density of all normal distributions evaluated at the point defined by
-%   the corresponding row of X.
+%   densities of all normal distributions evaluated at the corresponding 
+%   rows of X.
 %
 %   Example:
 %      mu = [1, 1, 1; 5, 0, 0];
@@ -43,7 +42,7 @@ if size(mu, 1) ~= size(sigma, 3)
     error('MU and SIGMA must specify the same number of distributions.')
 end
 
-% Remove all distributions whose covariance is not finite or not positive
+% Remove all distributions whose covariances are not finite or not positive
 % definite.
 i = 1;
 while i <= size(sigma, 3)
