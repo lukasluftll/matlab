@@ -34,7 +34,7 @@ narginchk(3, 3);
 
 % Check the dimensions of the sphere center matrix.
 if size(center, 2) ~= 3
-    error('CENTER must be a Nx3 matrix.')
+    error('CENTER must be an Nx3 matrix.')
 end
 
 % Check if the radius is positive.
@@ -47,7 +47,7 @@ end
 mu = NaN(size(center));
 sigma = NaN([3, 3, size(center, 1)]);
 
-% Make sure the point coordinates are contained in a 2D matrix.
+% If the point cloud is organized, make it unorganized.
 location = reshape(cloud.Location, [], 3);
 
 % Define the axis-aligned region-of-interest boxes that contain the 
@@ -56,11 +56,9 @@ roi = kron(center, [1, 1]) + repmat([-radius, +radius], size(center));
 
 % Perform NDT for every sphere.
 for i = 1 : size(center, 1)
-    % Compute the indices of the points inside the ROI boxes.
-    index = findPointsInROI(cloud, roi(i,:));
-
-    % Get the Cartesian coordinates of the points inside the ROI box.
-    roicloud = location(index,:);
+    % Get the Cartesian coordinates of the points inside the ROI box that
+    % corresponds to the current sphere.
+    roicloud = location(findPointsInROI(cloud, roi(i,:)),:);
     
     % Compute which points inside the ROI box are also located inside the 
     % sphere.
