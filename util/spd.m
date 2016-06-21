@@ -14,6 +14,10 @@ function y = spd(x)
 
 % Copyright 2016 Alexander Schaefer
 
+%% Validate input.
+% Check number of input arguments.
+narginchk(1, 1)
+
 %% Create return value.
 y = [];
 
