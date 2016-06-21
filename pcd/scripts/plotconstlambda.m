@@ -15,7 +15,7 @@ res = 1;
 % Compute the axis-aligned volume spanned by the point cloud.
 vol = [min(data.x(:)), min(data.y(:)), min(data.z(:)), ...
     max(data.x(:)), max(data.y(:)), max(data.z(:))];
-    
+
 % Make sure the points in the maximum plane of the volume are part of the
 % volume.
 vol(4:6) = vol(4:6) + eps(vol(4:6));
