@@ -46,17 +46,19 @@ end
 % definite.
 i = 1;
 while i <= size(sigma, 3)
-    % Check whether all covariance values are finite.
-    if all(all(isfinite(sigma(:,:,i))))
-        % Check for positive definiteness.
-        e = eig(sigma(:,:,i));
-        if all(e > 0) && min(e) >= max(e)*1e-3
-            i = i + 1;
-            continue
-        end
-    end
-    mu(i,:) = [];
-    sigma(:,:,i) = [];
+    % Check if the covariance matrix is symmetric positive definite.
+    % If it is close to singular, change it slightly to ensure numerical
+    % stability.
+    sigmaStable = spd(sigma(:,:,i));
+    
+    % If the covariance matrix is not positive definite, remove the
+    % corresponding normal distribution.
+    if isempty(sigmaStable)
+        mu(i,:) = [];
+        sigma(:,:,i) = [];
+    else
+        sigma(:,:,i) = sigmaStable;
+    end   
 end
 
 %% Evaluate sum of normal distributions at given points.
