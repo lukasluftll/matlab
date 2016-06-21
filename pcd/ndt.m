@@ -1,4 +1,4 @@
-function [mu, sigma] = ndt(cloud, center, radius)
+function [mu, Sigma] = ndt(cloud, center, radius)
 % NDT Normal distributions transform of point cloud.
 %   [MU, SIGMA] = NDT(CLOUD, CENTER, RADIUS) performs normal distributions 
 %   transforms on all points of the point cloud CLOUD that are contained in 
@@ -45,7 +45,7 @@ end
 %% Compute mean and covariance values.
 % Construct the return matrices.
 mu = NaN(size(center));
-sigma = NaN([3, 3, size(center, 1)]);
+Sigma = NaN([3, 3, size(center, 1)]);
 
 % If the point cloud is organized, make it unorganized.
 location = reshape(cloud.Location, [], 3);
@@ -73,7 +73,7 @@ for i = 1 : size(center, 1)
     
     % Compute mean and covariance of all points inside the sphere.
     mu(i,:) = mean(spherecloud);
-    sigma(:,:,i) = cov(spherecloud);
+    Sigma(:,:,i) = cov(spherecloud);
 end
 
 end

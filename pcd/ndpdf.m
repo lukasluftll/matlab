@@ -1,4 +1,4 @@
-function y = ndpdf(x, mu, sigma, w)
+function y = ndpdf(x, mu, Sigma, w)
 % NDPDF Total probability density of multiple normal distributions.
 %   Y = NDPDF(X, MU, SIGMA) takes one or multiple multivariate normal 
 %   distributions characterized by their mean MU and covariance SIGMA and 
@@ -44,7 +44,7 @@ end
 
 % Check if input argument dimensionality.
 dim = size(mu, 2);
-if size(sigma, 1) ~= dim || size(sigma, 2) ~= dim || size(x, 2) ~= dim
+if size(Sigma, 1) ~= dim || size(Sigma, 2) ~= dim || size(x, 2) ~= dim
     error('MU, SIGMA, and X must all be D-variate.')
 end
 if size(w, 2) ~= 1
@@ -52,26 +52,26 @@ if size(w, 2) ~= 1
 end
 
 % Check if mu, sigma, and w contain the same number of distributions.
-if size(mu, 1) ~= size(sigma, 3) || size(mu, 1) ~= size(w, 1)
+if size(mu, 1) ~= size(Sigma, 3) || size(mu, 1) ~= size(w, 1)
     error('MU, SIGMA, W must specify the same number of distributions.')
 end
 
 % Remove all distributions whose covariances are not finite or not positive
 % definite.
 i = 1;
-while i <= size(sigma, 3)
+while i <= size(Sigma, 3)
     % Check if the covariance matrix is symmetric positive definite.
     % If it is close to singular, change it slightly to ensure numerical
     % stability.
-    sigmaStable = spd(sigma(:,:,i));
+    SigmaStable = spd(Sigma(:,:,i));
     
     % If the covariance matrix is not positive definite, remove the
     % corresponding normal distribution.
-    if isempty(sigmaStable)
+    if isempty(SigmaStable)
         mu(i,:) = [];
-        sigma(:,:,i) = [];
+        Sigma(:,:,i) = [];
     else
-        sigma(:,:,i) = sigmaStable;
+        Sigma(:,:,i) = SigmaStable;
         i = i + 1;
     end 
 end
@@ -79,7 +79,7 @@ end
 %% Evaluate sum of normal distributions at given points.
 y = zeros(size(x, 1), 1);
 for i = 1 : size(mu, 1)
-    y = y + w(i) * mvnpdf(x, mu(i,:), sigma(:,:,i));
+    y = y + w(i) * mvnpdf(x, mu(i,:), Sigma(:,:,i));
 end
 
 end
