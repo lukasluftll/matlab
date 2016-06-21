@@ -3,9 +3,9 @@ function y = spd(x)
 %   Y = SPD(X) checks whether the given matrix X is symmetric positive
 %   definite. If so, it is returned as Y. If not, Y is empty.
 %
-%   If X is close to singular, SPD changes the smallest eigenvalue of X so
-%   it is 0.001 of the largest eigenvalue. In this way, SPD ensures the
-%   numerical stability of the matrix.
+%   If X is close to singular, SPD ensures the smaller eigenvalues of X are
+%   at least 0.001 of the largest eigenvalue. In this way, SPD guarantees 
+%   the numerical stability of the matrix.
 %
 %   Example:
 %      spd(zeros(3))
@@ -39,12 +39,12 @@ if any(diag(eigenvalue) <= 0)
 end
 
 %% Ensure numerical stability.
-% Check if the matrix is close to singular.
-[mineig, minidx] = min(diag(eigenvalue));
-[maxeig, maxidx] = max(diag(eigenvalue));
-if mineig < maxeig * 1e-3
-    % Change the minimum eigenvector and reconstruct the matrix.
-    eigenvalue(minidx,minidx) = eigenvalue(maxidx,maxidx) * 1e-3;
+% Compute the minimum stable eigenvalue.
+mineig = max(diag(eigenvalue)) * 1e-3;
+
+% Stabilize unstable eigenvalues and reconstruct the matrix.
+if any(diag(eigenvalue) < mineig)
+    eigenvalue([1,5,9]) = max([eigenvalue([1,5,9]); repmat(mineig, 1, 3)]);
     y = eigenvector * eigenvalue / eigenvector;
     return
 end
