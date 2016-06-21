@@ -1,6 +1,6 @@
-function y = ndpdf(mu, sigma, x)
+function y = ndpdf(x, mu, sigma)
 % NDPDF Total probability density of multiple normal distributions.
-%   Y = NDPDF(MU, SIGMA, X) takes one or multiple multivariate normal 
+%   Y = NDPDF(X, MU, SIGMA) takes one or multiple multivariate normal 
 %   distributions characterized by their mean MU and covariance SIGMA and 
 %   for each point in X computes the sum of their probability densities.
 %
