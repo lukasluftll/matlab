@@ -58,23 +58,23 @@ end
 
 % Remove all distributions whose covariances are not finite or not positive
 % definite.
-i = 1;
-while i <= size(Sigma, 3)
+remove = false(size(Sigma, 3), 1);
+for i = 1 : size(Sigma, 3)
     % Check if the covariance matrix is symmetric positive definite.
-    % If it is close to singular, change it slightly to ensure numerical
-    % stability.
     SigmaStable = spd(Sigma(:,:,i));
     
-    % If the covariance matrix is not positive definite, remove the
-    % corresponding normal distribution.
+    % If it is not positive definite, remove the corresponding normal 
+    % distribution. If it is close to singular, change it slightly to 
+    % ensure numerical stability. 
     if isempty(SigmaStable)
-        mu(i,:) = [];
-        Sigma(:,:,i) = [];
+        remove(i) = true;
     else
         Sigma(:,:,i) = SigmaStable;
-        i = i + 1;
-    end 
+    end
 end
+Sigma(:,:,remove) = [];
+mu(remove,:) = [];
+w(remove) = [];
 
 %% Evaluate sum of normal distributions at given points.
 y = zeros(size(x, 1), 1);
