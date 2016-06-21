@@ -46,8 +46,11 @@ end
 % definite.
 i = 1;
 while i <= size(sigma, 3)
+    % Check whether all covariance values are finite.
     if all(all(isfinite(sigma(:,:,i))))
-        if all(eig(sigma(:,:,i))) >= 1e-12
+        % Check for positive definiteness.
+        e = eig(sigma(:,:,i));
+        if all(e > 0) && min(e) >= max(e)*1e-3
             i = i + 1;
             continue
         end
