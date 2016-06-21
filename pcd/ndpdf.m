@@ -58,7 +58,8 @@ while i <= size(sigma, 3)
         sigma(:,:,i) = [];
     else
         sigma(:,:,i) = sigmaStable;
-    end   
+        i = i + 1;
+    end 
 end
 
 %% Evaluate sum of normal distributions at given points.
