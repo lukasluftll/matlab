@@ -1,12 +1,14 @@
 % Visualizes the result of performing an NDT on the point cloud depicting a
 % teapot.
 
+%% Define parameters.
 % Define the resolution of the grid used for NDT.
 res = 0.2;
 
 % Define the radius used for NDT.
 radius = 1;
 
+%% Perform NDT.
 % Read the point cloud.
 cloud = pcread('teapot.ply');
 
@@ -22,6 +24,7 @@ center = [x(:), y(:), z(:)];
 % of the grid.
 density = reshape(ndpdf(center, mu, sigma), size(x));
 
+%% Plot NDT.
 % Plot a surface of constant density.
 ndtfig = figure('Name', 'Isosurface', 'NumberTitle', 'Off');
 isosurface(xgv, ygv, zgv, density, 100);
