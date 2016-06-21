@@ -20,7 +20,7 @@ center = [x(:), y(:), z(:)];
 
 % Sum up the probabilty densities of all NDT distributions for all points 
 % of the grid.
-density = reshape(ndpdf(mu, sigma, center), size(x));
+density = reshape(ndpdf(center, mu, sigma), size(x));
 
 % Plot a surface of constant density.
 ndtfig = figure('Name', 'Isosurface', 'NumberTitle', 'Off');
