@@ -13,7 +13,7 @@ files = dir([datadir, 'velodyne_freiburg-04*.pcd']);
 
 % Read the first point cloud.
 campus = pcdread([datadir, files(1).name]);
-campus = campus.pointCloud;
+campus = pointCloud(cat(3, campus.x, cat(3, campus.y, campus.z)));
 
 % Display the single scan.
 fig = figure('Name', 'Single scan', 'NumberTitle', 'Off');
@@ -23,7 +23,7 @@ whitebg(fig, bg);
 % Merge the scans to form a bundle.
 for (i = 2 : min(numel(files), 21))
     pc = pcdread([datadir, files(i).name]);
-    pc = pc.pointCloud;
+    pc = pointCloud(cat(3, pc.x, cat(3, pc.y, pc.z)));
     campus = pcmerge(campus, pc, res);
 end
 
