@@ -1,46 +1,36 @@
-function lambda = raydecay(azimuth, elevation, radius, res, vol)
-% RAYDECAY Compute mean decay rate of Lidar rays in voxel.
-%   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, RES) uses the rays 
-%   represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
-%   compute the mean ray decay rate LAMBDA for each of the voxels in the 
-%   axis-aligned volume spanned by the rays. The voxels positions are
-%   chosen such that no voxel will intersect with the x-y, x-z, or y-z
-%   plane. Their edge lengths are given by the scalar RES.
-%
-%   LAMBDA = RAYDECAY(CLOUD, RES, VOL) computes the mean decay rates of the
-%   voxels in a grid volume with resolution RES and extent VOL.
+function lambda = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
+% RAYDECAY Compute decay rate of Lidar rays in grid volume.
+%   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) uses the
+%   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
+%   compute the mean ray decay rate LAMBDA for each voxel in the grid 
+%   volume defined by the grid vectors XGV, YGV, ZGV.
 %
 %   It is assumed that all rays originate in the origin [0, 0, 0].
 %
 %   AZIMUTH and ELEVATION are a HEIGHTxWIDTH matrices, where HEIGHT and 
 %   WIDTH describe the size of the point cloud. The angle unit is rad.
 %
-%   RADIUS is a HEIGHTxWIDTH matrix.
+%   RADIUS is a HEIGHTxWIDTH matrix that contains the length of each ray.
 %
-%   RES is a scalar that defines the edge length of all voxels that build
-%   the grid volume. The voxels are axis-aligned. 
-%   A voxel contains all points [x, y, z]  that satisfy the inequality:
-%      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
-%   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
+%   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
+%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
+%   the inequality:
 %
-%   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
-%   that describes the limits of the axis-aligned grid volume, including  
-%   the minima, excluding the maxima. 
+%         (XGV(i) <= x < XGV(i+1))
+%      && (YGV(j) <= y < YGV(j+1)) 
+%      && (ZGV(k) <= z < ZGV(k+1))
 %
-%   LAMBDA is a AxBxC matrix that contains the mean decay rate of each 
-%   voxel, where A, C, and C are the counts of voxels in x, y, and z
-%   direction. The lambda value of a voxel that has not been visited by any
-%   ray is set to NaN.
+%   LAMBDA is a IxJxK matrix that contains the mean decay rate of each 
+%   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
+%   The lambda value of a voxel that has not been visited by any ray is 
+%   NaN.
 %
 %   Concept of ray decay rate
 %   -------------------------
-%   The decay rate of a ray emitted by the Lidar sensor is a property of  
-%   the material through which the ray travels. This property can be 
-%   approximated by dividing the space into voxels and computing the mean 
-%   decay rate for each voxel. 
-%   The mean decay rate over a voxel is the number of ray returns from 
-%   inside the voxel divided by the sum of the lengths of all rays 
-%   travelling through the voxel:
+%   The decay rate of a ray emitted by a Lidar sensor is a property of the
+%   material through which the ray travels. The mean decay rate over a 
+%   voxel is the number of ray returns from inside the voxel divided by the 
+%   sum of the lengths of all rays travelling through the voxel:
 %
 %                  n_returns
 %      lambda = -----------------
@@ -51,7 +41,10 @@ function lambda = raydecay(azimuth, elevation, radius, res, vol)
 %
 %   Example:
 %      pc = pcdread('castle.pcd');
-%      lambda = raydecay(pc.azimuth, pc.elevation, pc.radius, 5)
+%      xgv = min(pc.x(:)) : 5 : max(pc.x(:));
+%      ygv = min(pc.y(:)) : 5 : max(pc.y(:));
+%      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
+%      lambda=raydecay(pc.azimuth, pc.elevation, pc.radius, xgv, ygv, zgv)
 %
 %   See also NAN.
 
@@ -59,9 +52,9 @@ function lambda = raydecay(azimuth, elevation, radius, res, vol)
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(4, 5);
+narginchk(6, 6);
 
-% Check the spherical coordinate matrices all have the same size.
+% Check whether the spherical coordinate matrices all have the same size.
 if any(size(azimuth) ~= size(elevation) | size(azimuth) ~= size(radius))
     error('AZIMUTH, ELEVATION, and RADIUS must all have the same size.')
 end
@@ -71,37 +64,20 @@ if ~(ismatrix(azimuth) && ismatrix(elevation) && ismatrix(radius))
     error('AZIMUTH, ELEVATION, and RADIUS must have exactly 2 dimensions.')
 end
 
-% Convert the spherical to Cartesian coordinates.
-[x, y, z] = sph2cart(azimuth, elevation, radius);
-    
-% If the grid volume is not given, set it to the extent of the point cloud.
-if nargin < 5
-    vol = [min(x(:)), min(y(:)), min(z(:)), ...
-        max(x(:)), max(y(:)), max(z(:))];
-    
-    % Make sure the points lying in the maximum limit planes are included.
-    vol(4:6) = vol(4:6) + eps(vol(4:6));
+% Check whether the grid vectors contain enough elements.
+if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
+    error('Every grid vector must contain at least 2 elements.')
 end
 
-% Check the size of the volume vector.
-if numel(vol) ~= 6
-    error('VOL must have 6 elements.')
-end
-
-% Check the volume limits.
-if any(diff(reshape(vol', 3, 2), 1, 2) < 0)
-    error('Invalid volume limits.')
-end
-
-% Check the resolution.
-if res <= 0
-    error('Resolution must be positive.')
+% Check whether the grid vectors are ordered.
+if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
+    error('Grid vectors must monotonically increase.')
 end
 
 %% Sum up ray lengths.
 % Construct the matrix that stores the cumulated ray lengths for each
 % voxel.
-raylength = zeros(ceil(vol(4:6)/res) - floor(vol(1:3)/res));
+raylength = zeros(numel(xgv)-1, numel(ygv)-1, numel(zgv)-1);
 
 % Compute the normalized ray direction vectors.
 [dirx, diry, dirz] = sph2cart(azimuth, elevation, ones(size(azimuth)));
@@ -110,7 +86,7 @@ raylength = zeros(ceil(vol(4:6)/res) - floor(vol(1:3)/res));
 % the matrix that stores the ray lengths.
 for i = 1 : numel(azimuth)   
     % Compute the indices of the voxels through which the ray travels.
-    [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], vol, res);
+    [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
         
     % Add the length of the ray that is apportioned to a specific voxel
     % to the cumulated ray length of this voxel.
