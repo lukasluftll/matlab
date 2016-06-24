@@ -1,32 +1,30 @@
-function [i, t] = trav(origin, ray, vol, res)
+function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 % TRAV Ray tracing in voxel grid.
-%   I = TRAV(ORIGIN, RAY, VOL, RES) returns the indices of all voxels that 
-%   a semi-infinite ray traverses on its way from its starting point to the
-%   border of the axis-aligned grid.
+%   I = TRAV(ORIGIN, RAY, XGV, YGV, ZGV) returns the indices of all voxels
+%   that a semi-infinite ray traverses on its way from its starting point 
+%   ORIGIN along its direction RAY to the border of a grid. The grid is
+%   defined by the grid vectors XGV, YGV, and ZGV.
 %
 %   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
 %
 %   RAY is a 3-element row vector indicating the direction of the ray.
 %
-%   VOL is a 6-element row vector [xmin, ymin, zmin, xmax, ymax, zmax]
-%   that describes the limits of the axis-aligned grid volume, including  
-%   the minima, excluding the maxima. 
+%   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
+%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
+%   the inequality:
 %
-%   RES is a scalar that defines the edge length of all voxels that build
-%   the grid volume. The voxels are axis-aligned. This means that the edges 
-%   of the voxels closest to the coordinate axes coincide with the axes.
-%   A voxel contains all points [x, y, z]  that satisfy the inequality:
-%      (vxmin <= x < vxmax) && (vymin <= y < vymax) && (vzmin <= z < vzmax)
-%   with vxmin, vxmax, vymin, vymax, etc. being the limits of the voxel.
+%         (XGV(i) <= x < XGV(i+1))
+%      && (YGV(j) <= y < YGV(j+1)) 
+%      && (ZGV(k) <= z < ZGV(k+1))
 %
 %   I is an Mx3 matrix whose rows contain the x, y, and z indices of the
 %   voxels that the ray traverses, with M being the number of all voxels
-%   traversed. I is ordered: The first row corresponds to the voxel where 
-%   the ray starts, the last row corresponds to the voxel where the ray 
-%   leaves the grid.
+%   traversed. I is ordered: The first row corresponds to the voxel in 
+%   which the ray starts, the last row corresponds to the voxel where the 
+%   ray leaves the grid.
 %
-%   [I, T] = TRAV(ORIGIN, RAY, VOL, RES) also returns the M+1-element 
+%   [I, T] = TRAV(ORIGIN, RAY, XGV, YGV, ZGV) also returns the M+1-element 
 %   column vector T. It contains the line parameters that encode the 
 %   intersections of the ray with the planes that separate the voxels.
 %   The first element corresponds to the entry point into the first voxel;
@@ -37,8 +35,8 @@ function [i, t] = trav(origin, ray, vol, res)
 %   Example:
 %      origin = [5, 2, 2];
 %      ray = [-1, 0, 0];
-%      vol = [-2, -2, -2, 2, 2, 2];
-%      [i, t] = trav(origin, ray, vol, 1)
+%      xgv = -2 : 2; ygv = -2 : 2; zgv = -2 : 2;
+%      [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %
 %   See also SLAB, END.
 
@@ -57,24 +55,11 @@ function [i, t] = trav(origin, ray, vol, res)
 
 %% Validate input.
 % Make sure the user specified enough input arguments.
-narginchk(4, 4);
+narginchk(5, 5);
 
 % Check if the arguments have the expected sizes.
-expectedSize = [1, 3; 1, 3; 1, 6; 1, 1];
-if any([size(origin); size(ray); size(vol); size(res)] ~= expectedSize)
-    inputnames = {'origin', 'ray', 'vol', 'res'};
-    for argin = 1 : nargin
-        if ndims(eval(inputnames{argin})) ~= size(expectedSize, 2)
-            error([upper(inputnames{argin}), ' must have ', ...
-                int2str(size(expectedSize, 2)), ' dimensions.'])
-        end
-
-        if any(size(eval(inputnames{argin})) ~= expectedSize(argin,:))
-            error([upper(inputnames{argin}), ' must be a ', ...
-                int2str(expectedSize(argin,1)), 'x', ...
-                int2str(expectedSize(argin,2)), ' matrix.'])
-        end
-    end
+if numel(origin) ~= 3 || numel(ray) ~= 3
+    error('ORIGIN and RAY must have 3 elements.')
 end
 
 % Check the ray value.
@@ -82,21 +67,23 @@ if any(isnan(ray) | isinf(ray))
     error('Ray values must not be NaN or Inf.')
 end
 
-% Check the volume limits.
-if any(diff(reshape(vol', 3, 2), 1, 2) < 0)
-    error('Invalid volume limits.')
+% Check whether the grid vectors contain enough elements.
+if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
+    error('Every grid vector must contain at least 2 elements.')
 end
 
-% Check the resolution.
-if res <= 0
-    error('Resolution must be positive.')
+% Check whether the grid vectors are ordered.
+if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
+    error('Grid vectors must monotonically increase.')
 end
 
 %% Initialization phase: calculate index of entry point.
 % Initialize return values.
-i = []; t = [];
+i = []; 
+t = [];
 
 % Compute the intersections of the ray with the grid volume.
+vol = [xgv(1), ygv(1), zgv(1), xgv(end), ygv(end), zgv(end)];
 [hit, tvol] = slab(origin, ray, vol);
 
 % If the ray does not intersect with the volume, return an empty index 
@@ -105,49 +92,49 @@ if ~hit || tvol(2) < 0
     return
 end
 
-% Compute the line parameter corresponding to the entry point to the grid.
+% Compute the size of the voxel grid.
+gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+
+% Compute the line parameter corresponding to the entry point into the 
+% grid.
 t = max([0, tvol(1)]);
 
 % Calculate the index of the voxel corresponding to the starting point. 
-% This index lies outside the volume if the ray intersects with a maximum 
-% limit plane.
-i = floor((origin + t*ray) / res) - floor(vol(1:3) / res) + 1;
-
-% Compute the bounds of the starting voxel.
-voxel = (floor([vol(1:3); vol(1:3)]/res) + [i-1; i]) * res;
+entry = origin + t*ray;
+i = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
+    find(ygv(1:end-1) <= entry(2), 1, 'last'), ...
+    find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
 while true
+    % Compute the bounds of the starting voxel.
+    voxel = [xgv(i(1,1)), ygv(i(1,2)), zgv(i(1,3)); ...
+        xgv(i(1,1)+1), ygv(i(1,2)+1), zgv(i(1,3)+1)];
+
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the voxel.
     tvox = (voxel - [origin; origin]) ./ [ray; ray];
-    
+
     % Compute the line parameter of the intersection point of the ray with
     % the joint face of the current and the next voxel.
     tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = max(tvox);
     t(end+1,1) = min(tvox); %#ok<AGROW>
-    
+
     % Determine the index step into the next voxel.
     iStep = (tvox==t(end)) .* sign(ray);
-            
-    % Compute the bounds of the next voxel.
-    voxel = voxel + [iStep; iStep] * res;
-    
+
+    % Compute the index of the next voxel.
+    iNext = i(end,:) + iStep;
+
     % Check if the next voxel still belongs to the grid volume.
-    if any(voxel(1,:) >= vol(4:6) | voxel(2,:) <= vol(1:3))
+    if any(iNext > gridsize)
         break
     end
     
     % Add the index of the voxel to the return matrix.
-    i(end+1,:) = i(end,:) + iStep; %#ok<AGROW>
-end
-
-% If the first index is not part of the grid, remove it and the
-% corresponding line parameter.
-if any(i(1,:) < 1 | i(1,:) > ceil(vol(4:6)/res) - floor(vol(1:3)/res))
-    i(1,:) = []; t(1) = [];
+    i(end+1,:) = iNext; %#ok<AGROW>
 end
 
 end
