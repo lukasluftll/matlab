@@ -112,8 +112,8 @@ while all([1, 1, 1] <= iNext & iNext <= gridsize)
     i(end+1,:) = iNext; %#ok<AGROW>
     
     % Compute the bounds of the next voxel.
-    voxel = [xgv(i(1,1)), ygv(i(1,2)), zgv(i(1,3)); ...
-        xgv(i(1,1)+1), ygv(i(1,2)+1), zgv(i(1,3)+1)];
+    voxel = [xgv(i(end,1)), ygv(i(end,2)), zgv(i(end,3));
+        xgv(i(end,1)+1), ygv(i(end,2)+1), zgv(i(end,3)+1)];
 
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the next voxel.
