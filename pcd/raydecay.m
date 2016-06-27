@@ -1,4 +1,4 @@
-function lambda = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
+function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 % RAYDECAY Compute decay rate of Lidar rays in grid volume.
 %   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) uses the
 %   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
@@ -7,7 +7,7 @@ function lambda = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %
 %   It is assumed that all rays originate in the origin [0, 0, 0].
 %
-%   AZIMUTH and ELEVATION are a HEIGHTxWIDTH matrices, where HEIGHT and 
+%   AZIMUTH and ELEVATION are HEIGHTxWIDTH matrices, where HEIGHT and 
 %   WIDTH describe the size of the point cloud. The angle unit is rad.
 %
 %   RADIUS is a HEIGHTxWIDTH matrix that contains the length of each ray.
@@ -24,6 +24,12 @@ function lambda = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
 %   The lambda value of a voxel that has not been visited by any ray is 
 %   NaN.
+%
+%   [LAMBDA,R,L] = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also
+%   returns the IxJxK matrices R and L. 
+%   R contains the number of ray remissions for each voxel. 
+%   L contains the cumulated length of all rays that traversed the 
+%   respective grid cell.
 %
 %   Concept of ray decay rate
 %   -------------------------
@@ -75,9 +81,12 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
 end
 
 %% Sum up ray lengths.
+% Compute the grid size.
+gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+
 % Construct the matrix that stores the cumulated ray lengths for each
 % voxel.
-raylength = zeros(numel(xgv)-1, numel(ygv)-1, numel(zgv)-1);
+l = zeros(gridsize);
 
 % Compute the normalized ray direction vectors.
 [dirx, diry, dirz] = sph2cart(azimuth, elevation, ones(size(azimuth)));
@@ -90,37 +99,37 @@ for i = 1 : numel(azimuth)
         
     % Add the length of the ray that is apportioned to a specific voxel
     % to the cumulated ray length of this voxel.
-    vi = sub2ind(size(raylength), vi(:,1), vi(:,2), vi(:,3));
-    raylength(vi) = raylength(vi) + diff(t);
+    vi = sub2ind(size(l), vi(:,1), vi(:,2), vi(:,3));
+    l(vi) = l(vi) + diff(t);
 end
 
 %% Count returns per voxel.
-% Construct the matrix that stores the numbers of returns coming from a
-% voxel.
-nret = zeros(size(raylength));
+% Construct the matrix that stores the numbers of returns per voxel.
+r = zeros(gridsize);
 
 % Create a pointCloud object for easy point-per-voxel counting.
+[x, y, z] = sph2cart(azimuth, elevation, radius);
 cloud = pointCloud([x(:), y(:), z(:)]);
 
 % Loop over all voxels and detect the numbers of points in each voxel.
-for x = 1 : size(nret, 1)
-    for y = 1 : size(nret, 2)
-        for z = 1 : size(nret, 3)
-            % Define the limits of the voxel.
-            roi = [x-1, x; y-1, y; z-1, z] * res ...
-                + repmat(floor(vol(1:3)'/res) * res, 1, 2);
-
-            % Make sure points on the joint face of two voxels are only
+for i = 1 : gridsize(1)
+    for j = 1 : gridsize(2)
+        for k = 1 : gridsize(3)
+            % Define the limits of the voxel.         
+            roi = [xgv([i, i+1]); ygv([j, j+1]); zgv([k, k+1])];
+            
+            % Make sure points in the joint face of two voxels are only
             % counted once.
             roi(:,2) = roi(:,2) - eps(roi(:,2));
             
             % Determine the number of points inside the voxel.
-            nret(x,y,z) = nret(x,y,z) + numel(findPointsInROI(cloud, roi));
+            r(i,j,k) = numel(findPointsInROI(cloud, roi));
         end
     end
 end
 
 %% Compute ray decay rate.
-lambda = nret ./ raylength;
+lambda = r ./ l;
+lambda(l == 0) = NaN;
 
 end
