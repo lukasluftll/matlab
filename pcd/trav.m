@@ -108,8 +108,9 @@ iNext = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
-% Add voxels to the index matrix until the ray leaves the grid.
-while all([1, 1, 1] <= iNext & iNext <= gridsize)
+% Add voxels to the index matrix until the ray leaves the grid
+% or until the ray ends.
+while all(1 <= iNext & iNext <= gridsize) && t(end) <= 1
     % Add the index of the current voxel to the return matrix.
     i(end+1,:) = iNext; %#ok<AGROW>
     
@@ -125,13 +126,7 @@ while all([1, 1, 1] <= iNext & iNext <= gridsize)
     % the joint face of the current and the next voxel.
     tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = max(tvox);
-    tNext = min(tvox);
-    t(end+1,1) = min([1, tNext]); %#ok<AGROW>  
-    
-    % If the ray ends before entering the next voxel, stop.
-    if tNext > 1
-        break;
-    end
+    t(end+1,1) = min(tvox); %#ok<AGROW
 
     % Determine the index step into the next voxel.
     iStep = (tvox==t(end)) .* sign(ray);
@@ -139,5 +134,8 @@ while all([1, 1, 1] <= iNext & iNext <= gridsize)
     % Compute the index of the next voxel.
     iNext = i(end,:) + iStep;
 end
+
+% Make sure the line parameter never exceeds 1.
+t(end) = min([1, t(end)]);
 
 end
