@@ -101,13 +101,16 @@ t = max([0, tvol(1)]);
 
 % Calculate the index of the voxel corresponding to the starting point. 
 entry = origin + t*ray;
-i = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
+iNext = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(ygv(1:end-1) <= entry(2), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the index of the next voxel until the ray leaves the grid.
-while true
+while all([1, 1, 1] <= iNext & iNext <= gridsize)
+    % Add the index of the voxel to the return matrix.
+    i(end+1,:) = iNext; %#ok<AGROW>
+    
     % Compute the bounds of the starting voxel.
     voxel = [xgv(i(1,1)), ygv(i(1,2)), zgv(i(1,3)); ...
         xgv(i(1,1)+1), ygv(i(1,2)+1), zgv(i(1,3)+1)];
@@ -127,14 +130,6 @@ while true
 
     % Compute the index of the next voxel.
     iNext = i(end,:) + iStep;
-
-    % Check if the next voxel still belongs to the grid volume.
-    if any(iNext > gridsize)
-        break
-    end
-    
-    % Add the index of the voxel to the return matrix.
-    i(end+1,:) = iNext; %#ok<AGROW>
 end
 
 end
