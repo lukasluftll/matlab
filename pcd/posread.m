@@ -19,7 +19,7 @@ function pos = posread(filename)
 %   DAT file format
 %   ---------------
 %   The following example of a DAT file shows how the position information
-%   in such a file is formatted:
+%   in such a file is ordered and formatted:
 %
 %   Time: 1454504682.921031963
 %   Odometry: -4.21839 -3.69559 0.955 0 -0 2.11513
@@ -59,37 +59,46 @@ formatError = 'Invalid input file format.';
 
 % Read time stamp.
 pos.time = 0;
-time = textscan(fgetl(fid), '%s %f64');
-if ~strcmpi(time{1}, 'Time:')
-    error(formatError);
-else
-    pos.time = time{2};
+line = fgetl(fid);
+if ischar(line)
+    time = textscan(line, '%s %f64');
+    if ~strcmpi(time{1}, 'Time:')
+        error(formatError);
+    else
+        pos.time = time{2};
+    end
 end
 
 % Read odometry data.
 pos.odometry = affine3d();
-odometry = textscan(fgetl(fid), '%s %f %f %f %f %f %f');
-if ~strcmpi(odometry{1}, 'Odometry:')
-    error(formatError);
-else
-    odometry = [odometry{2:7}];
-    translation = [odometry(1:3), 1];
-    rotation = eul2rotm(odometry(4:6));
-    transform(1:3, 1:3) = rotation;
-    transform(4, 1:4) = translation;
-    pos.odometry = affine3d(transform);
+line = fgetl(fid);
+if ischar(line)
+    odometry = textscan(line, '%s %f %f %f %f %f %f');
+    if ~strcmpi(odometry{1}, 'Odometry:')
+        error(formatError);
+    else
+        odometry = [odometry{2:7}];
+        translation = [odometry(1:3), 1];
+        rotation = eul2rotm(odometry(4:6));
+        transform(1:3, 1:3) = rotation;
+        transform(4, 1:4) = translation;
+        pos.odometry = affine3d(transform);
+    end
 end
 
 % Read GPS data.
 pos.gps = [];
-gps = textscan(fgetl(fid), '%s %f64 %f %f %f');
-if ~strcmpi(gps{1}, 'GPS:')
-    error(formatError);
-else
-    pos.gps.time = gps{2};
-    pos.gps.longitude = gps{3};
-    pos.gps.latitude = gps{4};
-    pos.gps.elevation = gps{5};
+line = fgetl(fid);
+if ischar(line)
+    gps = textscan(line, '%s %f64 %f %f %f');
+    if ~strcmpi(gps{1}, 'GPS:')
+        error(formatError);
+    else
+        pos.gps.time = gps{2};
+        pos.gps.longitude = gps{3};
+        pos.gps.latitude = gps{4};
+        pos.gps.elevation = gps{5};
+    end
 end
 
 end
