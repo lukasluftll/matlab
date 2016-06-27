@@ -1,14 +1,15 @@
 function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 % TRAV Ray tracing in voxel grid.
 %   I = TRAV(ORIGIN, RAY, XGV, YGV, ZGV) returns the indices of all voxels
-%   that a semi-infinite ray traverses on its way from its starting point 
-%   ORIGIN along its direction RAY to the border of a grid. The grid is
-%   defined by the grid vectors XGV, YGV, and ZGV.
+%   that a ray traverses on its way from its starting point ORIGIN to its 
+%   endpoint ORIGIN + RAY. The grid is defined by the grid vectors XGV, 
+%   YGV, and ZGV.
 %
 %   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
 %
-%   RAY is a 3-element row vector indicating the direction of the ray.
+%   RAY is a 3-element row vector indicating the direction and the length 
+%   of the ray.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -30,7 +31,8 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   The first element corresponds to the entry point into the first voxel;
 %   in case the ray starts inside a voxel, it is 0. The transition point
 %   from the m-th to the m+1st voxel is computed ORIGIN + T(m+1)*RAY.
-%   The point where the ray leaves the volume is ORIGIN + T(end)*RAY.
+%   ORIGIN + T(end)*RAY is the point where the ray leaves the volume or
+%   where it ends inside the grid.
 %
 %   Example:
 %      origin = [5, 2, 2];
@@ -123,7 +125,13 @@ while all([1, 1, 1] <= iNext & iNext <= gridsize)
     % the joint face of the current and the next voxel.
     tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = max(tvox);
-    t(end+1,1) = min(tvox); %#ok<AGROW>
+    tNext = min(tvox);
+    t(end+1,1) = min([1, tNext]); %#ok<AGROW>  
+    
+    % If the ray ends before entering the next voxel, stop.
+    if tNext > 1
+        break;
+    end
 
     % Determine the index step into the next voxel.
     iStep = (tvox==t(end)) .* sign(ray);
