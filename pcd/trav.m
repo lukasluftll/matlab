@@ -106,17 +106,17 @@ iNext = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
-% Compute the index of the next voxel until the ray leaves the grid.
+% Add voxels to the index matrix until the ray leaves the grid.
 while all([1, 1, 1] <= iNext & iNext <= gridsize)
-    % Add the index of the voxel to the return matrix.
+    % Add the index of the current voxel to the return matrix.
     i(end+1,:) = iNext; %#ok<AGROW>
     
-    % Compute the bounds of the starting voxel.
+    % Compute the bounds of the next voxel.
     voxel = [xgv(i(1,1)), ygv(i(1,2)), zgv(i(1,3)); ...
         xgv(i(1,1)+1), ygv(i(1,2)+1), zgv(i(1,3)+1)];
 
     % Compute the line parameter of the intersection of the ray with the
-    % infinite planes that confine the voxel.
+    % infinite planes that confine the next voxel.
     tvox = (voxel - [origin; origin]) ./ [ray; ray];
 
     % Compute the line parameter of the intersection point of the ray with
