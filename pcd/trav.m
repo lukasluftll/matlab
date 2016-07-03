@@ -15,7 +15,7 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
 %   the inequality:
 %
-%         (XGV(i) <= x < XGV(i+1))
+%      (XGV(i) <= x < XGV(i+1))
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
