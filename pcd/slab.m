@@ -30,19 +30,28 @@ function [hit, t] = slab(support, ray, box)
 %   SUPPORT(n,:) + T(n,2)*RAY(n,:) is the leaving point.
 %   If the ray does not intersect with the N-th box, T(n,:) is NaN.
 %
+%   SLAB can run both on the CPU as well as on the GPU. In the latter case,
+%   the input matrices have to be passed as gpuArray objects.
+%
 %   Example for one ray and one box:
 %      support = zeros(1, 3);
 %      ray = [1, 1, 1];
 %      box = [2, 2, 2, 3, 4, 5];
 %      [hit, t] = slab(support, ray, box)
 %   
-%   Example for multiple rays and multiple boxes:
+%   Example for multiple rays and multiple boxes (execution on CPU):
 %      support = zeros(2, 3);
 %      ray = [1, 0, 1; 0, 1, 0];
 %      box = [1, 0, 0, 2, 1, 1; 10, 10, 10, 15, 20, 11];
 %      [hit, t] = slab(support, ray, box)
 %
-%   See also TRAV, NAN.
+%   Example for multiple rays and multiple boxes (execution on GPU):
+%      support = gpuArray(zeros(2, 3));
+%      ray = gpuArray([1, 0, 1; 0, 1, 0]);
+%      box = gpuArray([1, 0, 0, 2, 1, 1; 10, 10, 10, 15, 20, 11]);
+%      [hit, t] = slab(support, ray, box)
+%
+%   See also TRAV, GPUTRAV, GPUARRAY, NAN.
 
 % Copyright 2016 Alexander Schaefer
 %
