@@ -67,9 +67,11 @@ end
     1 : size(data, 1), 1 : size(data, 2), 1 : size(data, 3));
 i = [xmin(:), ymin(:), zmin(:)];
 
-% Compute the minimum limits of the voxels.
-vox = [xgv(i(:,1)); ygv(i(:,2)); zgv(i(:,3)); ...
-    xgv(i(:,1)+1); ygv(i(:,2)+1); zgv(i(:,3)+1)]';
+% Compute the limits of the voxels. Make sure the voxel faces do not
+% overlap.
+minvox = [xgv(i(:,1)); ygv(i(:,2)); zgv(i(:,3))]; ...
+maxvox = [xgv(i(:,1)+1); ygv(i(:,2)+1); zgv(i(:,3)+1)];
+vox = [minvox; minvox + 0.99*(maxvox-minvox)]';
 
 % Change the order of the data elements to the order of the voxels.
 faceAlpha = data(sub2ind(size(data), i(:,1), i(:,2), i(:,3)));
