@@ -16,7 +16,7 @@ function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
 %   the inequality:
 %
-%         (XGV(i) <= x < XGV(i+1))
+%      (XGV(i) <= x < XGV(i+1))
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
@@ -25,8 +25,8 @@ function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %   The lambda value of a voxel that has not been visited by any ray is 
 %   NaN.
 %
-%   [LAMBDA,R,L] = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also
-%   returns the IxJxK matrices R and L. 
+%   [LAMBDA, R, L] = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
+%   also returns the IxJxK matrices R and L. 
 %   R contains the number of ray remissions for each voxel. 
 %   L contains the cumulated length of all rays that traversed the 
 %   respective grid cell.
@@ -80,52 +80,32 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
     error('Grid vectors must monotonically increase.')
 end
 
-%% Sum up ray lengths.
-% Compute the grid size.
+%% Sum up ray lengths and returns.
+% Construct the matrices that store the cumulated ray lengths and the
+% number of returns for each voxel.
 gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
-
-% Construct the matrix that stores the cumulated ray lengths for each
-% voxel.
 l = zeros(gridsize);
+r = zeros(gridsize);
 
-% Compute the normalized ray direction vectors.
-[dirx, diry, dirz] = sph2cart(azimuth, elevation, ones(size(azimuth)));
+% Replace no-return ray lengths with a value larger than the grid diameter.
+radius(~isfinite(radius)) = xgv(end)-xgv(1) + ygv(end)-ygv(1) ...
+    + zgv(end)-zgv(1);
 
-% Loop over all rays and add the distance they travel through each voxel to
-% the matrix that stores the ray lengths.
-for i = 1 : numel(azimuth)   
+% Compute the ray direction vectors.
+[dirx, diry, dirz] = sph2cart(azimuth, elevation, radius);
+
+% Loop over all rays to compute the ray length and the number of returns.
+for i = 1 : numel(azimuth)
     % Compute the indices of the voxels through which the ray travels.
     [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
         
     % Add the length of the ray that is apportioned to a specific voxel
     % to the cumulated ray length of this voxel.
-    vi = sub2ind(size(l), vi(:,1), vi(:,2), vi(:,3));
-    l(vi) = l(vi) + diff(t);
-end
-
-%% Count returns per voxel.
-% Construct the matrix that stores the numbers of returns per voxel.
-r = zeros(gridsize);
-
-% Create a pointCloud object for easy point-per-voxel counting.
-[x, y, z] = sph2cart(azimuth, elevation, radius);
-cloud = pointCloud([x(:), y(:), z(:)]);
-
-% Loop over all voxels and detect the numbers of points in each voxel.
-for i = 1 : gridsize(1)
-    for j = 1 : gridsize(2)
-        for k = 1 : gridsize(3)
-            % Define the limits of the voxel.         
-            roi = [xgv([i, i+1]); ygv([j, j+1]); zgv([k, k+1])];
-            
-            % Make sure points in the joint face of two voxels are only
-            % counted once.
-            roi(:,2) = roi(:,2) - eps(roi(:,2));
-            
-            % Determine the number of points inside the voxel.
-            r(i,j,k) = numel(findPointsInROI(cloud, roi));
-        end
-    end
+    vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+    l(vi) = l(vi) + diff(t)*radius(i);
+    
+    % Increment the number of returns of the voxel where the ray ends.
+    r(vi(end)) = r(vi(end)) + (t(end)==1);
 end
 
 %% Compute ray decay rate.
