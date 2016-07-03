@@ -94,9 +94,6 @@ if ~hit || tvol(2) < 0
     return
 end
 
-% Compute the size of the voxel grid.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
-
 % Compute the line parameter corresponding to the entry point into the 
 % grid.
 t = max([0, tvol(1)]);
@@ -108,6 +105,9 @@ iNext = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
+% Compute the size of the voxel grid.
+gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+
 % Add voxels to the index matrix until the ray leaves the grid
 % or until the ray ends.
 while all(1 <= iNext & iNext <= gridsize) && t(end) <= 1
