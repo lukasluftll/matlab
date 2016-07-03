@@ -35,8 +35,8 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   where it ends inside the grid.
 %
 %   Example:
-%      origin = [5, 2, 2];
-%      ray = [-1, 0, 0];
+%      origin = [5, 1.5, 1];
+%      ray = [-10, 0, 0];
 %      xgv = -2 : 2; ygv = -2 : 2; zgv = -2 : 2;
 %      [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %
