@@ -8,7 +8,7 @@ file = dir(datasetPath);
 % Create the progress bar. 
 waitbarHandle = waitbar(0, 'Parsing dataset ...');
 
-% Remove all files that are no PCDs.
+% Remove all files that are no PCD files.
 remove = [];
 for i = 1 : numel(file)
     [~, ~, extension] = fileparts([datasetPath, '/', file(i).name]);
@@ -39,6 +39,7 @@ lTot = zeros(size(rTot));
 
 % For each voxel, determine the number of remissions and the total ray 
 % length.
+tstart = tic;
 for i = 1 : numel(file)
     pcd = pcdread([datasetPath, '/', file(i).name]);
     [~, r, l] = raydecay(...
@@ -48,6 +49,11 @@ for i = 1 : numel(file)
 
     % Advance the progress bar.
     waitbar(i / numel(file), waitbarHandle);
+    
+    % Update the execution time estimate.
+    set(get(findobj(waitbarHandle, 'type', 'axes'), 'title'), 'string', ...
+        ['Computing decay rates; ', ...
+        int2str((toc(tstart)/i) * (numel(file)-i)/60), ' min remaining']);
 end
 close(waitbarHandle);
 
