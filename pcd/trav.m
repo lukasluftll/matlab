@@ -76,7 +76,7 @@ if numel(origin) ~= 3 || numel(ray) ~= 3
 end
 
 % Check the ray vector.
-if any(isnan(ray) | isinf(ray))
+if ~all(isfinite(ray))
     error('Ray values must not be NaN or Inf.')
 end
 
