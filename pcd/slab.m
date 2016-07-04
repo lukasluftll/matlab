@@ -2,7 +2,7 @@ function [hit, t] = slab(support, ray, box)
 % SLAB Compute intersection of ray with axis-aligned box in 3D.
 %   HIT = SLAB(SUPPORT, RAY, BOX) returns whether the infinite ray 
 %   characterized by SUPPORT and RAY has at least one point in common with
-%   the 3D axis-aligned box described by BOX.
+%   the 3D axis-aligned BOX.
 %
 %   In case you want to compute the intersection of one ray with one box,
 %   SUPPORT and RAY are 3-element row vectors. 
@@ -22,16 +22,16 @@ function [hit, t] = slab(support, ray, box)
 %   BOX is a Nx6 matrix whose rows describe the limits of each box.
 %   HIT is an N-element logical column vector. 
 %
-%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the Nx2 matrix T 
-%   containing the line parameters that encode where the rays intersect
-%   with the planes that confine the boxes.
+%   [HIT, T] = SLAB(SUPPORT, RAY, BOX) also returns the Nx2 matrix T. It 
+%   contains the line parameters that encode where the rays intersect with
+%   the planes that confine the boxes.
 %   SUPPORT(n,:) + T(n,1)*RAY(n,:) is the point where the n-th ray enters
 %   the n-th box.
-%   SUPPORT(n,:) + T(n,2)*RAY(n,:) is the leaving point.
+%   SUPPORT(n,:) + T(n,2)*RAY(n,:) is the point where it leaves the box.
 %   If the ray does not intersect with the N-th box, T(n,:) is NaN.
 %
 %   SLAB can run both on the CPU as well as on the GPU. In the latter case,
-%   the input matrices have to be passed as gpuArray objects.
+%   at least one of the input matrices have to be gpuArray objects.
 %
 %   Example for one ray and one box:
 %      support = zeros(1, 3);
