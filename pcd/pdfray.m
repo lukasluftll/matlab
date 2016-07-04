@@ -35,14 +35,40 @@ function p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
+% Check whether the user provided the correct number of input arguments.
+narginchk(6, 6);
+
+% Check if the arguments have the expected sizes.
+if size(origin, 1) ~= size(ray, 1)
+    error('ORIGIN and RAY must have the same number of rows.')
+end
+if size(origin, 2) ~= 3 || size(ray, 2) ~= 3
+    error('ORIGIN and RAY must have 3 columns.')
+end
+
+% Make sure ORIGIN and RAY contain finite values.
+if ~all(isfinite(origin)) || ~all(isfinite(ray))
+    error('ORIGIN and RAY must not be NaN or Inf.')
+end
+
+% Check whether the grid vectors contain enough elements.
+if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
+    error('Every grid vector must contain at least 2 elements.')
+end
+
+% Check whether the grid vectors are ordered.
+if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
+    error('Grid vectors must monotonically increase.')
+end
+
+% Check whether lambda has the correct size.
+if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1]
+    error('Size of LAMBDA does not match grid vectors.')
+end
 
 %%
 % Compute the indices of the grid cells that the ray traverses.
 [vi, t] = trav(origin, ray, xgv, ygv, zgv);
-
-vi(t > 1,:) = [];
-t(t > 1) = [];
-t = t / norm(ray);
 
 % Compute the lengths of the rays apportioned to each voxel.
 l = diff(t);
