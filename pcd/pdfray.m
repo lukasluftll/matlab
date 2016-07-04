@@ -26,8 +26,8 @@ function p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   Example:
 %      origin = [0, 0, 0];
 %      ray = [3, 4, 5];
-%      lambda = repmat(magic(5), [1, 1, 5]);
-%      gv = 1 : 5; xgv = gv; ygv = gv; zgv = gv;
+%      lambda = repmat(magic(5)/100, [1, 1, 5]);
+%      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
 %      p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %
 %   See also RAYDECAY.
@@ -62,23 +62,26 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
 end
 
 % Check whether lambda has the correct size.
-if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1]
+if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
     error('Size of LAMBDA does not match grid vectors.')
 end
 
-%%
+%% Compute ray probabilities.
 % Compute the indices of the grid cells that the ray traverses.
 [vi, t] = trav(origin, ray, xgv, ygv, zgv);
 
 % Compute the lengths of the rays apportioned to each voxel.
-l = diff(t);
+l = diff(t) * norm(ray);
 
-N = ones(size(t));
-i = 2;
-while t(i) < norm(ray)
-    N(i) = N(i-1) * exp(-lambda(i-1)*l(i-1));
+% Recursively compute the fraction of the rays that arrives at the 
+% beginning of each traversed voxel.
+N = ones(size(l));
+for i = 1 : length(N)-1
+    N(i+1) = N(i) * exp(-lambda(vi(i,1),vi(i,2),vi(i,3)) * l(i));
 end
 
-p = lambda(i) * N(i) * exp(-lambda(i) * t(i));
+% Compute the probability of obtaining the given ray length.
+p = lambda(vi(end,1),vi(end,2),vi(end,3)) * N(end) ...
+    * exp(-lambda(vi(end,1),vi(end,2),vi(end,3)) * l(end));
 
 end
