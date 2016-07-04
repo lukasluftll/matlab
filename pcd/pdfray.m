@@ -67,21 +67,28 @@ if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
 end
 
 %% Compute ray probabilities.
-% Compute the indices of the grid cells that the ray traverses.
-[vi, t] = trav(origin, ray, xgv, ygv, zgv);
+% Determine the number of rays.
+nrays = size(origin, 1);
 
-% Compute the lengths of the rays apportioned to each voxel.
-l = diff(t) * norm(ray);
+% Loop over all rays.
+p = zeros(nrays, 1);
+for r = 1 : nrays
+    % Compute the indices of the grid cells that the ray traverses.
+    [vi, t] = trav(origin, ray, xgv, ygv, zgv);
 
-% Recursively compute the fraction of the rays that arrives at the 
-% beginning of each traversed voxel.
-N = ones(size(l));
-for i = 1 : length(N)-1
-    N(i+1) = N(i) * exp(-lambda(vi(i,1),vi(i,2),vi(i,3)) * l(i));
+    % Compute the lengths of the rays apportioned to each voxel.
+    l = diff(t) * norm(ray);
+
+    % Recursively compute the fraction of the rays that arrives at the 
+    % beginning of each traversed voxel.
+    N = ones(size(l));
+    for i = 1 : length(N)-1
+        N(i+1) = N(i) * exp(-lambda(vi(i,1),vi(i,2),vi(i,3)) * l(i));
+    end
+
+    % Compute the probability of obtaining the given ray length.
+    p(r) = lambda(vi(end,1),vi(end,2),vi(end,3)) * N(end) ...
+        * exp(-lambda(vi(end,1),vi(end,2),vi(end,3)) * l(end));
 end
-
-% Compute the probability of obtaining the given ray length.
-p = lambda(vi(end,1),vi(end,2),vi(end,3)) * N(end) ...
-    * exp(-lambda(vi(end,1),vi(end,2),vi(end,3)) * l(end));
 
 end
