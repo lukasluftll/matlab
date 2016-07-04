@@ -34,13 +34,24 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   ORIGIN + T(end)*RAY is the point where the ray leaves the volume or
 %   where it ends inside the grid.
 %
-%   Example:
+%   TRAV runs on the GPU if at least one input matrix is a gpuArray
+%   object. In this case, I is a Nx3 matrix and T is a Nx1 matrix, where
+%   N = numel(xgv) + numel(ygv) + numel(zgv). The last N-M rows of I and T
+%   are NaN.   
+%
+%   Example (execution on CPU):
 %      origin = [5, 1.5, 1];
 %      ray = [-10, 0, 0];
-%      xgv = -2 : 2; ygv = -2 : 2; zgv = -2 : 2;
+%      gv = -2 : 2; xgv = gv; ygv = gv; zgv = gv;
 %      [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %
-%   See also SLAB, END.
+%   Example (execution on GPU):
+%      origin = gpuArray([5, 1.5, 1]);
+%      ray = gpuArray([-10, 0, 0]);
+%      gv = gpuArray(-2 : 2); xgv = gv; ygv = gv; zgv = gv;
+%      [i, t] = trav(origin, ray, xgv, ygv, zgv)
+%
+%   See also SLAB, GPUARRAY, NAN.
 
 % Copyright 2016 Alexander Schaefer
 %
@@ -79,44 +90,58 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
     error('Grid vectors must monotonically increase.')
 end
 
+% Find out whether to execute on the CPU or on the GPU.
+if isa(origin, 'gpuArray') || isa(ray, 'gpuArray') ...
+    || isa(xgv, 'gpuArray') || isa(ygv, 'gpuArray') || isa(zgv, 'gpuArray')
+    datatype = 'gpuArray';
+else
+    datatype = 'double';
+end
+
 %% Initialization phase: calculate index of entry point.
-% Initialize return values.
-i = []; 
-t = [];
+% Compute the size of the voxel grid.
+gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 
 % Compute the intersections of the ray with the grid volume.
 vol = [xgv(1), ygv(1), zgv(1), xgv(end), ygv(end), zgv(end)];
 [hit, tvol] = slab(origin, ray, vol);
 
-% If the ray does not intersect with the volume, return an empty index 
-% matrix.
+% If the ray does not intersect with the volume, return immediately.
 if ~hit || tvol(2) < 0
+    i = []; 
+    t = [];
     return
 end
 
+% Initialize return matrices and define the indices of the end of their 
+% payload data.
+i = NaN(sum(gridsize), 3, datatype); 
+t = NaN(sum(gridsize), 1, datatype);
+iEnd = 0;
+tEnd = 0;
+
 % Compute the line parameter corresponding to the entry point into the 
 % grid.
-t = max([0, tvol(1)]);
+t(tEnd+1) = max([0, tvol(1)]);
+tEnd = tEnd+1;
 
 % Calculate the index of the voxel corresponding to the starting point. 
-entry = origin + t*ray;
+entry = origin + t(tEnd)*ray;
 iNext = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(ygv(1:end-1) <= entry(2), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
-% Compute the size of the voxel grid.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
-
 % Add voxels to the index matrix until the ray leaves the grid
 % or until the ray ends.
-while all(1 <= iNext & iNext <= gridsize) && t(end) <= 1
+while all(1 <= iNext & iNext <= gridsize) && t(tEnd) <= 1
     % Add the index of the current voxel to the return matrix.
-    i(end+1,:) = iNext; %#ok<AGROW>
+    i(iEnd+1,:) = iNext;
+    iEnd = iEnd + 1;
     
     % Compute the bounds of the next voxel.
-    voxel = [xgv(i(end,1)), ygv(i(end,2)), zgv(i(end,3));
-        xgv(i(end,1)+1), ygv(i(end,2)+1), zgv(i(end,3)+1)];
+    voxel = [xgv(i(iEnd,1)), ygv(i(iEnd,2)), zgv(i(iEnd,3));
+        xgv(i(iEnd,1)+1), ygv(i(iEnd,2)+1), zgv(i(iEnd,3)+1)];
 
     % Compute the line parameter of the intersection of the ray with the
     % infinite planes that confine the next voxel.
@@ -126,16 +151,23 @@ while all(1 <= iNext & iNext <= gridsize) && t(end) <= 1
     % the joint face of the current and the next voxel.
     tvox(repmat(any(isnan(tvox)), 2, 1)) = NaN;
     tvox = max(tvox);
-    t(end+1,1) = min(tvox); %#ok<AGROW
+    t(tEnd+1,1) = min(tvox);
+    tEnd = tEnd + 1;
 
     % Determine the index step into the next voxel.
-    iStep = (tvox==t(end)) .* sign(ray);
+    iStep = (tvox==t(tEnd)) .* sign(ray);
 
     % Compute the index of the next voxel.
-    iNext = i(end,:) + iStep;
+    iNext = i(iEnd,:) + iStep;
 end
 
 % Make sure the line parameter never exceeds 1.
-t(end) = min([1, t(end)]);
+t(tEnd) = min([1, t(tEnd)]);
+
+% If the function runs on the CPU, remove trailing NaN values.
+if ~strcmpi(datatype, 'gpuArray')
+    i(isnan(i(:,1)),:) = [];
+    t(isnan(t)) = [];
+end
 
 end

@@ -51,7 +51,7 @@ function [hit, t] = slab(support, ray, box)
 %      box = gpuArray([1, 0, 0, 2, 1, 1; 10, 10, 10, 15, 20, 11]);
 %      [hit, t] = slab(support, ray, box)
 %
-%   See also TRAV, GPUTRAV, GPUARRAY, NAN.
+%   See also TRAV, GPUARRAY, NAN.
 
 % Copyright 2016 Alexander Schaefer
 %
