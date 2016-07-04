@@ -75,7 +75,7 @@ if numel(origin) ~= 3 || numel(ray) ~= 3
     error('ORIGIN and RAY must have 3 elements.')
 end
 
-% Check the ray value.
+% Check the ray vector.
 if any(isnan(ray) | isinf(ray))
     error('Ray values must not be NaN or Inf.')
 end

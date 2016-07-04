@@ -52,7 +52,7 @@ function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
 %      lambda=raydecay(pc.azimuth, pc.elevation, pc.radius, xgv, ygv, zgv)
 %
-%   See also NAN.
+%   See also TRAV, SLAB, NAN.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -80,6 +80,16 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
     error('Grid vectors must monotonically increase.')
 end
 
+%% Preprocess input data.
+% Replace no-return ray lengths with a value larger than the grid diameter.
+radius(~isfinite(radius)) = sum(diff(xgv))+sum(diff(ygv))+sum(diff(zgv));
+
+% Compute the ray direction vectors.
+[dirx, diry, dirz] = sph2cart(azimuth, elevation, radius);
+
+% Determine the number of rays.
+nray = numel(azimuth);
+
 %% Sum up ray lengths and returns.
 % Construct the matrices that store the cumulated ray lengths and the
 % number of returns for each voxel.
@@ -87,23 +97,17 @@ gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 l = zeros(gridsize);
 r = zeros(gridsize);
 
-% Replace no-return ray lengths with a value larger than the grid diameter.
-radius(~isfinite(radius)) = xgv(end)-xgv(1) + ygv(end)-ygv(1) ...
-    + zgv(end)-zgv(1);
-
-% Compute the ray direction vectors.
-[dirx, diry, dirz] = sph2cart(azimuth, elevation, radius);
-
-% Loop over all rays to compute the ray length and the number of returns.
-for i = 1 : numel(azimuth)
+% For all rays compute the ray length per voxel and the number of returns
+% per voxel.
+for i = 1 : nray
     % Compute the indices of the voxels through which the ray travels.
     [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
-        
+
     % Add the length of the ray that is apportioned to a specific voxel
     % to the cumulated ray length of this voxel.
     vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
     l(vi) = l(vi) + diff(t)*radius(i);
-    
+
     % Increment the number of returns of the voxel where the ray ends.
     r(vi(end)) = r(vi(end)) + (t(end)==1);
 end
