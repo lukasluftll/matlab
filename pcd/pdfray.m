@@ -49,7 +49,7 @@ if size(origin, 2) ~= 3 || size(ray, 2) ~= 3
 end
 
 % Make sure ORIGIN and RAY contain finite values.
-if ~all(isfinite(origin)) || ~all(isfinite(ray))
+if ~all(all(isfinite(origin) & isfinite(ray)))
     error('ORIGIN and RAY must not be NaN or Inf.')
 end
 
@@ -70,11 +70,11 @@ end
 
 %% Compute ray probabilities.
 % Determine the number of rays.
-nrays = size(origin, 1);
+nray = size(origin, 1);
 
 % Loop over all rays.
-p = zeros(nrays, 1);
-for r = 1 : nrays
+p = zeros(nray, 1);
+for r = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(origin, ray, xgv, ygv, zgv);
 
