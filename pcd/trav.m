@@ -36,7 +36,7 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %
 %   TRAV runs on the GPU if at least one input matrix is a gpuArray
 %   object. In this case, I is a Nx3 matrix and T is a Nx1 matrix, where
-%   N = numel(xgv) + numel(ygv) + numel(zgv). The last N-M rows of I and T
+%   N = numel(xgv) + numel(ygv) + numel(zgv). The last N-M rows of I and T 
 %   are NaN.   
 %
 %   Example (execution on CPU):
@@ -115,15 +115,15 @@ end
 
 % Initialize return matrices and define the indices of the end of their 
 % payload data.
-i = NaN(sum(gridsize), 3, datatype); 
-t = NaN(sum(gridsize), 1, datatype);
+i = NaN(sum(gridsize)+3, 3, datatype); 
+t = NaN(sum(gridsize)+3, 1, datatype);
 iEnd = 0;
 tEnd = 0;
 
 % Compute the line parameter corresponding to the entry point into the 
 % grid.
 t(tEnd+1) = max([0, tvol(1)]);
-tEnd = tEnd+1;
+tEnd = tEnd + 1;
 
 % Calculate the index of the voxel corresponding to the starting point. 
 entry = origin + t(tEnd)*ray;
