@@ -189,6 +189,9 @@ if fid ~= -1
     for i = 1 : numel(posfield)
         data.(posfield{i}) = pos.(posfield{i});
     end
+    
+    % Close the file.
+    fclose(fid);
 end
 
 end
