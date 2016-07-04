@@ -91,12 +91,8 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
 end
 
 % Find out whether to execute on the CPU or on the GPU.
-if isa(origin, 'gpuArray') || isa(ray, 'gpuArray') ...
-    || isa(xgv, 'gpuArray') || isa(ygv, 'gpuArray') || isa(zgv, 'gpuArray')
-    datatype = 'gpuArray';
-else
-    datatype = 'double';
-end
+gpu = isa(origin,'gpuArray') || isa(ray,'gpuArray') ...
+    || isa(xgv,'gpuArray') || isa(ygv,'gpuArray') || isa(zgv,'gpuArray');
 
 %% Initialization phase: calculate index of entry point.
 % Compute the size of the voxel grid.
@@ -113,10 +109,15 @@ if ~hit || tvol(2) < 0
     return
 end
 
-% Initialize return matrices and define the indices of the end of their 
-% payload data.
-i = NaN(sum(gridsize)+3, 3, datatype); 
-t = NaN(sum(gridsize)+3, 1, datatype);
+% Initialize return matrices. 
+i = NaN(sum(gridsize)+3, 3);
+t = NaN(sum(gridsize)+3, 1);
+if gpu
+    i = gpuArray(i);
+    t = gpuArray(t);
+end
+
+% Define the indices of the end of the payload data of the return matrices.
 iEnd = 0;
 tEnd = 0;
 
@@ -165,7 +166,7 @@ end
 t(tEnd) = min([1, t(tEnd)]);
 
 % If the function runs on the CPU, remove trailing NaN values.
-if ~strcmpi(datatype, 'gpuArray')
+if ~gpu
     i(isnan(i(:,1)),:) = [];
     t(isnan(t)) = [];
 end
