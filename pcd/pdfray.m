@@ -5,7 +5,9 @@ function p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   map LAMBDA, XGV, YGV, ZGV.
 %
 %   ORIGIN and RAY are Mx3 matrices whose rows contain the origins and the 
-%   ray vectors of the M rays of the laser scan.
+%   ray vectors of the M rays of the laser scan. Rays that exceed the grid
+%   volume are assumed to be no-returns and are attributed the
+%   corresponding probability.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -85,10 +87,15 @@ for r = 1 : nrays
     for i = 1 : length(N)-1
         N(i+1) = N(i) * exp(-lambda(vi(i,1),vi(i,2),vi(i,3)) * l(i));
     end
-
-    % Compute the probability of obtaining the given ray length.
-    p(r) = lambda(vi(end,1),vi(end,2),vi(end,3)) * N(end) ...
-        * exp(-lambda(vi(end,1),vi(end,2),vi(end,3)) * l(end));
+    
+    % Compute the probability of obtaining the given ray length depending
+    % on whether or not the ray is reflected.
+    if t(end) < 1
+        p(r) = N(end);
+    else
+        p(r) = lambda(vi(end,1),vi(end,2),vi(end,3)) * N(end) ...
+            * exp(-lambda(vi(end,1),vi(end,2),vi(end,3)) * l(end));
+    end
 end
 
 end
