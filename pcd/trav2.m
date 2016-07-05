@@ -23,7 +23,7 @@ function [i, t] = trav2(origin, ray, xgv, ygv, zgv)
 %   voxels that the ray traverses, with M being the number of all voxels
 %   traversed. I is ordered: The first row corresponds to the voxel in 
 %   which the ray starts, the last row corresponds to the voxel where the 
-%   ray leaves the grid.
+%   ray ends or where it leaves the grid.
 %
 %   [I, T] = TRAV(ORIGIN, RAY, XGV, YGV, ZGV) also returns the M+1-element 
 %   column vector T. It contains the line parameters that encode the 
@@ -31,8 +31,8 @@ function [i, t] = trav2(origin, ray, xgv, ygv, zgv)
 %   The first element corresponds to the entry point into the first voxel;
 %   in case the ray starts inside a voxel, it is 0. The transition point
 %   from the m-th to the m+1st voxel is computed ORIGIN + T(m+1)*RAY.
-%   ORIGIN + T(end)*RAY is the point where the ray leaves the volume or
-%   where it ends inside the grid.
+%   ORIGIN + T(end)*RAY is the point where the ray ends or where it leaves 
+%   the grid.
 %
 %   TRAV runs on the GPU if at least one input matrix is a gpuArray
 %   object. In this case, I is a Nx3 matrix and T is a Nx1 matrix, where
@@ -133,17 +133,15 @@ iNext = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
-% Add voxels to the index matrix until the ray leaves the grid
-% or until the ray ends.
 tx = (xgv(:) - origin(1)) / ray(1);
 ty = (ygv(:) - origin(2)) / ray(2);
 tz = (zgv(:) - origin(3)) / ray(3);
 
 tvol(1) = max([0, tvol(1)]);
-tvol(2) = min([1, tvol(2)]);
-tx(tx <= tvol(1) | tx > tvol(2) | ~isfinite(tx)) = [];
-ty(ty <= tvol(1) | ty > tvol(2) | ~isfinite(ty)) = [];
-tz(tz <= tvol(1) | tz > tvol(2) | ~isfinite(tz)) = [];
+tv = min([1, tvol(2)]);
+tx(tx <= tvol(1) | tx > tv | ~isfinite(tx)) = [];
+ty(ty <= tvol(1) | ty > tv | ~isfinite(ty)) = [];
+tz(tz <= tvol(1) | tz > tv | ~isfinite(tz)) = [];
 
 tix = [tx, repmat([sign(ray(1)), 0, 0], size(tx))];
 tiy = [ty, repmat([0, sign(ray(2)), 0], size(ty))];
@@ -162,6 +160,10 @@ while i <= size(ti, 1)
     else
         i = i + 1;
     end
+end
+
+if tvol(2) > 1
+    ti(end+1,:) = [1, 0, 0, 0];
 end
 
 t = ti(:,1);
