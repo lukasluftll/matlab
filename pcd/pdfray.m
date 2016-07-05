@@ -41,11 +41,13 @@ function p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 narginchk(6, 6);
 
 % Check if the arguments have the expected sizes.
-if size(origin, 1) ~= size(ray, 1)
-    error('ORIGIN and RAY must have the same number of rows.')
-end
 if size(origin, 2) ~= 3 || size(ray, 2) ~= 3
     error('ORIGIN and RAY must have 3 columns.')
+end
+
+% If ORIGIN has only one row, expand it to match the row size of RAY.
+if size(origin, 1) == 1
+    origin = repmat(origin, size(ray, 1), 1);
 end
 
 % Make sure ORIGIN and RAY contain finite values.
