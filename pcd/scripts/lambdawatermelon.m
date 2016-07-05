@@ -66,3 +66,4 @@ lambda = lambda / max(lambda(:));
 
 % Create a voxel plot that visualizes the mean decay rate per voxel.
 alphaplot(lambda, xgv, ygv, zgv);
+axis equal;
