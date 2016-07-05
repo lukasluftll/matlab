@@ -51,8 +51,8 @@ if size(origin, 1) == 1
 end
 
 % Make sure ORIGIN, RAY, and LAMBDA contain finite values.
-if ~all(all(isfinite(origin) & isfinite(ray)))
-    error('ORIGIN and RAY must not be NaN or Inf.')
+if ~all(isfinite(origin(:))&isfinite(ray(:))) || ~all(isfinite(lambda(:)))
+    error('ORIGIN, RAY, and LAMBDA must not be NaN or Inf.')
 end
 
 % Check whether the grid vectors contain enough elements.
