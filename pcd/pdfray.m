@@ -50,7 +50,7 @@ if size(origin, 1) == 1
     origin = repmat(origin, size(ray, 1), 1);
 end
 
-% Make sure ORIGIN and RAY contain finite values.
+% Make sure ORIGIN, RAY, and LAMBDA contain finite values.
 if ~all(all(isfinite(origin) & isfinite(ray)))
     error('ORIGIN and RAY must not be NaN or Inf.')
 end
@@ -78,10 +78,10 @@ nray = size(origin, 1);
 p = zeros(nray, 1);
 for r = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(origin, ray, xgv, ygv, zgv);
+    [vi, t] = trav(origin(r,:), ray(r,:), xgv, ygv, zgv);
 
-    % Compute the lengths of the rays apportioned to each voxel.
-    l = diff(t) * norm(ray);
+    % Compute the length of the ray apportioned to each voxel.
+    l = diff(t) * norm(ray(r,:));
 
     % Recursively compute the fraction of the rays that arrives at the 
     % beginning of each traversed voxel.
