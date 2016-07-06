@@ -123,9 +123,8 @@ zgv = -5 : 5;
 
 iExpected = [6, 6, 6;
     7, 7, 7;
-    8, 8, 8;
-    9, 9, 9];
-tExpected = [0; 1/3; 2/3; 1; 1];
+    8, 8, 8];
+tExpected = [0; 1/3; 2/3; 1];
 checktrav(i, iExpected, t, tExpected);
 
 origin = [0, 0, 0];
@@ -204,9 +203,8 @@ ygv = 0 : 10;
 zgv = 0 : 10;
 [i, t] = trav(origin, ray, xgv, ygv, zgv);
 
-iExpected = [1, 1, 1];
-tExpected = [0.1; 0.1];
-checktrav(i, iExpected, t, tExpected);
+assert(all(~size(i)));
+assert(all(~size(t)));
 
 %% Ray through corner outside grid
 origin = [-1, 1, 0];
@@ -250,51 +248,3 @@ zgv = -5.9373 : 0.1 : 5.0340;
 [i, t] = trav(origin, ray, xgv, ygv, zgv);
 
 checktrav(i);
-
-%% gpuArray input arguments
-origin = gpuArray([0, 0, 0]);
-ray = gpuArray([3, 3, 3]);
-xgv = gpuArray(-5 : 5);
-ygv = gpuArray(-5 : 5);
-zgv = gpuArray(-5 : 5);
-[i, t] = trav(origin, ray, xgv, ygv, zgv);
-
-iExpected = NaN(numel(xgv) + numel(ygv) + numel(zgv), 3);
-iExpected(1:4,:) = [6, 6, 6;
-    7, 7, 7;
-    8, 8, 8;
-    9, 9, 9];
-tExpected = NaN(numel(xgv) + numel(ygv) + numel(zgv), 1);
-tExpected(1:5) = [0; 1/3; 2/3; 1; 1];
-checktrav(i, iExpected, t, tExpected);
-
-%% Mixed input arguments
-origin = [0, 0, 0];
-ray = [3.5, 3.5, 3.5];
-xgv = -5 : 5;
-ygv = -5 : 5;
-zgv = gpuArray(-5 : 5);
-[i, t] = trav(origin, ray, xgv, ygv, zgv);
-
-iExpected = NaN(numel(xgv) + numel(ygv) + numel(zgv), 3);
-iExpected(1:4,:) = [6, 6, 6;
-    7, 7, 7;
-    8, 8, 8;
-    9, 9, 9];
-tExpected = NaN(numel(xgv) + numel(ygv) + numel(zgv), 1);
-tExpected(1:5) = [0; 1/3.5; 2/3.5; 3/3.5; 1];
-checktrav(i, iExpected, t, tExpected);
-
-origin = gpuArray([1.5, 1.5, 1.5]);
-ray = [10, 0, 0];
-xgv = 2 : 4;
-ygv = 1 : 5;
-zgv = 1 : 5;
-[i, t] = trav(origin, ray, xgv, ygv, zgv);
-
-iExpected = NaN(numel(xgv) + numel(ygv) + numel(zgv), 3);
-iExpected(1:2,:) = [1, 1, 1;
-    2, 1, 1];
-tExpected = NaN(numel(xgv) + numel(ygv) + numel(zgv), 1);
-tExpected(1:3) = [0.05; 0.15; 0.25];
-checktrav(i, iExpected, t, tExpected);
