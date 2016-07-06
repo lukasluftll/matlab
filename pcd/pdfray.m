@@ -76,28 +76,19 @@ nray = size(origin, 1);
 
 % Loop over all rays.
 p = zeros(nray, 1);
-for r = 1 : nray
+for i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(origin(r,:), ray(r,:), xgv, ygv, zgv);
-
-    % Compute the length of the ray apportioned to each voxel.
-    l = diff(t) * norm(ray(r,:));
-
-    % Recursively compute the fraction of the rays that arrives at the 
-    % beginning of each traversed voxel.
-    N = ones(size(l));
-    for i = 1 : length(N)-1
-        N(i+1) = N(i) * exp(-lambda(vi(i,1),vi(i,2),vi(i,3)) * l(i));
-    end
+    [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
     
-    % Compute the probability of obtaining the given ray length depending
-    % on whether or not the ray is reflected.
-    if t(end) < 1
-        p(r) = N(end);
-    else
-        p(r) = lambda(vi(end,1),vi(end,2),vi(end,3)) * N(end) ...
-            * exp(-lambda(vi(end,1),vi(end,2),vi(end,3)) * l(end));
-    end
+    % Convert the subscript indices to linear indices.
+    sub = sub2ind(size(lambda), vi(:,1), vi(:,2), vi(:,3));
+    
+    % Compute the length of the ray apportioned to each voxel.
+    l = diff(t) * norm(ray(i,:));
+
+    % Compute the probability of the measurement.
+    p(i) = prod(exp(-lambda(sub) .* l));
+    p(i(t(end)==1)) = p(i) * lambda(sub(end));
 end
 
 end
