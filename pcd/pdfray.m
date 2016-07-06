@@ -76,7 +76,7 @@ nray = size(origin, 1);
 
 % Loop over all rays.
 p = zeros(nray, 1);
-for i = 1 : nray
+parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
     
@@ -88,7 +88,9 @@ for i = 1 : nray
 
     % Compute the probability of the measurement.
     p(i) = prod(exp(-lambda(sub) .* l));
-    p(i(t(end)==1)) = p(i) * lambda(sub(end));
+    if t(end) == 1
+        p(i) = lambda(sub(end)) * p(i);
+    end
 end
 
 end
