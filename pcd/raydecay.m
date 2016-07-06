@@ -99,17 +99,27 @@ r = zeros(gridsize);
 
 % For all rays compute the ray length per voxel and the number of returns
 % per voxel.
-for i = 1 : nray
+parfor i = 1 : nray
+    % Create temporary return matrices for this ray.
+    li = zeros(gridsize);
+    ri = zeros(gridsize);
+    
     % Compute the indices of the voxels through which the ray travels.
     [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
-
+    
+    % Convert the subscript indices to linear indices.
+    vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+    
     % Add the length of the ray that is apportioned to a specific voxel
     % to the cumulated ray length of this voxel.
-    vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
-    l(vi) = l(vi) + diff(t)*radius(i);
+    li(vi) = diff(t) * radius(i);
 
     % Increment the number of returns of the voxel where the ray ends.
-    r(vi(end)) = r(vi(end)) + (t(end)==1);
+    ri(vi(end)) = t(end)==1;
+    
+    % Add the temporary values to the return matrices.
+    l = l + li;
+    r = r + ri;
 end
 
 %% Compute ray decay rate.
