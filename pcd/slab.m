@@ -63,6 +63,11 @@ function [hit, t] = slab(support, ray, box)
 % Check the number of input arguments.
 narginchk(3, 3);
 
+% Check if the input arguments are finite.
+if ~all(isfinite([support(:); ray(:); box(:)]))
+    error('Input arguments must not be NaN or Inf.')
+end
+
 % Check if the input arguments have the expected numbers of columns.
 if size(support, 2) ~= 3 || size(ray, 2) ~= 3 || size(box, 2) ~= 6
     error('Input arguments have incorrect row lengths.')
