@@ -2,7 +2,7 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 % TRAV Ray tracing in voxel grid.
 %   I = TRAV(ORIGIN, RAY, XGV, YGV, ZGV) returns the indices of all voxels
 %   that a ray traverses on its way from its starting point ORIGIN to its 
-%   endpoint ORIGIN + RAY. The grid is defined by the grid vectors XGV, 
+%   end point ORIGIN + RAY. The grid is defined by the grid vectors XGV, 
 %   YGV, and ZGV.
 %
 %   If the ray only touches the grid, no traversal is reported.
@@ -93,14 +93,12 @@ if ~hit || tvol(2) < 0 || diff(tvol) == 0
     return
 end
 
-% Compute the line parameter corresponding to the entry point of the ray
-% into the grid and the line parameter corresponding to the point where the
-% ray leaves the grid.
-tmin = max([0, tvol(1)]);
-tmax = min([1, tvol(2)]);
+% Compute the line parameters corresponding to the entry point of the ray
+% into the grid and to the point where the ray leaves the grid.
+tlim = [ max([0, tvol(1)]), min([1, tvol(2)]) ];
 
 % Calculate the index of the voxel corresponding to the starting point. 
-entry = origin + tmin*ray;
+entry = origin + tlim(1) * ray;
 i = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
     find(ygv(1:end-1) <= entry(2), 1, 'last'), ...
     find(zgv(1:end-1) <= entry(3), 1, 'last')];
@@ -112,15 +110,12 @@ tx = (xgv(:) - origin(1)) / ray(1);
 ty = (ygv(:) - origin(2)) / ray(2);
 tz = (zgv(:) - origin(3)) / ray(3);
 
-% Sort the intersections according to the line parameters.
-t = [unique(sort([0; 1; tx; ty; tz]))];
+% Sort the line parameters corresponding to the start point, the end point, 
+% and the intersections.
+t = unique(sort([0; 1; tx; ty; tz]));
 
 % Remove all intersections that lie outside the grid.
-t(t < tmin | t > tmax | ~isfinite(t)) = [];
-
-% If the ray ends inside the grid, add the ray endpoint to the line
-% parameters.
-t([false(numel(t), 1); t(end) < 1 && tvol(2) > 1]) = 1;
+t(t < tlim(1) | t > tlim(2) | ~isfinite(t)) = [];
 
 % For each line parameter compute the index step.
 iStep = [ismember(t, tx), ismember(t, ty), ismember(t, tz)] ...
