@@ -81,15 +81,15 @@ parfor i = 1 : nray
     [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
     
     % Convert the subscript indices to linear indices.
-    sub = sub2ind(size(lambda), vi(:,1), vi(:,2), vi(:,3));
+    vi = sub2ind(size(lambda), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the length of the ray apportioned to each voxel.
     l = diff(t) * norm(ray(i,:));
 
     % Compute the probability of the measurement.
-    p(i) = prod(exp(-lambda(sub) .* l));
+    p(i) = prod(exp(-lambda(vi) .* l));
     if t(end) == 1
-        p(i) = lambda(sub(end)) * p(i);
+        p(i) = lambda(vi(end)) * p(i);
     end
 end
 
