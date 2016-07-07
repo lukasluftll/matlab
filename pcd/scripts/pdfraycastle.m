@@ -14,6 +14,15 @@ xgv = min(pcd.x(:)) : res : max(pcd.x(:));
 ygv = min(pcd.y(:)) : res : max(pcd.y(:));
 zgv = min(pcd.z(:)) : res : max(pcd.z(:));
 
+% Determine the number of returns.
+npoints = sum(isfinite(pcd.radius(:)));
+
+% Compute the decay rate prior.
+maxrange = 100;
+raylength = pcd.radius;
+raylength(~isfinite(raylength)) = maxrange;
+lambdaPrior = npoints / sum(raylength(:));
+
 % Replace no-return ray lengths with a value larger than the grid diameter.
 pcd.radius(~isfinite(pcd.radius)) = 1e4;
 
@@ -25,8 +34,13 @@ pcd.radius(~isfinite(pcd.radius)) = 1e4;
 lambdaLim = [5e-4, 1e1];
 lambda = raydecay(pcd.azimuth, pcd.elevation, pcd.radius, ...
     xgv, ygv, zgv);
-lambda(isnan(lambda) | lambda==0) = lambdaLim(1);
-lambda(lambda > lambdaLim(2)) = lambdaLim(2);
+
+% Limit the decay rates.
+lambda = max(lambdaLim(1), lambda);
+lambda = min(lambdaLim(2), lambda);
+
+% Add assumption about decay rate prior.
+lambda(~isfinite(lambda)) = lambdaPrior;
 
 % Shift the scan and compute the probability of obtaining it.
 xs = -3 : 1 : 3;
