@@ -9,7 +9,7 @@ pcd = pcdread('data/castle.pcd');
 nray = numel(pcd.azimuth);
 
 % Define the grid vectors for voxelization.
-res = 5;
+res = 1;
 xgv = min(pcd.x(:)) : res : max(pcd.x(:));
 ygv = min(pcd.y(:)) : res : max(pcd.y(:));
 zgv = min(pcd.z(:)) : res : max(pcd.z(:));
@@ -22,13 +22,14 @@ pcd.radius(~isfinite(pcd.radius)) = 1e4;
     pcd.azimuth(:), pcd.elevation(:), pcd.radius(:));
 
 % Compute the decay rate map.
+lambdaMin = 5e-4;
 lambda = raydecay(pcd.azimuth, pcd.elevation, pcd.radius, ...
     xgv, ygv, zgv);
-lambda(isnan(lambda)) = 0;
+lambda(isnan(lambda) | lambda==0) = lambdaMin;
 
 % Shift the scan and compute the probability of obtaining it.
-xs = -0.1 : 0.1 : 0.1;
-ys = -0.1 : 0.1 : 0.1;
+xs = -3 : 1 : 3;
+ys = -3 : 1 : 3;
 prob = zeros(length(xs), length(ys));
 waitbarHandle = waitbar(0, 'Computing scan probabilities ...');
 for i = 1 : length(xs)
@@ -43,3 +44,5 @@ for i = 1 : length(xs)
     end
 end
 close(waitbarHandle);
+
+surf(xs, ys, prob);
