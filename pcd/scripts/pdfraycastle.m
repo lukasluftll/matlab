@@ -22,10 +22,11 @@ pcd.radius(~isfinite(pcd.radius)) = 1e4;
     pcd.azimuth(:), pcd.elevation(:), pcd.radius(:));
 
 % Compute the decay rate map.
-lambdaMin = 5e-4;
+lambdaLim = [5e-4, 1e1];
 lambda = raydecay(pcd.azimuth, pcd.elevation, pcd.radius, ...
     xgv, ygv, zgv);
-lambda(isnan(lambda) | lambda==0) = lambdaMin;
+lambda(isnan(lambda) | lambda==0) = lambdaLim(1);
+lambda(lambda > lambdaLim(2)) = lambdaLim(2);
 
 % Shift the scan and compute the probability of obtaining it.
 xs = -3 : 1 : 3;
@@ -45,4 +46,5 @@ for i = 1 : length(xs)
 end
 close(waitbarHandle);
 
+% Display the overall probabilities of the shifted scans.
 surf(xs, ys, prob);
