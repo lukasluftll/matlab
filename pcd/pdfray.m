@@ -87,7 +87,7 @@ parfor i = 1 : nray
     l = diff(t) * norm(ray(i,:));
 
     % Compute the probability of the measurement.
-    p(i) = prod(exp(-lambda(vi) .* l));
+    p(i) = exp(sum(-lambda(vi) .* l));
     if t(end) == 1
         p(i) = lambda(vi(end)) * p(i);
     end
