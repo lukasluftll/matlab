@@ -1,11 +1,17 @@
-% Loads the castle scan, computes a Lidar decay map from it, and then 
-% shifts the scan horizontally and computes the probability of obtaining 
-% the shifted scan with respect to the decay map.
+% Visualizes the probability of obtaining a Lidar scan that is shifted with
+% respect to itself.
+%
+% Steps:
+% # Loads the castle scan.
+% # Computes a Lidar decay map from it.
+% # Shifts the scan horizontally in x and y direction.
+% # Computes the probability of obtaining the shifted scan with respect to 
+%   the decay map.
 
 % Read the point cloud.
 pcd = pcdread('data/castle.pcd');
 
-% Determine the number of rays.
+% Determine the number of rays (both returns and no-returns).
 nray = numel(pcd.azimuth);
 
 % Define the grid vectors for voxelization.
@@ -18,13 +24,10 @@ zgv = min(pcd.z(:)) : res : max(pcd.z(:));
 npoints = sum(isfinite(pcd.radius(:)));
 
 % Compute the decay rate prior.
-maxrange = 100;
+maxrange = 100;   % VLP-16 can see 100 m far.
 raylength = pcd.radius;
 raylength(~isfinite(raylength)) = maxrange;
 lambdaPrior = npoints / sum(raylength(:));
-
-% Replace no-return ray lengths with a value larger than the grid diameter.
-pcd.radius(~isfinite(pcd.radius)) = 1e4;
 
 % Compute the ray direction vectors.
 [dirx, diry, dirz] = sph2cart(...
