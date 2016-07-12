@@ -1,13 +1,12 @@
-function p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
-% PDFRAY Compute probability of Lidar scan given ray decay grid map.
-%   P = PDFRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the probability
-%   of obtaining the Lidar scan defined by ORIGIN and RAY given the decay 
-%   map LAMBDA, XGV, YGV, ZGV.
+function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
+% PDFRAY Compute log-likelihood of Lidar measurement given ray decay map.
+%   P = PDFRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the
+%   log-likelihood of obtaining the Lidar ray measurement defined by ORIGIN 
+%   and RAY conditioned on the decay map LAMBDA with grid vectors XGV, YGV,
+%   ZGV.
 %
 %   ORIGIN and RAY are Mx3 matrices whose rows contain the origins and the 
-%   ray vectors of the M rays of the laser scan. Rays that exceed the grid
-%   volume are assumed to be no-returns and are attributed the
-%   corresponding probability.
+%   ray vectors of the M measured rays.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -22,7 +21,7 @@ function p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   The lambda value of a voxel that has not been visited by any ray is 
 %   NaN.
 %
-%   P is a M-element column vector. The value of the m-th element
+%   L is a M-element column vector. The value of the m-th element
 %   corresponds to the probability of obtaining the m-th measurement.
 %
 %   Example:
@@ -74,8 +73,10 @@ end
 % Determine the number of rays.
 nray = size(origin, 1);
 
+% Preallocate the log-likelihood.
+L = zeros(nray, 1);
+
 % Loop over all rays.
-p = zeros(nray, 1);
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
@@ -84,12 +85,12 @@ parfor i = 1 : nray
     vi = sub2ind(size(lambda), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the length of the ray apportioned to each voxel.
-    l = diff(t) * norm(ray(i,:));
+    d = diff(t) * norm(ray(i,:));
 
     % Compute the probability of the measurement.
-    p(i) = exp(sum(-lambda(vi) .* l));
+    L(i) = sum(-lambda(vi) .* d);
     if t(end) == 1
-        p(i) = lambda(vi(end)) * p(i);
+        L(i) = lambda(vi(end)) * L(i);
     end
 end
 
