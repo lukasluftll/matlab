@@ -1,12 +1,12 @@
-% Visualizes the probability of obtaining a Lidar scan that is shifted with
-% respect to itself.
+% Visualizes the log-likelihood of obtaining a shifted Lidar scan given a
+% map created from the same Lidar scan at the true pose.
 %
 % Steps:
 % # Loads the castle scan.
 % # Computes a Lidar decay map from it.
 % # Shifts the scan horizontally in x and y direction.
-% # Computes the probability of obtaining the shifted scan with respect to 
-%   the decay map.
+% # Computes the log-likelihood of obtaining the shifted scan with respect
+%   to the decay map.
 
 % Read the point cloud.
 pcd = pcdread('data/castle.pcd');
@@ -24,6 +24,8 @@ zgv = min(pcd.z(:)) : res : max(pcd.z(:));
 npoints = sum(isfinite(pcd.radius(:)));
 
 % Compute the decay rate prior.
+
+
 maxrange = 100;   % VLP-16 can see 100 m far.
 raylength = pcd.radius;
 raylength(~isfinite(raylength)) = maxrange;
