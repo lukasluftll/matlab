@@ -22,7 +22,9 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   NaN.
 %
 %   L is a M-element column vector. The value of the m-th element
-%   corresponds to the probability of obtaining the m-th measurement.
+%   corresponds to the log-likelihood of obtaining the m-th measurement.
+%   L is not equal to the log-likelihood of the observation, but it is
+%   shifted by an unknown offset.
 %
 %   Example:
 %      origin = [0, 0, 0];
@@ -88,7 +90,7 @@ parfor i = 1 : nray
     d = diff(t) * norm(ray(i,:));
 
     % Compute the log-likelihood of the measurement.
-    L(i) = sum(-lambda(vi) .* d);
+    L(i) = -sum(lambda(vi) .* d);
 end
 
 end
