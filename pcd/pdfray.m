@@ -5,8 +5,8 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   and RAY conditioned on the decay map LAMBDA with grid vectors XGV, YGV,
 %   ZGV.
 %
-%   ORIGIN and RAY are Mx3 matrices whose rows contain the origins and the 
-%   ray vectors of the M measured rays.
+%   ORIGIN and RAY are Mx3 matrices whose rows contain the Cartesian 
+%   origins and ray vectors of the M measured rays.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -73,7 +73,7 @@ end
 % Determine the number of rays.
 nray = size(origin, 1);
 
-% Preallocate the log-likelihood.
+% Preallocate the return matrix.
 L = zeros(nray, 1);
 
 % Loop over all rays.
@@ -87,11 +87,8 @@ parfor i = 1 : nray
     % Compute the length of the ray apportioned to each voxel.
     d = diff(t) * norm(ray(i,:));
 
-    % Compute the probability of the measurement.
+    % Compute the log-likelihood of the measurement.
     L(i) = sum(-lambda(vi) .* d);
-    if t(end) == 1
-        L(i) = lambda(vi(end)) * L(i);
-    end
 end
 
 end
