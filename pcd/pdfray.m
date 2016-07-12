@@ -72,7 +72,7 @@ if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
     error('Size of LAMBDA does not match grid vectors.')
 end
 
-%% Compute ray probabilities.
+%% Compute log-likelihood of measurements.
 % Determine the number of rays.
 nray = size(origin, 1);
 
@@ -91,7 +91,7 @@ parfor i = 1 : nray
     d = diff(t) * norm(ray(i,:));
 
     % Compute the log-likelihood of the measurement.
-    L(i) = -sum(lambda(vi) .* d);
+    L(i) = log(lambda(vi(end))) - sum(lambda(vi) .* d);
 end
 
 end
