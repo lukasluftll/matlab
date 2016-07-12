@@ -149,6 +149,18 @@ end
 % Read raw data.
 rawdata = dlmread(filename, ' ', 11, 0);
 
+% Remove duplicate points.
+rawdata(isnan(rawdata)) = -Inf;
+if numel(rawdata) ~= numel(unique(rawdata))
+    rawdata = unique(rawdata, 'rows');
+    
+    % In case there are duplicates, make the payload data matrices 
+    % unorganized.
+    width = 1;
+    height = size(rawdata, 1);
+end
+rawdata(rawdata == -Inf) = NaN;
+
 % Convert raw data to cell array. Each cell element contains a matrix of
 % size WIDTH x HEIGHT x COUNT.
 data = cell(length(fieldcount), 1);
