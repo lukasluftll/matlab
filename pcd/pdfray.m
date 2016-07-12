@@ -6,7 +6,8 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   ZGV.
 %
 %   ORIGIN and RAY are Mx3 matrices whose rows contain the Cartesian 
-%   origins and ray vectors of the M measured rays.
+%   origins and ray vectors of the M measured rays. If all rays originate
+%   from the same point, ORIGIN may also be a 1x3 matrix.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -21,7 +22,7 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %   The lambda value of a voxel that has not been visited by any ray is 
 %   NaN.
 %
-%   L is a M-element column vector. The value of the m-th element
+%   L is an M-element column vector. The value of the m-th element
 %   corresponds to the log-likelihood of obtaining the m-th measurement.
 %   L is not equal to the log-likelihood of the observation, but it is
 %   shifted by an unknown offset.
@@ -33,7 +34,7 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
 %      p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %
-%   See also RAYDECAY.
+%   See also NANRAY, RAYDECAY.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -51,9 +52,9 @@ if size(origin, 1) == 1
     origin = repmat(origin, size(ray, 1), 1);
 end
 
-% Make sure ORIGIN, RAY, and LAMBDA contain finite values.
-if ~all(isfinite(origin(:))&isfinite(ray(:))) || ~all(isfinite(lambda(:)))
-    error('ORIGIN, RAY, and LAMBDA must not be NaN or Inf.')
+% Make sure all input arguments contain finite values only.
+if ~all(isfinite([origin(:); ray(:); lambda(:); xgv(:); ygv(:); zgv(:)]))
+    error('All input arguments must not be NaN or Inf.')
 end
 
 % Check whether the grid vectors contain enough elements.
