@@ -113,17 +113,20 @@ for i = 1 : nray
     
     % Compute the probability of obtaining an NaN measurement between 
     % maximum sensor range and infinity.
-    pmax =  exp(-sum(lambda(vi) .* d));
+    psup = exp(-sum(lambda(vi) .* d));
     
     % Compute the length of the ray apportioned to each voxel when
     % traversing the grid from origin to minimum sensor range.
     t = [t(t < rlim(1)/rlim(2)); rlim(1)/rlim(2)];
     d = diff(t) * norm(ray(i,:));
+    
+    % Compute the probability of obtaining an NaN measurement between
+    % origin and minimum sensor range.
     vi = vi(1 : length(d));
-    pmin = 1 - exp(-sum(lambda(vi) .* d));
+    psub = 1 - exp(-sum(lambda(vi) .* d));
     
     % Compute the overall probability of obtaining an NaN measurement.
-    p(i) = pmin * pmax;
+    p(i) = psub + psup;
 end
 
 end
