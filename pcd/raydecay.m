@@ -47,6 +47,7 @@ function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %
 %   Example:
 %      pc = pcdread('castle.pcd');
+%      pc.radius(~isfinite(pc.radius)) = 130;
 %      xgv = min(pc.x(:)) : 5 : max(pc.x(:));
 %      ygv = min(pc.y(:)) : 5 : max(pc.y(:));
 %      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
@@ -70,6 +71,11 @@ if ~(ismatrix(azimuth) && ismatrix(elevation) && ismatrix(radius))
     error('AZIMUTH, ELEVATION, and RADIUS must have exactly 2 dimensions.')
 end
 
+% Make sure all input arguments are finite.
+if ~all(isfinite([azimuth(:);elevation(:);radius(:);xgv(:);ygv(:);zgv(:)]))
+    error('Input arguments must not be NaN or Inf.')
+end
+
 % Check whether the grid vectors contain enough elements.
 if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
     error('Every grid vector must contain at least 2 elements.')
@@ -81,19 +87,18 @@ if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
 end
 
 %% Preprocess input data.
-% Replace no-return ray lengths with a value larger than the grid diameter.
-radius(~isfinite(radius)) = sum(diff(xgv))+sum(diff(ygv))+sum(diff(zgv));
-
 % Compute the ray direction vectors.
 [dirx, diry, dirz] = sph2cart(azimuth, elevation, radius);
 
 % Determine the number of rays.
 nray = numel(azimuth);
 
+% Determine the size of the voxel grid.
+gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+
 %% Sum up ray lengths and returns.
 % Construct the matrices that store the cumulated ray lengths and the
 % number of returns for each voxel.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 l = zeros(gridsize);
 r = zeros(gridsize);
 
