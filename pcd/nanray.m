@@ -98,8 +98,12 @@ nray = size(origin, 1);
 % Preallocate the return matrix.
 p = zeros(nray, 1);
 
-% Loop over all rays.
-for i = 1 : nray
+% Compute the line parameter from origin to minimum sensor range.
+tmin = rlim(1)/rlim(2);
+
+% Loop over all rays and compute the respective probabilities for NaN
+% measurements.
+parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses from the
     % origin to the maximum sensor range.
     [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
@@ -117,13 +121,12 @@ for i = 1 : nray
     
     % Compute the length of the ray apportioned to each voxel when
     % traversing the grid from origin to minimum sensor range.
-    t = [t(t < rlim(1)/rlim(2)); rlim(1)/rlim(2)];
+    t = [t(t < tmin); tmin];
     d = diff(t) * norm(ray(i,:));
     
     % Compute the probability of obtaining an NaN measurement between
     % origin and minimum sensor range.
-    vi = vi(1 : length(d));
-    psub = 1 - exp(-sum(lambda(vi) .* d));
+    psub = 1 - exp(-sum(lambda(vi(1:length(d))) .* d));
     
     % Compute the overall probability of obtaining an NaN measurement.
     p(i) = psub + psup;
