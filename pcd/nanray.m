@@ -126,7 +126,7 @@ parfor i = 1 : nray
     
     % Compute the probability of obtaining an NaN measurement between
     % origin and minimum sensor range.
-    psub = 1 - exp(-sum(lambda(vi(1:length(d))) .* d));
+    psub = 1 - exp(-sum(lambda(vi(1:max([length(d), 1]))) .* d));
     
     % Compute the overall probability of obtaining an NaN measurement.
     p(i) = psub + psup;
