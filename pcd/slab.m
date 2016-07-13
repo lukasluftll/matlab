@@ -55,7 +55,7 @@ function [hit, t] = slab(support, ray, box)
 
 % Copyright 2016 Alexander Schaefer
 %
-% SLAB implements and augments the raycasting algorithm proposed by Smits:
+% SLAB implements and augments the ray casting algorithm proposed by Smits:
 % Brian Smits. Efficiency issues for ray tracing.
 % Journal of Graphics Tools, 3(2):1-14, 1998.
 
