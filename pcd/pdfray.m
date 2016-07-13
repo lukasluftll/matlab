@@ -54,7 +54,7 @@ end
 
 % Make sure all input arguments contain finite values only.
 if ~all(isfinite([origin(:); ray(:); lambda(:); xgv(:); ygv(:); zgv(:)]))
-    error('All input arguments must not be NaN or Inf.')
+    error('Input arguments must not be NaN or Inf.')
 end
 
 % Check whether the grid vectors contain enough elements.
