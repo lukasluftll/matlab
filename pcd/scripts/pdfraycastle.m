@@ -80,3 +80,8 @@ close(waitbarHandle);
 %% Display result.
 % Display the overall probabilities of the shifted scans.
 surf(gvs, gvs, L);
+
+% Add title and labels.
+title('Log-likelihood of Lidar measurement')
+xaxis('x [m]')
+yaxis('y [m]')
