@@ -2,68 +2,81 @@
 % map created from the same Lidar scan at the true pose.
 %
 % Steps:
-% # Loads the castle scan.
+% # Loads the scan.
 % # Computes a Lidar decay map from it.
 % # Shifts the scan horizontally in x and y direction.
 % # Computes the log-likelihood of obtaining the shifted scan with respect
 %   to the decay map.
 
+%% Set parameters.
+% Shifting offset in x and y direction.
+shift = 3;
+
+% Resolution of the decay rate map.
+res = 1;
+
+% Resolution of the log-likelihood graph.
+shiftres = 1;
+
+% Minimum and maximum range of the Lidar sensor.
+rlim = [0, 130];
+
+% Minimum and maximum admissible decay rate.
+lambdaLim = [2e-3, 1e+1];
+
+%% Compute decay rate map.
 % Read the point cloud.
 pcd = pcdread('data/castle.pcd');
 
-% Determine the number of rays (both returns and no-returns).
-nray = numel(pcd.azimuth);
-
-% Define the grid vectors for voxelization.
-res = 1;
-xgv = min(pcd.x(:)) : res : max(pcd.x(:));
-ygv = min(pcd.y(:)) : res : max(pcd.y(:));
-zgv = min(pcd.z(:)) : res : max(pcd.z(:));
-
-% Determine the number of returns.
-npoints = sum(isfinite(pcd.radius(:)));
-
-% Compute the decay rate prior.
-
-
-maxrange = 100;   % VLP-16 can see 100 m far.
-raylength = pcd.radius;
-raylength(~isfinite(raylength)) = maxrange;
-lambdaPrior = npoints / sum(raylength(:));
-
-% Compute the ray direction vectors.
-[dirx, diry, dirz] = sph2cart(...
-    pcd.azimuth(:), pcd.elevation(:), pcd.radius(:));
-
 % Compute the decay rate map.
-lambdaLim = [5e-4, 1e1];
-lambda = raydecay(pcd.azimuth, pcd.elevation, pcd.radius, ...
-    xgv, ygv, zgv);
+radiusFinite = pcd.radius;
+radiusFinite(~isfinite(radiusFinite)) = rlim(2);
+xgv = min(pcd.x(:))-shift : res : max(pcd.x(:))+res+shift;
+ygv = min(pcd.y(:))-shift : res : max(pcd.y(:))+res+shift;
+zgv = min(pcd.z(:))-shift : res : max(pcd.z(:))+res+shift;
+lambda = raydecay(pcd.azimuth, pcd.elevation, radiusFinite, xgv, ygv, zgv);
 
-% Limit the decay rates.
+% Set all voxels without data to the decay rate prior.
+lambda(~isfinite(lambda)) = ...
+    sum(isfinite(pcd.radius(:))) / sum(radiusFinite(:));
+
+% Limit the decay rates to a reasonable interval and add prior.
 lambda = max(lambdaLim(1), lambda);
 lambda = min(lambdaLim(2), lambda);
 
-% Add assumption about decay rate prior.
-lambda(~isfinite(lambda)) = lambdaPrior;
+%% Compute log-likelihood of shifted scans.
+% Compute the direction vectors of the returned rays.
+[dirxr, diryr, dirzr] = sph2cart(pcd.azimuth(isfinite(pcd.radius)), ...
+    pcd.elevation(isfinite(pcd.radius)), pcd.radius(isfinite(pcd.radius)));
+
+% Compute the direction vectors of the no-return rays.
+[dirxnr, dirynr, dirznr] = sph2cart(pcd.azimuth(~isfinite(pcd.radius)), ...
+    pcd.elevation(~isfinite(pcd.radius)), 1);
 
 % Shift the scan and compute the probability of obtaining it.
-xs = -3 : 1 : 3;
-ys = -3 : 1 : 3;
-prob = zeros(length(xs), length(ys));
+gvs = -shift : shiftres : shift;
+prob = zeros(numel(gvs));
 waitbarHandle = waitbar(0, 'Computing scan probabilities ...');
-for i = 1 : length(xs)
-    for j = 1 : length(ys)
-        origin = [xs(i), ys(j), 0];
-        p = pdfray(origin, [dirx, diry, dirz], lambda, xgv, ygv, zgv);
-        prob(i,j) = sum(log(p));
+L = zeros(numel(gvs));
+for i = 1 : numel(gvs)
+    for j = 1 : numel(gvs)
+        origin = [gvs(i), gvs(j), 0];
+        
+        % Compute the log-likelihood of the measurements, depending on
+        % whether or not the individual ray returned.
+        Lr = sum(pdfray(origin, [dirxr, diryr, dirzr], lambda, ...
+            xgv, ygv, zgv));
+        Lnr = sum(log(nanray(origin, [dirxnr, dirynr, dirznr], rlim, ...
+            lambda, xgv, ygv, zgv)));
+        L(i,j) = Lr + Lnr;
         
         % Advance the progress bar.
-        waitbar(((i-1)*length(xs) + j) / (length(xs)*length(ys)), ...
+        waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, ...
             waitbarHandle);
     end
 end
 close(waitbarHandle);
 
+%% Display result.
 % Display the overall probabilities of the shifted scans.
-surf(xs, ys, prob);
+surf(gvs, gvs, L);
