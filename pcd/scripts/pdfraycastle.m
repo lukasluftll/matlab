@@ -21,6 +21,9 @@ shiftres = 1;
 % Minimum and maximum range of the Lidar sensor.
 rlim = [0, 130];
 
+% Maximum elevation angle of the Lidar sensor.
+elevationMax = deg2rad(16);
+
 % Minimum and maximum admissible decay rate.
 lambdaLim = [2e-3, 1e+1];
 
@@ -31,10 +34,9 @@ pcd = pcdread('data/castle.pcd');
 % Compute the decay rate map.
 radiusFinite = pcd.radius;
 radiusFinite(~isfinite(radiusFinite)) = rlim(2);
-xgv = min(pcd.x(:))-shift : res : max(pcd.x(:))+res+shift;
-ygv = min(pcd.y(:))-shift : res : max(pcd.y(:))+res+shift;
-zgv = min(pcd.z(:))-shift : res : max(pcd.z(:))+res+shift;
-lambda = raydecay(pcd.azimuth, pcd.elevation, radiusFinite, xgv, ygv, zgv);
+hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
+zgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
+lambda = raydecay(pcd.azimuth, pcd.elevation, radiusFinite, hgv, hgv, zgv);
 
 % Set all voxels without data to the decay rate prior.
 lambda(~isfinite(lambda)) = ...
@@ -65,9 +67,9 @@ for i = 1 : numel(gvs)
         % Compute the log-likelihood of the measurements, depending on
         % whether or not the individual ray returned.
         Lr = sum(pdfray(origin, [dirxr, diryr, dirzr], lambda, ...
-            xgv, ygv, zgv));
+            hgv, hgv, zgv));
         Lnr = sum(log(nanray(origin, [dirxnr, dirynr, dirznr], rlim, ...
-            lambda, xgv, ygv, zgv)));
+            lambda, hgv, hgv, zgv)));
         L(i,j) = Lr + Lnr;
         
         % Advance the progress bar.
