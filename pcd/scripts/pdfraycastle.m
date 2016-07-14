@@ -10,13 +10,13 @@
 
 %% Set parameters.
 % Shifting offset in x and y direction.
-shift = 3;
+shift = 6;
 
 % Resolution of the decay rate map.
-res = 1;
+res = 0.5;
 
 % Resolution of the log-likelihood graph.
-shiftres = 1;
+shiftres = 0.5;
 
 % Minimum and maximum range of the Lidar sensor.
 rlim = [0, 130];
@@ -85,5 +85,5 @@ surf(gvs, gvs, L);
 
 % Add title and labels.
 title('Log-likelihood of Lidar measurement')
-xaxis('x [m]')
-yaxis('y [m]')
+xlabel('x [m]')
+ylabel('y [m]')
