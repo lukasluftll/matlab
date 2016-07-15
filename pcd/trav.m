@@ -5,7 +5,8 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   end point ORIGIN + RAY. The grid is defined by the grid vectors XGV, 
 %   YGV, and ZGV.
 %
-%   If the ray only touches the grid, no traversal is reported.
+%   If the ray only touches the voxel, no corresponding traversal is 
+%   reported.
 %
 %   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
@@ -71,15 +72,8 @@ if numel(origin) ~= 3 || numel(ray) ~= 3
     error('ORIGIN and RAY must have 3 elements.')
 end
 
-% Check whether the grid vectors contain enough elements.
-if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
-    error('Every grid vector must contain at least 2 elements.')
-end
-
-% Check whether the grid vectors are ordered.
-if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
-    error('Grid vectors must monotonically increase.')
-end
+% Check the grid vectors.
+gvchk(xgv, ygv, zgv);
 
 %% Initialization phase: calculate index of entry point.
 % Compute the intersections of the ray with the grid volume.
