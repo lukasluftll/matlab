@@ -72,7 +72,7 @@ if any(size(ref) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
     error('Size of REF does not match grid vectors.')
 end
 
-%% Compute log-likelihood of measurements.
+%% Compute probability of measurements.
 % Determine the number of rays.
 nray = size(origin, 1);
 
@@ -91,20 +91,22 @@ for i = 1 : nray
     % minimum and maximum measurement range barrier.
     [~, ilim] = min(abs(...
         repmat(t*norm(ray), 1, numel(rlim)) - repmat(rlim, numel(t), 1)));
+    ilim = ilim - 1;
     
     % Calculate the probability that the ray is reflected before reaching
     % the minimum sensor range.
-    isub = vi(1 : ilim(1)-1);
+    isub = vi(1 : ilim(1));
     msub = ref(isub);
     psub = 1 - prod(1-msub);
     
-    % Calculate the probability that the ray is reflected after having
-    % passed the maximum sensor range.
-    isup = vi(ilim(1) : ilim(2));
+    % Calculate the probability that the ray surpasses the maximum sensor 
+    % range.
+    isup = vi(ilim(1)+1 : ilim(2));
     msup = ref(isup);
     psup = prod(1-msup);
     
-    p = psub + psup;
+    % Sum up the probabilities.
+    p(i) = psub + psup;
 end
 
 end
