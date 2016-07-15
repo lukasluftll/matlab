@@ -1,6 +1,6 @@
 function p = nanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
 % NANRAY Compute probability of NaN Lidar measurement from decay map.
-%   P = NANRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV, RLIM) computes the
+%   P = NANRAY(ORIGIN, RAY, RLIM, LAMBDA, XGV, YGV, ZGV) computes the
 %   probability of obtaining the measurement NaN from a Lidar sensor that 
 %   sends a ray from ORIGIN in direction RAY through a ray decay voxel 
 %   grid defined by LAMBDA with grid vectors XGV, YGV, ZGV.
