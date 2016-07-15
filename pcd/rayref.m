@@ -68,7 +68,7 @@ if ~all(isfinite([azimuth(:);elevation(:);radius(:);xgv(:);ygv(:);zgv(:)]))
     error('Input arguments must not be NaN or Inf.')
 end
 
-% Check whether the grid vectors contain enough elements.
+% Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
 %% Preprocess input data.
@@ -81,18 +81,16 @@ nray = numel(azimuth);
 % Determine the size of the voxel grid.
 gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 
-%% Sum up ray lengths and returns.
-% Construct the matrices that store the cumulated ray lengths and the
-% number of returns for each voxel.
-m = zeros(gridsize);
+%% Count hits and misses.
+% Construct the matrices that store hits and misses.
 h = zeros(gridsize);
+m = zeros(gridsize);
 
-% For all rays compute the ray length per voxel and the number of returns
-% per voxel.
+% For all rays compute the number of returns and traversals per voxel.
 parfor i = 1 : nray
     % Create temporary return matrices for this ray.
-    li = zeros(gridsize);
-    ri = zeros(gridsize);
+    hi = zeros(gridsize);
+    mi = zeros(gridsize);
     
     % Compute the indices of the voxels through which the ray travels.
     [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
@@ -100,20 +98,20 @@ parfor i = 1 : nray
     % Convert the subscript indices to linear indices.
     vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
     
-    % Add the length of the ray that is apportioned to a specific voxel
-    % to the cumulated ray length of this voxel.
-    li(vi) = diff(t) * radius(i);
-
-    % Increment the number of returns of the voxel where the ray ends.
-    ri(vi(end)) = t(end)==1;
+    % Set the value of the matrix cell corresponding to traversed voxels to
+    % 1.
+    mi(vi) = t(2:end)<1;
+    
+    % Set the value of the matrix cell corresponding to the voxel where the
+    % ray ends to 1.
+    hi(vi(end)) = t(end)==1;
     
     % Add the temporary values to the return matrices.
-    m = m + li;
-    h = h + ri;
+    m = m + mi;
+    h = h + hi;
 end
 
-%% Compute ray decay rate.
-ref = h ./ m;
-ref(m == 0) = NaN;
+%% Compute reflectivity.
+ref = h ./ (h + m);
 
 end

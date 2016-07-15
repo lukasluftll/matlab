@@ -76,7 +76,7 @@ if ~all(isfinite([azimuth(:);elevation(:);radius(:);xgv(:);ygv(:);zgv(:)]))
     error('Input arguments must not be NaN or Inf.')
 end
 
-% Check whether the grid vectors contain enough elements.
+% Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
 %% Preprocess input data.
