@@ -34,7 +34,7 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
 %      L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %
-%   See also NANRAY, RAYDECAY.
+%   See also NANRAY, RAYDECAY, PRAY.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -53,7 +53,7 @@ if size(origin, 1) == 1
 end
 
 % Make sure all input arguments contain finite values only.
-if ~all(isfinite([origin(:); ray(:); lambda(:); xgv(:); ygv(:); zgv(:)]))
+if ~all(isfinite([origin(:); ray(:); lambda(:)]))
     error('Input arguments must not be NaN or Inf.')
 end
 

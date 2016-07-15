@@ -39,7 +39,7 @@ function p = nanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
 %      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
 %      p = nanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
 %
-%   See also PDFRAY, RAYDECAY.
+%   See also PDFRAY, RAYDECAY, PRAY.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -58,8 +58,7 @@ if size(origin, 1) == 1
 end
 
 % Make sure all input arguments contain finite values only.
-if ~all(isfinite([origin(:); ray(:); rlim(:); lambda(:); ...
-        xgv(:); ygv(:); zgv(:)]))
+if ~all(isfinite([origin(:); ray(:); rlim(:); lambda(:)]))
     error('All input arguments must not be NaN or Inf.')
 end
 
