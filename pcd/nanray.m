@@ -1,5 +1,5 @@
 function p = nanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
-% PDFRAY Compute probability of obtaining a NaN Lidar measurement.
+% NANRAY Compute probability of NaN Lidar measurement from decay map.
 %   P = NANRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV, RLIM) computes the
 %   probability of obtaining the measurement NaN from a Lidar sensor that 
 %   sends a ray from ORIGIN in direction RAY through a ray decay voxel 
@@ -73,15 +73,8 @@ if diff(rlim) <= 0
     error('RLIM(2) must be greater than RLIM(1).');
 end
 
-% Check whether the grid vectors contain enough elements.
-if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
-    error('Every grid vector must contain at least 2 elements.')
-end
-
-% Check whether the grid vectors are ordered.
-if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
-    error('Grid vectors must monotonically increase.')
-end
+% Check the grid vectors.
+gvchk(xgv, ygv, zgv)
 
 % Check whether lambda has the correct size.
 if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
