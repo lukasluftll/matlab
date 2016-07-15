@@ -69,14 +69,7 @@ if ~all(isfinite([azimuth(:);elevation(:);radius(:);xgv(:);ygv(:);zgv(:)]))
 end
 
 % Check whether the grid vectors contain enough elements.
-if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
-    error('Every grid vector must contain at least 2 elements.')
-end
-
-% Check whether the grid vectors are ordered.
-if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
-    error('Grid vectors must monotonically increase.')
-end
+gvchk(xgv, ygv, zgv);
 
 %% Preprocess input data.
 % Compute the ray direction vectors.
