@@ -1,6 +1,6 @@
 function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 % PDFRAY Compute log-likelihood of Lidar measurement given ray decay map.
-%   P = PDFRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the
+%   L = PDFRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the
 %   log-likelihood of obtaining the Lidar ray measurement defined by ORIGIN 
 %   and RAY conditioned on the decay map LAMBDA with grid vectors XGV, YGV,
 %   ZGV.
@@ -32,7 +32,7 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %      ray = [3, 4, 5];
 %      lambda = repmat(magic(5)/100, [1, 1, 5]);
 %      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
-%      p = pdfray(origin, ray, lambda, xgv, ygv, zgv)
+%      L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %
 %   See also NANRAY, RAYDECAY.
 
