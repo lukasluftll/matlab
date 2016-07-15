@@ -53,7 +53,7 @@ function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 %      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
 %      lambda=raydecay(pc.azimuth, pc.elevation, pc.radius, xgv, ygv, zgv)
 %
-%   See also TRAV, SLAB, NAN.
+%   See also RAYREF, TRAV, SLAB, NAN.
 
 % Copyright 2016 Alexander Schaefer
 
