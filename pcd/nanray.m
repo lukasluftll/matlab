@@ -24,8 +24,6 @@ function p = nanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
 %
 %   LAMBDA is a IxJxK matrix that contains the mean decay rate of each map
 %   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
-%   The lambda value of a voxel that has not been visited by any ray is 
-%   NaN.
 %
 %   P is an M-element column vector. The value of the m-th element
 %   corresponds to the log-likelihood of obtaining NaN for the m-th 
@@ -75,7 +73,7 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv)
 
-% Check whether lambda has the correct size.
+% Check whether LAMBDA has the correct size.
 if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
     error('Size of LAMBDA does not match grid vectors.')
 end

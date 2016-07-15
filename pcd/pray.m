@@ -1,7 +1,7 @@
 function p = pray(origin, ray, rlim, ref, xgv, ygv, zgv)
 % PRAY Compute probability of Lidar measurement from reflectivity map.
-%   P = PRAY(ORIGIN, RAY, REF, XGV, YGV, ZGV) computes the log-likelihood 
-%   of obtaining the Lidar ray measurement defined by ORIGIN and RAY 
+%   P = PRAY(ORIGIN, RAY, REF, XGV, YGV, ZGV) computes the probability of 
+%   obtaining the Lidar ray measurement defined by ORIGIN and RAY 
 %   conditioned on the reflectivity map REF with grid vectors XGV, YGV,
 %   ZGV.
 %
@@ -10,8 +10,10 @@ function p = pray(origin, ray, rlim, ref, xgv, ygv, zgv)
 %   from the same point, ORIGIN may also be a 1x3 matrix.
 %
 %   RLIM is a 2-element vector that defines the minimum and the maximum
-%   radius detected by the Lidar sensor. All other radii are assumed to
-%   result in an NaN measurement.
+%   radius detected by the Lidar sensor. RAY values that are not element of
+%   the interval defined by RLIM are assumed to be no-return measurements.
+%   For these measurements, RAY carries only information about the
+%   direction of the ray, not about its length.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -23,18 +25,16 @@ function p = pray(origin, ray, rlim, ref, xgv, ygv, zgv)
 %
 %   REF is a IxJxK matrix that contains the reflectivity of each map voxel,
 %   where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
-%   The reflectivity value of a voxel that has not been visited by any ray 
-%   is NaN.
 %
-%   L is an M-element column vector. The value of the m-th element
-%   corresponds to the log-likelihood of obtaining the m-th measurement.
+%   P is an M-element column vector. The value of the m-th element
+%   corresponds to the probability of obtaining the m-th measurement.
 %
 %   Example:
 %      origin = [0, 0, 0];
 %      ray = [3, 4, 5];
 %      ref = repmat(magic(5)/100, [1, 1, 5]);
 %      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
-%      p = pray(origin, ray, ref, xgv, ygv, zgv)
+%      p = pray(origin, ray, lim, ref, xgv, ygv, zgv)
 %
 %   See also RAYREF, PDFRAY, NANRAY.
 
@@ -67,7 +67,7 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv)
 
-% Check whether lambda has the correct size.
+% Check whether REF has the correct size.
 if any(size(ref) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
     error('Size of REF does not match grid vectors.')
 end

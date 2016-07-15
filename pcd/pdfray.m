@@ -19,8 +19,6 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %
 %   LAMBDA is a IxJxK matrix that contains the mean decay rate of each map
 %   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
-%   The lambda value of a voxel that has not been visited by any ray is 
-%   NaN.
 %
 %   L is an M-element column vector. The value of the m-th element
 %   corresponds to the log-likelihood of obtaining the m-th measurement.
