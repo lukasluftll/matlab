@@ -1,5 +1,5 @@
 % Visualizes the log-likelihood of obtaining a shifted Lidar scan given a
-% map created from the same Lidar scan at the true pose.
+% ray decay map created from the same Lidar scan at the true pose.
 %
 % Steps:
 % # Loads the scan.
@@ -42,7 +42,7 @@ lambda = raydecay(pcd.azimuth, pcd.elevation, radiusFinite, hgv, hgv, zgv);
 lambda(~isfinite(lambda)) = ...
     sum(isfinite(pcd.radius(:))) / sum(radiusFinite(:));
 
-% Limit the decay rates to a reasonable interval and add prior.
+% Limit the decay rates to a reasonable interval.
 lambda = max(lambdaLim(1), lambda);
 lambda = min(lambdaLim(2), lambda);
 
