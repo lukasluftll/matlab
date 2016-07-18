@@ -1,6 +1,6 @@
-function [ref,h,m] = rayref(azimuth, elevation, radius, ret, xgv, ygv, zgv)
-% RAYREF Compute reflectivity map from Lidar rays in grid volume.
-%   REF = RAYREF(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses the 
+function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
+% REFMAP Compute reflectivity map from Lidar rays in grid volume.
+%   REF = REFMAP(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses the 
 %   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
 %   compute the reflectivity of each voxel in the grid volume defined by 
 %   the grid vectors XGV, YGV, ZGV.
@@ -31,7 +31,7 @@ function [ref,h,m] = rayref(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 %   that are reflected by the voxel. If the voxel has not been visited by
 %   any ray, its reflectivity is NaN.
 %
-%   [REF, H, M] = RAYREF(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also 
+%   [REF, H, M] = REFMAP(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also 
 %   returns the IxJxK matrices H and M. 
 %   H contains the number of ray remissions for each voxel. 
 %   M contains for each voxel the number of rays that traversed the voxel
@@ -40,17 +40,16 @@ function [ref,h,m] = rayref(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 %   Example:
 %      pc = pcdread('castle.pcd');
 %      radiusFinite = pc.radius; radiusFinite(isnan(radiusFinite)) = 130;
-%      xgv = min(pc.x(:)) : 5 : max(pc.x(:));
-%      ygv = min(pc.y(:)) : 5 : max(pc.y(:));
-%      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
-%      ref = rayref(pc.azimuth, pc.elevation, radiusFinite, ...
-%                   isfinite(pc.radius), xgv, ygv, zgv)
+%      hgv = -100 : 5 : 100;
+%      vgv = -20 : 5 : 20;
+%      ref = refmap(pc.azimuth, pc.elevation, radiusFinite, ...
+%                   isfinite(pc.radius), hgv, hgv, vgv)
 %
-%   See also RAYDECAY, TRAV, SLAB, NAN.
+%   See also REFRAY, REFNANRAY, DECAYMAP.
 
 % Copyright 2016 Alexander Schaefer
 %
-% RAYREF implements the counting model proposed by Burgard:
+% REFMAP implements the counting model proposed by Burgard:
 % Wolfram Burgard. Mapping with Known Poses. Lecture Notes on Introduction 
 % to Mobile Robotics. University of Freiburg, Germany, 2005.
 %http://ais.informatik.uni-freiburg.de/teaching/ss05/robotics/slides/10.pdf
