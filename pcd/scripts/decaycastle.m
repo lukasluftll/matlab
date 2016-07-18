@@ -1,11 +1,11 @@
-% Visualizes the log-likelihood of obtaining a shifted Lidar scan given a
+% Visualize the log-likelihood of obtaining a shifted Lidar scan given a
 % ray decay map created from the same Lidar scan at the true pose.
 %
 % Steps:
-% # Loads the scan.
-% # Computes a Lidar decay map from it.
-% # Shifts the scan horizontally in x and y direction.
-% # Computes the log-likelihood of obtaining the shifted scan with respect
+% # Load the scan.
+% # Compute a Lidar decay map from it.
+% # Shift the scan horizontally in x and y direction.
+% # Compute the log-likelihood of obtaining the shifted scan with respect
 %   to the decay map.
 
 %% Set parameters.
@@ -13,13 +13,13 @@
 shift = 5;
 
 % Resolution of the decay rate map.
-res = 1;
+res = 0.5;
 
 % Resolution of the log-likelihood graph.
-shiftres = 1;
+shiftres = 0.5;
 
 % Minimum and maximum range of the Lidar sensor.
-rlim = [0, 130];
+rlim = [0.9, 130];
 
 % Maximum elevation angle of the Lidar sensor.
 elevationMax = deg2rad(16);
@@ -54,24 +54,23 @@ lambda = min(lambdaLim(2), lambda);
 
 % Compute the direction vectors of the no-return rays.
 [dirxnr, dirynr, dirznr] = sph2cart(pcd.azimuth(~isfinite(pcd.radius)), ...
-    pcd.elevation(~isfinite(pcd.radius)), 1);
+    pcd.elevation(~isfinite(pcd.radius)), rlim(2));
 
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
-prob = zeros(numel(gvs));
 waitbarHandle = waitbar(0, 'Computing scan probabilities ...');
 L = zeros(numel(gvs));
 for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
-        % Compute the log-likelihood of reflected rays.
-        Lr = sum(pdfray(origin, [dirxr, diryr, dirzr], lambda, ...
+        % Compute the log-likelihood of the reflected rays.
+        Lr = sum(decayray(origin, [dirxr, diryr, dirzr], lambda, ...
             hgv, hgv, zgv));
         
         % Compute the log-likelihood of the no-return rays.
-        Lnr = sum(log(nanray(origin, [dirxnr, dirynr, dirznr], rlim, ...
-            lambda, hgv, hgv, zgv)));
+        Lnr = sum(log(decaynanray(origin, [dirxnr, dirynr, dirznr], ...
+            rlim, lambda, hgv, hgv, zgv)));
         
         % Compute the log-likelihood of all measurements.
         L(i,j) = Lr + Lnr;
