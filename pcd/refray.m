@@ -1,9 +1,9 @@
 function p = refray(origin, ray, rlim, ref, xgv, ygv, zgv)
 % REFRAY Compute probability of Lidar measurement from reflectivity map.
-%   L = REFRAY(ORIGIN, RAY, REF, XGV, YGV, ZGV) computes the probability
-%   of obtaining the Lidar ray measurement defined by ORIGIN and RAY 
-%   conditioned on the reflectivity map REF with grid vectors XGV, YGV,
-%   ZGV.
+%   L = REFRAY(ORIGIN, RAY, RLIM, REF, XGV, YGV, ZGV) computes the 
+%   probability of obtaining the Lidar ray measurement defined by ORIGIN 
+%   and RAY conditioned on the reflectivity map REF with grid vectors XGV, 
+%   YGV, ZGV.
 %
 %   ORIGIN and RAY are Mx3 matrices whose rows contain the Cartesian 
 %   origins and ray vectors of the M measured rays. If all rays originate
@@ -32,9 +32,10 @@ function p = refray(origin, ray, rlim, ref, xgv, ygv, zgv)
 %   Example:
 %      origin = [0, 0, 0];
 %      ray = [3, 4, 5];
+%      rlim = [1, 10];
 %      ref = repmat(magic(5)/100, [1, 1, 5]);
 %      gv = 0 : 5; 
-%      p = refray(origin, ray, [1, 10], ref, gv, gv, gv)
+%      p = refray(origin, ray, rlim, ref, gv, gv, gv)
 %
 %   See also REFMAP, DECAYRAY.
 
