@@ -89,36 +89,37 @@ nray = numel(azimuth);
 gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 
 %% Count hits and misses.
-% Construct the matrices that store hits and misses.
-h = zeros(gridsize);
-m = zeros(gridsize);
-
-% For all rays compute the number of returns and traversals per voxel.
-parfor i = 1 : nray
-    % Create temporary return matrices for this ray.
+% Use multiple workers to compute the number of returns and traversals 
+% per voxel for each ray.
+spmd
+    % Create return matrices for this worker.
     hi = zeros(gridsize);
     mi = zeros(gridsize);
     
-    % Compute the indices of the voxels through which the ray travels.
-    [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
-    
-    % Convert the subscript indices to linear indices.
-    vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
-    
-    % Set the value of the matrix cells that correspond to traversed voxels 
-    % to 1.
-    mi(vi) = t(2:end)<1;
-    
-    % Set the value of the matrix cell corresponding to the voxel where the
-    % ray is reflected to 1.
-    hi(vi(end)) = ret(i) && t(end)==1;
-    
-    % Add the temporary values to the return matrices.
-    m = m + mi;
-    h = h + hi;
+    % Loop over the worker's share of all rays.
+    for i = labindex : numlabs : nray
+        % Compute the indices of the voxels through which the ray travels.
+        [vi, t] = trav([0,0,0], [dirx(i),diry(i),dirz(i)], xgv, ygv, zgv);
+
+        % Convert the subscript indices to linear indices.
+        vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+
+        % For each voxel, sum up the number of hits and misses.
+        hi(vi(end)) = hi(vi(end)) + (ret(i) && t(end)==1);
+        mi(vi) = mi(vi) + t(2:end)<1;
+    end
 end
 
 %% Compute reflectivity.
+% For each voxel, compute the overall number of hits and misses.
+h = zeros(gridsize);
+m = zeros(gridsize);
+for i = 1 : numel(hi)
+    h = h + hi{i};
+    m = m + mi{i};
+end
+
+% For each voxel compute the reflectivity value.
 ref = h ./ (h + m);
 
 end
