@@ -1,6 +1,6 @@
-function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
-% PDFRAY Compute log-likelihood of Lidar measurement given ray decay map.
-%   L = PDFRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the
+function L = decayray(origin, ray, lambda, xgv, ygv, zgv)
+% DECAYRAY Compute log-likelihood of Lidar measurement given ray decay map.
+%   L = DECAYRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the
 %   log-likelihood of obtaining the Lidar ray measurement defined by ORIGIN 
 %   and RAY conditioned on the decay map LAMBDA with grid vectors XGV, YGV,
 %   ZGV.
@@ -17,7 +17,7 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
-%   LAMBDA is a IxJxK matrix that contains the mean decay rate of each map
+%   LAMBDA is a IxJxK matrix that contains the decay rate of each map
 %   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
 %
 %   L is an M-element column vector. The value of the m-th element
@@ -30,9 +30,9 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 %      ray = [3, 4, 5];
 %      lambda = repmat(magic(5)/100, [1, 1, 5]);
 %      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
-%      L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
+%      L = decayray(origin, ray, lambda, xgv, ygv, zgv)
 %
-%   See also NANRAY, RAYDECAY, PRAY.
+%   See also DECAYNANRAY, DECAYMAP.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -41,6 +41,9 @@ function L = pdfray(origin, ray, lambda, xgv, ygv, zgv)
 narginchk(6, 6)
 
 % Check if the arguments have the expected sizes.
+if ~(ismatrix(origin) && ismatrix(ray))
+    error('ORIGIN and RAY must be 2D matrices.')
+end
 if size(origin, 2) ~= 3 || size(ray, 2) ~= 3
     error('ORIGIN and RAY must have 3 columns.')
 end
