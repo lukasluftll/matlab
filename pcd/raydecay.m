@@ -52,11 +52,12 @@ function [lambda,r,l] = raydecay(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %
 %   Example:
 %      pc = pcdread('castle.pcd');
-%      pc.radius(~isfinite(pc.radius)) = 130;
+%      radiusFinite = pc.radius; radiusFinite(isnan(radiusFinite)) = 130;
 %      xgv = min(pc.x(:)) : 5 : max(pc.x(:));
 %      ygv = min(pc.y(:)) : 5 : max(pc.y(:));
 %      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
-%      lambda=raydecay(pc.azimuth, pc.elevation, pc.radius, xgv, ygv, zgv)
+%      lambda=raydecay(pc.azimuth, pc.elevation, radiusFinite, ...
+%                      isfinite(pc.radius), xgv, ygv, zgv)
 %
 %   See also RAYREF, TRAV, SLAB, NAN.
 
