@@ -90,48 +90,41 @@ rmax = rlim(2);
 ray(inan,:) = (ray(inan,:) ./ repmat(l(inan), 1, 3)) * rmax;
 
 %% Compute probability of measurements.
-% Use multiple workers to loop over all rays.
+% Loop over all rays.
 nray = size(origin, 1);
-spmd
-    % Loop over the worker's share of all rays.
-    p = zeros(nray, 1);
-    for i = labindex : numlabs : nray
-        % Compute the indices of the grid cells that the ray traverses.
-        [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
-
-        % Convert the subscript indices to linear indices.
-        vi = sub2ind(size(ref), vi(:,1), vi(:,2), vi(:,3));
-
-        % Compute the probability depending on whether or not the ray 
-        % returned.
-        if ismember(i, inan)
-            % Compute the indices of the voxels on the ray next to the 
-            % minimum and maximum measurement range barrier.
-            [~, ilim] = min(abs(repmat(t*rmax, 1, numel(rlim)) ...
-                - repmat(rlim, numel(t), 1)));
-            ilim = ilim - 1;
-
-            % Calculate the probability that the ray is reflected before 
-            % reaching the minimum sensor range.
-            isub = vi(1 : ilim(1));
-            psub = 1 - prod(1-ref(isub));
-
-            % Calculate the probability that the ray surpasses the maximum 
-            % sensor range.
-            isup = vi(ilim(1)+1 : ilim(2));
-            psup = prod(1-ref(isup));
-
-            % Sum up the probabilities to get the probability of NaN.
-            p(i) = psub + psup;
-        else      
-            % Compute the probability of the given measurement.
-            m = ref(vi);
-            p(i) = m(end) * prod(1 - m(1:end-1));
-        end
+p = zeros(nray, 1);
+parfor i = 1 : nray
+    % Compute the indices of the grid cells that the ray traverses.
+    [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
+    
+    % Convert the subscript indices to linear indices.
+    vi = sub2ind(size(ref), vi(:,1), vi(:,2), vi(:,3));
+    
+    % Compute the probability depending on whether or not the ray returned.
+    if ismember(i, inan)
+        % Compute the indices of the voxels on the ray next to the minimum 
+        % and maximum measurement range barrier.
+        [~, ilim] = min(abs(...
+            repmat(t*rmax, 1, numel(rlim)) - repmat(rlim, numel(t), 1)));
+        ilim = ilim - 1;
+        
+        % Calculate the probability that the ray is reflected before 
+        % reaching the minimum sensor range.
+        isub = vi(1 : ilim(1));
+        psub = 1 - prod(1-ref(isub));
+    
+        % Calculate the probability that the ray surpasses the maximum 
+        % sensor range.
+        isup = vi(ilim(1)+1 : ilim(2));
+        psup = prod(1-ref(isup));
+    
+        % Sum up the probabilities to get the probability of NaN.
+        p(i) = psub + psup;
+    else      
+        % Compute the probability of the given measurement.
+        m = ref(vi);
+        p(i) = m(end) * prod(1 - m(1:end-1));
     end
 end
-
-% Merge the results of all workers.
-p = sum(reshape(cell2mat(p(:)), length(p{1}), numel(p)), 2);
 
 end
