@@ -71,9 +71,13 @@ close(waitbarHandle);
 
 %% Display result.
 % Display the overall probabilities of the shifted scans.
-surf(gvs, gvs, L);
+surfHandle = surf(gvs, gvs, L);
 
 % Add title and labels.
 title('Log-likelihood of Lidar measurement from reflection map')
 xlabel('x [m]')
 ylabel('y [m]')
+
+% Save figure.
+savefig(surfHandle, ...
+    ['pcd/results/refcastle_', datenum('yyyy-mm-dd_HH-MM-SS'), '.fig']);
