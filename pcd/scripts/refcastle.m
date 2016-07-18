@@ -79,5 +79,5 @@ xlabel('x [m]')
 ylabel('y [m]')
 
 % Save figure.
-savefig(surfHandle, ...
-    ['pcd/results/refcastle_', datenum('yyyy-mm-dd_HH-MM-SS'), '.fig']);
+savefig(['pcd/results/refcastle_', ...
+    datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);

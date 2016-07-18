@@ -13,7 +13,7 @@
 shift = 5;
 
 % Resolution of the decay rate map.
-res = 0.5;
+res = 1;
 
 % Resolution of the log-likelihood graph.
 shiftres = 0.5;
@@ -92,5 +92,5 @@ xlabel('x [m]')
 ylabel('y [m]')
 
 % Save figure.
-savefig(surfHandle, ...
-    ['pcd/results/decaycastle_', datenum('yyyy-mm-dd_HH-MM-SS'), '.fig']);
+savefig(['pcd/results/decaycastle_', ...
+    datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
