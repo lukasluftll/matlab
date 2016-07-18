@@ -1,7 +1,7 @@
-function p = pray(origin, ray, rlim, ref, xgv, ygv, zgv)
-% PRAY Compute probability of Lidar measurement from reflectivity map.
-%   P = PRAY(ORIGIN, RAY, REF, XGV, YGV, ZGV) computes the probability of 
-%   obtaining the Lidar ray measurement defined by ORIGIN and RAY 
+function p = refray(origin, ray, rlim, ref, xgv, ygv, zgv)
+% REFRAY Compute probability of Lidar measurement from reflectivity map.
+%   L = REFRAY(ORIGIN, RAY, REF, XGV, YGV, ZGV) computes the probability
+%   of obtaining the Lidar ray measurement defined by ORIGIN and RAY 
 %   conditioned on the reflectivity map REF with grid vectors XGV, YGV,
 %   ZGV.
 %
@@ -26,23 +26,28 @@ function p = pray(origin, ray, rlim, ref, xgv, ygv, zgv)
 %   REF is a IxJxK matrix that contains the reflectivity of each map voxel,
 %   where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
 %
-%   P is an M-element column vector. The value of the m-th element
+%   L is an M-element column vector. The value of the m-th element
 %   corresponds to the probability of obtaining the m-th measurement.
 %
 %   Example:
 %      origin = [0, 0, 0];
 %      ray = [3, 4, 5];
 %      ref = repmat(magic(5)/100, [1, 1, 5]);
-%      gv = 0 : 5; xgv = gv; ygv = gv; zgv = gv;
-%      p = pray(origin, ray, lim, ref, xgv, ygv, zgv)
+%      gv = 0 : 5; 
+%      p = refray(origin, ray, lim, ref, gv, gv, gv)
 %
-%   See also RAYREF, PDFRAY, NANRAY.
+%   See also REFMAP, DECAYRAY.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check whether the user provided the correct number of input arguments.
 narginchk(7, 7)
+
+% Check if the arguments have the expected numbers of dimensions.
+if ~ismatrix(origin) || ~ismatrix(ray) || ndims(ref) ~= 3
+    error('ORIGIN and RAY must be 2D matrices, REF must be 3D.')
+end
 
 % Check if the arguments have the expected sizes.
 if size(origin, 2) ~= 3 || size(ray, 2) ~= 3
@@ -79,8 +84,11 @@ nray = size(origin, 1);
 % Preallocate the return matrix.
 p = zeros(nray, 1);
 
+l = norm(ray);
+inan = find(l < rlim(1) | l > rlim(2));
+
 % Loop over all rays.
-for i = 1 : nray
+parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
     
