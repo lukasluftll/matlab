@@ -10,13 +10,13 @@
 
 %% Set parameters.
 % Shifting offset in x and y direction.
-shift = 3;
+shift = 5;
 
 % Resolution of the decay rate map.
-res = 0.5;
+res = 1;
 
 % Resolution of the log-likelihood graph.
-shiftres = 0.5;
+shiftres = 1;
 
 % Minimum and maximum range of the Lidar sensor.
 rlim = [0, 130];
@@ -53,7 +53,7 @@ ref = min(refLim(2), ref);
 
 % Compute the direction vectors of the no-return rays.
 [dirxnr, dirynr, dirznr] = sph2cart(pcd.azimuth(~isfinite(pcd.radius)), ...
-    pcd.elevation(~isfinite(pcd.radius)), rlim(2)*2);
+    pcd.elevation(~isfinite(pcd.radius)), 1);
 
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
@@ -64,12 +64,15 @@ for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
-        % Compute the log-likelihood of the measurements, depending on
-        % whether or not the individual ray returned.
-        Lr = sum(pdfray(origin, [dirxr, diryr, dirzr], ref, ...
-            hgv, hgv, zgv));
+        % Compute the log-likelihood of the returned rays.
+        Lr = sum(log(pray(origin, [dirxr, diryr, dirzr], ref, ...
+            hgv, hgv, zgv)));
+        
+        % Compute the log-likelihood of the no-return rays.
         Lnr = sum(log(nanray(origin, [dirxnr, dirynr, dirznr], rlim, ...
             ref, hgv, hgv, zgv)));
+        
+        % Compute the log-likelihood of all measurements.
         L(i,j) = Lr + Lnr;
         
         % Advance the progress bar.
