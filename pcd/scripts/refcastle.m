@@ -13,7 +13,7 @@
 shift = 5;
 
 % Resolution of the decay rate map.
-res = 0.5;
+res = 1;
 
 % Resolution of the log-likelihood graph.
 shiftres = 0.5;
@@ -59,7 +59,7 @@ for i = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
         % Compute the log-likelihood of the measurements.
-        L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], ref, ...
+        L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], rlim, ref, ...
             hgv, hgv, vgv)));
         
         % Advance the progress bar.
