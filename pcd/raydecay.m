@@ -1,16 +1,21 @@
-function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
+function [lambda,r,l] = raydecay(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 % RAYDECAY Compute decay rate of Lidar rays in grid volume.
-%   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) uses the
-%   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
-%   compute the mean ray decay rate LAMBDA for each voxel in the grid 
-%   volume defined by the grid vectors XGV, YGV, ZGV.
+%   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses
+%   the rays represented in spherical coordinates AZIMUTH, ELEVATION, 
+%   RADIUS to compute the mean ray decay rate LAMBDA for each voxel in the 
+%   grid volume defined by the grid vectors XGV, YGV, ZGV.
 %
 %   It is assumed that all rays originate in the origin [0, 0, 0].
 %
-%   AZIMUTH and ELEVATION are HEIGHTxWIDTH matrices, where HEIGHT and 
-%   WIDTH describe the size of the point cloud. The angle unit is rad.
+%   AZIMUTH and ELEVATION are HEIGHTxWIDTH matrices, where HEIGHT and WIDTH 
+%   describe the size of the point cloud. The unit is rad.
 %
-%   RADIUS is a HEIGHTxWIDTH matrix that contains the length of each ray.
+%   RADIUS is a HEIGHTxWIDTH matrix that contains the length of the
+%   respective ray. For no-return rays, this length must equal the maximum
+%   sensor range.
+%
+%   RET is a HEIGHTxWIDTH logical matrix that indicates whether or not the
+%   respective ray was reflected within the sensor range. 
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -59,20 +64,22 @@ function [lambda,r,l] = raydecay(azimuth, elevation, radius, xgv, ygv, zgv)
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(6, 6);
+narginchk(7, 7);
 
-% Check whether the spherical coordinate matrices all have the same size.
-if any(size(azimuth) ~= size(elevation) | size(azimuth) ~= size(radius))
-    error('AZIMUTH, ELEVATION, and RADIUS must all have the same size.')
+% Check whether the spherical coordinate matrices and the reflection matrix
+% all have the same number of dimensions and the same size.
+if ~(ismatrix(azimuth) && ismatrix(elevation) && ismatrix(radius) ...
+        && ismatrix(ret))
+    error('AZIMUTH, ELEVATION, RADIUS, and RET must be 2D matrices.')
 end
-
-% Check the dimensionality of the spherical coordinate matrices.
-if ~(ismatrix(azimuth) && ismatrix(elevation) && ismatrix(radius))
-    error('AZIMUTH, ELEVATION, and RADIUS must have exactly 2 dimensions.')
+if any(size(azimuth) ~= size(elevation) | size(azimuth) ~= size(radius) ...
+        | size(azimuth) ~= size(ret))
+    error('AZIMUTH, ELEVATION, RADIUS, and RET must have the same size.')
 end
 
 % Make sure all input arguments are finite.
-if ~all(isfinite([azimuth(:);elevation(:);radius(:);xgv(:);ygv(:);zgv(:)]))
+if ~all(isfinite([azimuth(:); elevation(:); radius(:); ret(:); ...
+        xgv(:); ygv(:); zgv(:)]))
     error('Input arguments must not be NaN or Inf.')
 end
 
@@ -112,8 +119,9 @@ parfor i = 1 : nray
     % to the cumulated ray length of this voxel.
     li(vi) = diff(t) * radius(i);
 
-    % Increment the number of returns of the voxel where the ray ends.
-    ri(vi(end)) = t(end)==1;
+    % If the ray is reflected, increment the number of returns of the voxel 
+    % where the ray ends.
+    ri(vi(end)) = ret(i) && t(end)==1;
     
     % Add the temporary values to the return matrices.
     l = l + li;

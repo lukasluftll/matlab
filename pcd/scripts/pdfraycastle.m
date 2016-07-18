@@ -36,7 +36,8 @@ radiusFinite = pcd.radius;
 radiusFinite(~isfinite(radiusFinite)) = rlim(2);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
 zgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
-lambda = raydecay(pcd.azimuth, pcd.elevation, radiusFinite, hgv, hgv, zgv);
+lambda = raydecay(pcd.azimuth, pcd.elevation, radiusFinite, ...
+    isfinite(pcd.radius), hgv, hgv, zgv);
 
 % Set all voxels without data to the decay rate prior.
 lambda(~isfinite(lambda)) = ...
