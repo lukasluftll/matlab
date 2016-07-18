@@ -35,9 +35,9 @@ pcd = pcdread('data/castle.pcd');
 radiusFinite = pcd.radius;
 radiusFinite(~isfinite(radiusFinite)) = rlim(2);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
-zgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
+vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
 lambda = decaymap(pcd.azimuth, pcd.elevation, radiusFinite, ...
-    isfinite(pcd.radius), hgv, hgv, zgv);
+    isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the decay rate prior.
 lambda(~isfinite(lambda)) = ...
@@ -66,11 +66,11 @@ for i = 1 : numel(gvs)
         
         % Compute the log-likelihood of the reflected rays.
         Lr = sum(decayray(origin, [dirxr, diryr, dirzr], lambda, ...
-            hgv, hgv, zgv));
+            hgv, hgv, vgv));
         
         % Compute the log-likelihood of the no-return rays.
         Lnr = sum(log(decaynanray(origin, [dirxnr, dirynr, dirznr], ...
-            rlim, lambda, hgv, hgv, zgv)));
+            rlim, lambda, hgv, hgv, vgv)));
         
         % Compute the log-likelihood of all measurements.
         L(i,j) = Lr + Lnr;

@@ -1,11 +1,11 @@
-% Visualizes the log-likelihood of obtaining a shifted Lidar scan given a
+% Visualizes th log-likelihood of obtaining a shifted Lidar scan given a
 % reflectivity map created from the same Lidar scan at the true pose.
 %
 % Steps:
-% # Loads the scan.
-% # Computes a Lidar reflectivity map from it.
-% # Shifts the scan horizontally in x and y direction.
-% # Computes the log-likelihood of obtaining the shifted scan with respect
+% # Load the scan.
+% # Compute a Lidar reflectivity map from it.
+% # Shift the scan horizontally in x and y direction.
+% # Compute the log-likelihood of obtaining the shifted scan with respect
 %   to the reflectivity map.
 
 %% Set parameters.
@@ -13,13 +13,13 @@
 shift = 5;
 
 % Resolution of the decay rate map.
-res = 1;
+res = 0.5;
 
 % Resolution of the log-likelihood graph.
-shiftres = 1;
+shiftres = 0.5;
 
 % Minimum and maximum range of the Lidar sensor.
-rlim = [0, 130];
+rlim = [0.9, 130];
 
 % Maximum elevation angle of the Lidar sensor.
 elevationMax = deg2rad(16);
@@ -35,45 +35,32 @@ pcd = pcdread('data/castle.pcd');
 radiusFinite = pcd.radius;
 radiusFinite(~isfinite(radiusFinite)) = rlim(2);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
-zgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
+vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
 ref = rayref(pcd.azimuth, pcd.elevation, radiusFinite, ...
-    isfinite(pcd.radius), hgv, hgv, zgv);
+    isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
-ref(~isfinite(ref)) = mean(ref(:));
+ref(~isfinite(ref)) = mean(ref(:), 'omitnan');
 
-% Limit the decay rates to a reasonable interval and add prior.
+% Limit the decay rates to a reasonable interval.
 ref = max(refLim(1), ref);
 ref = min(refLim(2), ref);
 
 %% Compute log-likelihood of shifted scans.
-% Compute the direction vectors of the returned rays.
-[dirxr, diryr, dirzr] = sph2cart(pcd.azimuth(isfinite(pcd.radius)), ...
-    pcd.elevation(isfinite(pcd.radius)), pcd.radius(isfinite(pcd.radius)));
-
-% Compute the direction vectors of the no-return rays.
-[dirxnr, dirynr, dirznr] = sph2cart(pcd.azimuth(~isfinite(pcd.radius)), ...
-    pcd.elevation(~isfinite(pcd.radius)), 1);
+% Compute the direction vectors of the rays.
+[dirx, diry, dirz] = sph2cart(pcd.azimuth, pcd.elevation, radiusFinite);
 
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
-prob = zeros(numel(gvs));
 waitbarHandle = waitbar(0, 'Computing scan probabilities ...');
 L = zeros(numel(gvs));
 for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
-        % Compute the log-likelihood of the returned rays.
-        Lr = sum(log(pray(origin, [dirxr, diryr, dirzr], ref, ...
-            hgv, hgv, zgv)));
-        
-        % Compute the log-likelihood of the no-return rays.
-        Lnr = sum(log(nanray(origin, [dirxnr, dirynr, dirznr], rlim, ...
-            ref, hgv, hgv, zgv)));
-        
-        % Compute the log-likelihood of all measurements.
-        L(i,j) = Lr + Lnr;
+        % Compute the log-likelihood of the measurements.
+        L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], ref, ...
+            hgv, hgv, vgv)));
         
         % Advance the progress bar.
         waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, ...
@@ -87,6 +74,6 @@ close(waitbarHandle);
 surf(gvs, gvs, L);
 
 % Add title and labels.
-title('Log-likelihood of Lidar measurement')
+title('Log-likelihood of Lidar measurement from reflection map')
 xlabel('x [m]')
 ylabel('y [m]')
