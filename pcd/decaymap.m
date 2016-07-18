@@ -1,6 +1,6 @@
-function [lambda,r,l] = raydecay(azimuth,elevation,radius,ret,xgv,ygv,zgv)
-% RAYDECAY Compute decay rate of Lidar rays in grid volume.
-%   LAMBDA = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses
+function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
+% DECAYMAP Compute decay rate of Lidar rays in grid volume.
+%   LAMBDA = DECAYMAP(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses
 %   the rays represented in spherical coordinates AZIMUTH, ELEVATION, 
 %   RADIUS to compute the mean ray decay rate LAMBDA for each voxel in the 
 %   grid volume defined by the grid vectors XGV, YGV, ZGV.
@@ -30,7 +30,7 @@ function [lambda,r,l] = raydecay(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %   The lambda value of a voxel that has not been visited by any ray is 
 %   NaN.
 %
-%   [LAMBDA, R, L] = RAYDECAY(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
+%   [LAMBDA, R, L] = DECAYMAP(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
 %   also returns the IxJxK matrices R and L. 
 %   R contains the number of ray remissions for each voxel. 
 %   L contains the cumulated length of all rays that traversed the 
@@ -56,10 +56,10 @@ function [lambda,r,l] = raydecay(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %      xgv = min(pc.x(:)) : 5 : max(pc.x(:));
 %      ygv = min(pc.y(:)) : 5 : max(pc.y(:));
 %      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
-%      lambda=raydecay(pc.azimuth, pc.elevation, radiusFinite, ...
+%      lambda = decaymap(pc.azimuth, pc.elevation, radiusFinite, ...
 %                      isfinite(pc.radius), xgv, ygv, zgv)
 %
-%   See also RAYREF, TRAV, SLAB, NAN.
+%   See also DECAYRAY, DECAYNANRAY, REFMAP.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -103,8 +103,7 @@ gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 l = zeros(gridsize);
 r = zeros(gridsize);
 
-% For all rays compute the ray length per voxel and the number of returns
-% per voxel.
+% For all rays compute the ray length per voxel.
 parfor i = 1 : nray
     % Create temporary return matrices for this ray.
     li = zeros(gridsize);
@@ -116,15 +115,13 @@ parfor i = 1 : nray
     % Convert the subscript indices to linear indices.
     vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
     
-    % Add the length of the ray that is apportioned to a specific voxel
-    % to the cumulated ray length of this voxel.
+    % Compute the lengths of the ray that are apportioned to all voxels.
     li(vi) = diff(t) * radius(i);
 
-    % If the ray is reflected, increment the number of returns of the voxel 
-    % where the ray ends.
+    % If the ray is reflected, add it to the number of returns.
     ri(vi(end)) = ret(i) && t(end)==1;
     
-    % Add the temporary values to the return matrices.
+    % Add the result for this ray to the return matrices.
     l = l + li;
     r = r + ri;
 end
