@@ -111,13 +111,9 @@ spmd
 end
 
 %% Compute reflectivity.
-% For each voxel, compute the overall number of hits and misses.
-h = zeros(gridsize);
-m = zeros(gridsize);
-for i = 1 : numel(hi)
-    h = h + hi{i};
-    m = m + mi{i};
-end
+% Merge the hits and misses matrices calculated by the workers.
+h = sum(reshape(cell2mat(hi(:)), [size(hi{1}), numel(hi)]), 4);
+m = sum(reshape(cell2mat(mi(:)), [size(mi{1}), numel(mi)]), 4);
 
 % For each voxel compute the reflectivity value.
 ref = h ./ (h + m);
