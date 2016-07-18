@@ -10,13 +10,13 @@
 
 %% Set parameters.
 % Shifting offset in x and y direction.
-shift = 6;
+shift = 5;
 
 % Resolution of the decay rate map.
-res = 0.5;
+res = 1;
 
 % Resolution of the log-likelihood graph.
-shiftres = 0.5;
+shiftres = 1;
 
 % Minimum and maximum range of the Lidar sensor.
 rlim = [0, 130];
@@ -65,12 +65,15 @@ for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
-        % Compute the log-likelihood of the measurements, depending on
-        % whether or not the individual ray returned.
+        % Compute the log-likelihood of reflected rays.
         Lr = sum(pdfray(origin, [dirxr, diryr, dirzr], lambda, ...
             hgv, hgv, zgv));
+        
+        % Compute the log-likelihood of the no-return rays.
         Lnr = sum(log(nanray(origin, [dirxnr, dirynr, dirznr], rlim, ...
             lambda, hgv, hgv, zgv)));
+        
+        % Compute the log-likelihood of all measurements.
         L(i,j) = Lr + Lnr;
         
         % Advance the progress bar.
