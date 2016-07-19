@@ -23,7 +23,8 @@ function alphaplot(data, xgv, ygv, zgv, varargin)
 %   For possible name-value pairs, see the documentation of PATCH.
 % 
 %   Example:
-%      data = cat(3, diag([0.1, 0.2, 0.3]), cat(3, zeros(3), ones(3)));
+%      data = [0.1, 0.2, 0.3; 0, 0, 0; 0, 0, 0];
+%      data = cat(3, data, zeros(3), 0.5 * ones(3));
 %      alphaplot(data);
 %
 %   See also: CUBOID, PATCH, CAT.
