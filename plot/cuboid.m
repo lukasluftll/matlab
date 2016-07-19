@@ -8,7 +8,7 @@ function cuboid(vol, varargin)
 %
 %   CUBOID(VOL, VARARGIN) plots cuboids with the properties indicated by 
 %   the name-value pair arguments VARARGIN. 
-%   For possible name-value pairs, see the documentation of PATCH.
+%   For possible name-value pairs, see documentation of PATCH.
 %
 %   Example:
 %      vol = [0, 2, 3, 4, 15, 11; -5, -5, -5, -3, -3, -3];

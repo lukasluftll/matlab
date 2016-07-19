@@ -55,10 +55,15 @@ end
 gvchk(xgv, ygv, zgv);
 
 %% Compute voxel limits.
-% Compute a Nx3 matrix whose columns contain the indices of all voxels.
-[xmin, ymin, zmin] = meshgrid(...
+% Compute an Nx3 matrix whose columns contain the indices of all voxels.
+[xmin, ymin, zmin] = ndgrid(...
     1 : size(data, 1), 1 : size(data, 2), 1 : size(data, 3));
 i = [xmin(:), ymin(:), zmin(:)];
+
+% Remove the voxels with very high transparency.
+remove = data(:) < 0.01;
+i(remove,:) = [];
+data(remove) = [];
 
 % Compute the limits of the voxels. Make sure the voxel faces do not
 % overlap.
@@ -66,9 +71,8 @@ minvox = [xgv(i(:,1)); ygv(i(:,2)); zgv(i(:,3))]; ...
 maxvox = [xgv(i(:,1)+1); ygv(i(:,2)+1); zgv(i(:,3)+1)];
 vox = [minvox; minvox + 0.99*(maxvox-minvox)]';
 
-% Change the order of the data elements to the order of the voxels.
-faceAlpha = data(sub2ind(size(data), i(:,1), i(:,2), i(:,3)));
-faceAlpha = kron(faceAlpha, ones(6, 1));
+% Define the transparency values of the voxel faces.
+faceAlpha = kron(data(:), ones(6, 1));
 
 %% Plot voxels.
 cuboid(vox, 'FaceColor', 'blue', 'EdgeColor', 'none', varargin{:}, ...
