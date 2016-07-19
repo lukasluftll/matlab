@@ -55,6 +55,11 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
+% Check whether DATA has the correct size.
+if any(size(data) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
+    error('Size of DATA does not match grid vectors.')
+end
+
 %% Plot voxels.
 % Compute the limits of the voxels. Make sure the voxel faces do not
 % overlap.
