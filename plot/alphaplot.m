@@ -51,15 +51,8 @@ if nargin < 2
     zgv = 0 : size(data, 3);
 end
 
-% Check whether the grid vectors contain enough elements.
-if min([numel(xgv), numel(ygv), numel(zgv)]) < 2
-    error('Every grid vector must contain at least 2 elements.')
-end
-
-% Check whether the grid vectors are ordered.
-if any(diff(xgv(:))<=0) || any(diff(ygv(:))<=0) || any(diff(zgv(:))<=0)
-    error('Grid vectors must monotonically increase.')
-end
+% Check the grid vectors.
+gvchk(xgv, ygv, zgv);
 
 %% Compute voxel limits.
 % Compute a Nx3 matrix whose columns contain the indices of all voxels.
