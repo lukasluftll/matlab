@@ -1,4 +1,4 @@
-function [ref,hw,mw] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
+function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 % REFMAP Compute reflectivity map from Lidar rays in grid volume.
 %   REF = REFMAP(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses the 
 %   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
