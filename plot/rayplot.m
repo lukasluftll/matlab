@@ -8,18 +8,16 @@ function rayplot(azimuth, elevation, radius, ret)
 %   describe the size of the point cloud. The unit is rad.
 %
 %   RADIUS is a HEIGHTxWIDTH matrix that contains the length of the
-%   respective ray. For no-return rays, this length must equal the maximum
-%   sensor range.
+%   respective ray. For no-return rays, RADIUS is NaN. 
 %
-%   RET is an optional HEIGHTxWIDTH logical matrix that indicates whether 
-%   or not the respective ray was reflected within the sensor range. If RET
-%   is not given, all rays are assumed to return.
+%   RAYPLOT(AZIMUTH, ELEVATION, RADIUS, RET) additionally takes the logical
+%   HEIGHTxWIDTH matrix RET as an input. RET specifies whether the a ray 
+%   was reflected or not. If not, the corresponding RADIUS tells RAYPLOT 
+%   the length of the gray line.
 %
 %   Example:
 %      pc = pcdread('castle.pcd');
-%      ret = isfinite(pc.radius);
-%      pc.radius(~ret) = 130;
-%      rayplot(pc.azimuth, pc.elevation, pc.radius, ret)
+%      rayplot(pc.azimuth, pc.elevation, pc.radius)
 
 % Copyright 2016 Alexander Schaefer
 
@@ -62,13 +60,17 @@ p = [x, y, z];
 % Plot the returned rays.
 pret = kron(p(ret(:),:), [0; 1]);
 retray = plot3(pret(:,1), pret(:,2), pret(:,3), 'Color', 'red');
-retray.Color(4) = 0.5;
+if ~isempty(retray)
+    retray.Color(4) = 0.5;
+end
 
 % Plot the no-return rays.
 pnan = kron(p(~ret(:),:), [0; 1]);
 hold on
 nanray = plot3(pnan(:,1), pnan(:,2), pnan(:,3), 'Color', 'k');
-nanray.Color(4) = 0.03;
+if ~isempty(nanray)
+    nanray.Color(4) = 0.03;
+end
 
 %% Plot decoration.
 % Plot the sensor origin.
