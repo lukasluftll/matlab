@@ -7,7 +7,7 @@ function alphaplot(data, xgv, ygv, zgv, varargin)
 %   
 %   The values of DATA must stay within [0; 1]. DATA(x,y,z) == 0 
 %   corresponds to a transparent voxel; a value of 1 corresponds to an 
-%   opaque voxel. Values smaller than 0.01 are not drawn.
+%   opaque voxel. Values smaller than 1% are not drawn.
 %
 %   ALPHAPLOT(DATA, XGV, YGV, ZGV) shows no cubic, but cuboid voxels.
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
@@ -78,6 +78,7 @@ faceAlpha = kron(data(:), ones(6, 1));
 
 %% Plot voxels.
 cuboid(vox, 'FaceColor', 'blue', 'EdgeColor', 'none', varargin{:}, ...
-    'FaceVertexAlphaData', faceAlpha, 'FaceAlpha', 'flat');
+    'AlphaDataMapping', 'none', 'FaceVertexAlphaData', faceAlpha, ...
+    'FaceAlpha', 'flat');
 
 end
