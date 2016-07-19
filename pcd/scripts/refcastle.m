@@ -25,7 +25,7 @@ rlim = [0.9, 130];
 elevationMax = deg2rad(16);
 
 % Minimum and maximum admissible reflectivity.
-refLim = [0, 1];
+refLim = [0.1, 0.9];
 
 %% Compute decay rate map.
 % Read the point cloud.
