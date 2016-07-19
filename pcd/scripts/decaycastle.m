@@ -47,6 +47,10 @@ lambda(~isfinite(lambda)) = ...
 lambda = max(lambdaLim(1), lambda);
 lambda = min(lambdaLim(2), lambda);
 
+% Visualize the decay rate map.
+rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
+alphaplot(lambda/max(lambda(:)), hgv, hgv, vgv);
+
 %% Compute log-likelihood of shifted scans.
 % Compute the direction vectors of the returned rays.
 [dirxr, diryr, dirzr] = sph2cart(pcd.azimuth(isfinite(pcd.radius)), ...

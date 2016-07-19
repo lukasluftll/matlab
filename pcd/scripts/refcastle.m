@@ -46,6 +46,10 @@ ref(~isfinite(ref)) = mean(ref(:), 'omitnan');
 ref = max(refLim(1), ref);
 ref = min(refLim(2), ref);
 
+% Visualize the reflectivity map.
+alphaplot(lambda/max(lambda(:)), hgv, hgv, vgv);
+rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
+
 %% Compute log-likelihood of shifted scans.
 % Compute the direction vectors of the rays.
 [dirx, diry, dirz] = sph2cart(pcd.azimuth, pcd.elevation, radiusFinite);
