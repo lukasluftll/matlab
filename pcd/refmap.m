@@ -1,4 +1,4 @@
-function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
+function [ref,hw,mw] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 % REFMAP Compute reflectivity map from Lidar rays in grid volume.
 %   REF = REFMAP(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses the 
 %   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
@@ -93,8 +93,8 @@ gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 % per voxel for each ray.
 spmd
     % Create return matrices.
-    h = zeros(gridsize);
-    m = zeros(gridsize);
+    hw = zeros(gridsize);
+    mw = zeros(gridsize);
     
     % Loop over the worker's share of all rays.
     for i = labindex : numlabs : nray
@@ -105,15 +105,19 @@ spmd
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
         % For each voxel, sum up the number of hits and misses.
-        h(vi(end)) = h(vi(end)) + (ret(i) && t(end)==1);
-        m(vi) = m(vi) + t(2:end)<1;
+        hw(vi(end)) = hw(vi(end)) + (ret(i) && t(end)==1);
+        mw(vi) = mw(vi) + t(2:end)<1;
     end
 end
 
 %% Compute reflectivity.
 % Merge the hits and misses matrices calculated by the workers.
-h = sum(reshape(cell2mat(h(:)), [size(h{1}), numel(h)]), 4);
-m = sum(reshape(cell2mat(m(:)), [size(m{1}), numel(m)]), 4);
+h = zeros(gridsize);
+m = zeros(gridsize);
+for i = 1 : numel(hw)
+    h = h + hw{i};
+    m = m + mw{i};
+end
 
 % For each voxel compute the reflectivity value.
 ref = h ./ (h + m);
