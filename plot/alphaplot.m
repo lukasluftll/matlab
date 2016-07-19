@@ -25,7 +25,7 @@ function alphaplot(data, xgv, ygv, zgv, varargin)
 %   Example:
 %      data = [0.1, 0.2, 0.3; 0, 0, 0; 0, 0, 0];
 %      data = cat(3, data, zeros(3), 0.5 * ones(3));
-%      alphaplot(data);
+%      alphaplot(data)
 %
 %   See also: CUBOID, PATCH, CAT.
 
@@ -63,8 +63,8 @@ end
 %% Plot voxels.
 % Compute the limits of the voxels. Make sure the voxel faces do not
 % overlap.
-[xmin, ymin, zmin] = meshgrid(xgv(1:end-1), ygv(1:end-1), zgv(1:end-1));
-[xdiff, ydiff, zdiff] = meshgrid(diff(xgv), diff(ygv), diff(zgv));
+[xmin, ymin, zmin] = ndgrid(xgv(1:end-1), ygv(1:end-1), zgv(1:end-1));
+[xdiff, ydiff, zdiff] = ndgrid(diff(xgv), diff(ygv), diff(zgv));
 vox = [xmin(:), ymin(:), zmin(:)];
 vox = [vox, vox + 0.99 * [xdiff(:), ydiff(:), zdiff(:)]];
 
