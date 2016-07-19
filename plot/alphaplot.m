@@ -7,7 +7,7 @@ function alphaplot(data, xgv, ygv, zgv, varargin)
 %   
 %   The values of DATA must stay within [0; 1]. DATA(x,y,z) == 0 
 %   corresponds to a transparent voxel; a value of 1 corresponds to an 
-%   opaque voxel.
+%   opaque voxel. Values smaller than 0.01 are not drawn.
 %
 %   ALPHAPLOT(DATA, XGV, YGV, ZGV) shows no cubic, but cuboid voxels.
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
@@ -23,7 +23,7 @@ function alphaplot(data, xgv, ygv, zgv, varargin)
 %   For possible name-value pairs, see the documentation of PATCH.
 % 
 %   Example:
-%      data = cat(3, magic(10) * 1e-3, magic(10)' * 1e-3);
+%      data = cat(3, diag([0.1, 0.2, 0.3]), cat(3, zeros(3), ones(3)));
 %      alphaplot(data);
 %
 %   See also: CUBOID, PATCH, CAT.
@@ -54,22 +54,18 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
-%% Compute voxel limits.
-% Compute an Nx3 matrix whose columns contain the indices of all voxels.
-[xmin, ymin, zmin] = ndgrid(...
-    1 : size(data, 1), 1 : size(data, 2), 1 : size(data, 3));
-i = [xmin(:), ymin(:), zmin(:)];
-
-% Remove the voxels with very high transparency.
-remove = data(:) < 0.01;
-i(remove,:) = [];
-data(remove) = [];
-
+%% Plot voxels.
 % Compute the limits of the voxels. Make sure the voxel faces do not
 % overlap.
-minvox = [xgv(i(:,1)); ygv(i(:,2)); zgv(i(:,3))]; ...
-maxvox = [xgv(i(:,1)+1); ygv(i(:,2)+1); zgv(i(:,3)+1)];
-vox = [minvox; minvox + 0.99*(maxvox-minvox)]';
+[xmin, ymin, zmin] = meshgrid(xgv(1:end-1), ygv(1:end-1), zgv(1:end-1));
+[xdiff, ydiff, zdiff] = meshgrid(diff(xgv), diff(ygv), diff(zgv));
+vox = [xmin(:), ymin(:), zmin(:)];
+vox = [vox, vox + 0.99 * [xdiff(:), ydiff(:), zdiff(:)]];
+
+% Remove voxels with very high transparency.
+remove = data(:) < 0.01;
+vox(remove,:) = [];
+data(remove) = [];
 
 % Define the transparency values of the voxel faces.
 faceAlpha = kron(data(:), ones(6, 1));
