@@ -92,9 +92,9 @@ gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 % Use multiple workers to compute the number of returns and traversals 
 % per voxel for each ray.
 spmd
-    % Create return matrices for this worker.
-    hi = zeros(gridsize);
-    mi = zeros(gridsize);
+    % Create return matrices.
+    h = zeros(gridsize);
+    m = zeros(gridsize);
     
     % Loop over the worker's share of all rays.
     for i = labindex : numlabs : nray
@@ -105,15 +105,15 @@ spmd
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
         % For each voxel, sum up the number of hits and misses.
-        hi(vi(end)) = hi(vi(end)) + (ret(i) && t(end)==1);
-        mi(vi) = mi(vi) + t(2:end)<1;
+        h(vi(end)) = h(vi(end)) + (ret(i) && t(end)==1);
+        m(vi) = m(vi) + t(2:end)<1;
     end
 end
 
 %% Compute reflectivity.
 % Merge the hits and misses matrices calculated by the workers.
-h = sum(reshape(cell2mat(hi(:)), [size(hi{1}), numel(hi)]), 4);
-m = sum(reshape(cell2mat(mi(:)), [size(mi{1}), numel(mi)]), 4);
+h = sum(reshape(cell2mat(h(:)), [size(h{1}), numel(h)]), 4);
+m = sum(reshape(cell2mat(m(:)), [size(m{1}), numel(m)]), 4);
 
 % For each voxel compute the reflectivity value.
 ref = h ./ (h + m);
