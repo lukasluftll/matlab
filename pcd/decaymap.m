@@ -101,8 +101,8 @@ gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 % Use multiple workers to compute the ray length per voxel.
 spmd
     % Create return matrices for this worker.
-    li = zeros(gridsize);
-    ri = zeros(gridsize);
+    lw = zeros(gridsize);
+    rw = zeros(gridsize);
     
     % For all rays of the worker's share compute the ray length per voxel.
     for i = labindex : numlabs : nray   
@@ -113,17 +113,21 @@ spmd
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
         % Sum up the lengths the rays travel in each voxel.
-        li(vi) = li(vi) + diff(t) * radius(i);
+        lw(vi) = lw(vi) + diff(t) * radius(i);
 
         % In case of reflection, increment the number of returns.
-        ri(vi(end)) = ri(vi(end)) + (ret(i) && t(end)==1);
+        rw(vi(end)) = rw(vi(end)) + (ret(i) && t(end)==1);
     end
 end
 
 %% Compute ray decay rate.
 % Merge the results of all workers.
-r = sum(reshape(cell2mat(ri(:)), [size(ri{1}), numel(ri)]), 4);
-l = sum(reshape(cell2mat(li(:)), [size(li{1}), numel(li)]), 4);
+l = zeros(gridsize);
+r = zeros(gridsize);
+for i = 1 : numel(lw)
+    l = l + lw{i};
+    r = r + rw{i};
+end
 
 % Compute the decay rate.
 lambda = r ./ l;
