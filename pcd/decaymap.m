@@ -98,35 +98,34 @@ nray = numel(azimuth);
 gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
 
 %% Sum up ray lengths and returns.
-% Construct the matrices that store the cumulated ray lengths and the
-% number of returns for each voxel.
-l = zeros(gridsize);
-r = zeros(gridsize);
-
-% For all rays compute the ray length per voxel.
-parfor i = 1 : nray
-    % Create temporary return matrices for this ray.
+% Use multiple workers to compute the ray length per voxel.
+spmd
+    % Create return matrices for this worker.
     li = zeros(gridsize);
     ri = zeros(gridsize);
     
-    % Compute the indices of the voxels through which the ray travels.
-    [vi, t] = trav([0, 0, 0], [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
-    
-    % Convert the subscript indices to linear indices.
-    vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
-    
-    % Compute the lengths of the ray that are apportioned to all voxels.
-    li(vi) = diff(t) * radius(i);
+    % For all rays of the worker's share compute the ray length per voxel.
+    for i = labindex : numlabs : nray   
+        % Compute the indices of the voxels through which the ray travels.
+        [vi, t] = trav([0,0,0], [dirx(i),diry(i),dirz(i)], xgv, ygv, zgv);
 
-    % If the ray is reflected, add it to the number of returns.
-    ri(vi(end)) = ret(i) && t(end)==1;
-    
-    % Add the result for this ray to the return matrices.
-    l = l + li;
-    r = r + ri;
+        % Convert the subscript indices to linear indices.
+        vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+
+        % Sum up the lengths the rays travel in each voxel.
+        li(vi) = li(vi) + diff(t) * radius(i);
+
+        % In case of reflection, increment the number of returns.
+        ri(vi(end)) = ri(vi(end)) + (ret(i) && t(end)==1);
+    end
 end
 
 %% Compute ray decay rate.
+% Merge the results of all workers.
+r = sum(reshape(cell2mat(ri(:)), [size(ri{1}), numel(ri)]), 4);
+l = sum(reshape(cell2mat(li(:)), [size(li{1}), numel(li)]), 4);
+
+% Compute the decay rate.
 lambda = r ./ l;
 lambda(l == 0) = NaN;
 
