@@ -13,7 +13,7 @@
 shift = 5;
 
 % Resolution of the decay rate map.
-res = 1;
+res = 2;
 
 % Resolution of the log-likelihood graph.
 shiftres = 0.5;
