@@ -13,7 +13,7 @@
 shift = 5;
 
 % Resolution of the decay rate map.
-res = 2;
+res = 1;
 
 % Resolution of the log-likelihood graph.
 shiftres = 0.5;
@@ -46,9 +46,12 @@ ref(~isfinite(ref)) = mean(ref(:), 'omitnan');
 ref = max(refLim(1), ref);
 ref = min(refLim(2), ref);
 
-% Visualize the reflectivity map.
-alphaplot(lambda/max(lambda(:)), hgv, hgv, vgv);
+% Visualize and save the reflectivity map.
+alphaplot(ref, hgv, hgv, vgv);
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
+mkdir('pcd', 'results');
+savefig(['pcd/results/refmap_', ...
+    datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 
 %% Compute log-likelihood of shifted scans.
 % Compute the direction vectors of the rays.
