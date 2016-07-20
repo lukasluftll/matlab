@@ -25,13 +25,12 @@ function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
-%   LAMBDA is a IxJxK matrix that contains the mean decay rate of each 
-%   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
-%   The lambda value of a voxel that has not been visited by any ray is 
-%   NaN.
+%   LAMBDA is a voxelmap object that contains the mean decay rate of each 
+%   voxel. The lambda value of a voxel that has not been visited by any ray
+%   is NaN.
 %
 %   [LAMBDA, R, L] = DECAYMAP(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
-%   also returns the IxJxK matrices R and L. 
+%   also returns the voxelmap objects R and L. 
 %   R contains the number of ray remissions for each voxel. 
 %   L contains the cumulated length of all rays that traversed the 
 %   respective grid cell.
@@ -51,15 +50,15 @@ function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %   approximation of the decay rate.
 %
 %   Example:
-%      pc = pcdread('castle.pcd');
-%      radiusFinite = pc.radius; radiusFinite(isnan(radiusFinite)) = 130;
-%      xgv = min(pc.x(:)) : 5 : max(pc.x(:));
-%      ygv = min(pc.y(:)) : 5 : max(pc.y(:));
-%      zgv = min(pc.z(:)) : 5 : max(pc.z(:));
-%      lambda = decaymap(pc.azimuth, pc.elevation, radiusFinite, ...
-%                      isfinite(pc.radius), xgv, ygv, zgv)
+%      pcd = pcdread('castle.pcd');
+%      radiusFinite = pcd.radius; radiusFinite(isnan(radiusFinite)) = 130;
+%      xgv = min(pcd.x(:)) : 5 : max(pcd.x(:));
+%      ygv = min(pcd.y(:)) : 5 : max(pcd.y(:));
+%      zgv = min(pcd.z(:)) : 5 : max(pcd.z(:));
+%      lambda = decaymap(pcd.azimuth, pcd.elevation, radiusFinite, ...
+%                      isfinite(pcd.radius), xgv, ygv, zgv)
 %
-%   See also DECAYRAY, DECAYNANRAY, REFMAP.
+%   See also VOXELMAP, DECAYRAY, DECAYNANRAY, REFMAP.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -130,7 +129,7 @@ for i = 1 : numel(lw)
 end
 
 % Compute the decay rate.
-lambda = r ./ l;
-lambda(l == 0) = NaN;
+lambda = voxelmap(r ./ l, xgv, ygv, zgv);
+lambda.data(l == 0) = NaN;
 
 end

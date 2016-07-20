@@ -25,14 +25,14 @@ function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
-%   REF is a IxJxK matrix that contains the reflectivity of each voxel, 
-%   where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1. The
-%   reflectivity is a value in [0; 1]. It indicates the proportion of rays 
-%   that are reflected by the voxel. If the voxel has not been visited by
-%   any ray, its reflectivity is NaN.
+%   REF is a voxelmap object that contains the reflectivity of each voxel.
+%   The reflectivity is a value in [0; 1]. It indicates the fraction of 
+%   rays that are reflected by the voxel compared to all rays that reached 
+%   the voxel. If the voxel has not been visited by any ray, its 
+%   reflectivity is NaN.
 %
 %   [REF, H, M] = REFMAP(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also 
-%   returns the IxJxK matrices H and M. 
+%   returns the voxelmap objects H and M. 
 %   H contains the number of ray remissions for each voxel. 
 %   M contains for each voxel the number of rays that traversed the voxel
 %   without being reflected.
@@ -45,7 +45,7 @@ function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 %      ref = refmap(pc.azimuth, pc.elevation, radiusFinite, ...
 %                   isfinite(pc.radius), hgv, hgv, vgv)
 %
-%   See also REFRAY, REFNANRAY, DECAYMAP.
+%   See also VOXELMAP, REFRAY, REFNANRAY, DECAYMAP.
 
 % Copyright 2016 Alexander Schaefer
 %
@@ -120,6 +120,6 @@ for i = 1 : numel(hw)
 end
 
 % For each voxel compute the reflectivity value.
-ref = h ./ (h + m);
+ref = voxelmap(h ./ (h + m), xgv, ygv, zgv);
 
 end

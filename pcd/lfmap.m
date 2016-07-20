@@ -1,6 +1,6 @@
-function [lf] = lfmap(pc, sigma, xgv, ygv, zgv)
+function lf = lfmap(pc, sigma, xgv, ygv, zgv)
 % LFMAP Compute likelihood field from point cloud.
-%   L = LFMAP(PC, SIGMA, XGV, YGV, ZGV) transforms the point cloud PC into
+%   LF = LFMAP(PC, SIGMA, XGV, YGV, ZGV) transforms the point cloud PC into
 %   a voxelized likelihood field using a Gauss kernel with variance SIGMA.
 %   The rasterization of the field is defined by the grid vectors XGV, YGV,
 %   ZGV.
@@ -17,8 +17,7 @@ function [lf] = lfmap(pc, sigma, xgv, ygv, zgv)
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
-%   LF is a IxJxK matrix that contains the likelihood of each voxel, 
-%   where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
+%   LF is a voxelmap object that contains the likelihood of each voxel.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
@@ -28,7 +27,7 @@ function [lf] = lfmap(pc, sigma, xgv, ygv, zgv)
 %      zgv = min(pcd.z(:)) : 1 : max(pcd.z(:));
 %      lf = lfmap(pc, 1, xgv, ygv, zgv)
 %
-%   See also POINTCLOUD, VOXELMAP, LFPC, DECAYMAP, REFMAP.
+%   See also POINTCLOUD, VOXELMAP, LFPC, REFMAP.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -72,6 +71,6 @@ for i = 1 : numel(dfw)
 end
 
 % Compute the likelihood field.
-lf = normpdf(df, 0, sigma);
+lf = voxelmap(normpdf(df, 0, sigma), xgv, ygv, zgv);
 
 end
