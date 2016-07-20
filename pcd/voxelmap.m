@@ -1,4 +1,4 @@
-classdef voxelmap
+classdef voxelmap < handle
     % VOXELMAP Object for storing a 3D voxel map.
     %   M = VOXELMAP(DATA) creates a voxel map object.
     %   
@@ -30,13 +30,32 @@ classdef voxelmap
     
     % Copyright 2016 Alexander Schaefer
     
-    properties ( SetAccess = private )
+    properties 
         data;
+    end
+    
+    properties ( SetAccess = private )
         xgv;
         ygv;
         zgv;
     end
     
+    methods
+        % Change the map data.
+        function set.data(obj, data)
+            % Check if DATA has the same size as the current map data.
+            if any(size(data) ~= size(obj.data))
+                error(['DATA must be a matrix of size ', ...
+                    num2str(size(obj.data, 1)), 'x', ...
+                    num2str(size(obj.data, 2)), 'x', ...
+                    num2str(size(obj.data, 3))])
+            end
+            
+            % Assign new map data to object.
+            obj.data = data;
+        end
+    end
+        
     methods ( Access = public )
         % Construct a voxelmap object.
         function obj = voxelmap(data, xgv, ygv, zgv)
