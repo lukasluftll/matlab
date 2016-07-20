@@ -1,6 +1,6 @@
-function p = refray(origin, ray, rlim, ref, xgv, ygv, zgv)
+function p = refray(origin, ray, rlim, ref)
 % REFRAY Compute probability of Lidar measurement from reflectivity map.
-%   L = REFRAY(ORIGIN, RAY, RLIM, REF, XGV, YGV, ZGV) computes the 
+%   p = REFRAY(ORIGIN, RAY, RLIM, REF, XGV, YGV, ZGV) computes the 
 %   probability of obtaining the Lidar ray measurement defined by ORIGIN 
 %   and RAY conditioned on the reflectivity map REF with grid vectors XGV, 
 %   YGV, ZGV.
@@ -15,18 +15,10 @@ function p = refray(origin, ray, rlim, ref, xgv, ygv, zgv)
 %   For these measurements, RAY carries only information about the
 %   direction of the ray, not about its length.
 %
-%   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
-%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
-%   the inequality:
+%   REF is a voxelmap object that contains the reflectivity of each map 
+%   voxel.
 %
-%      (XGV(i) <= x < XGV(i+1))
-%      && (YGV(j) <= y < YGV(j+1)) 
-%      && (ZGV(k) <= z < ZGV(k+1))
-%
-%   REF is a IxJxK matrix that contains the reflectivity of each map voxel,
-%   where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
-%
-%   L is an M-element column vector. The value of the m-th element
+%   p is an M-element column vector. The value of the m-th element
 %   corresponds to the probability of obtaining the m-th measurement.
 %
 %   Example:
@@ -34,20 +26,20 @@ function p = refray(origin, ray, rlim, ref, xgv, ygv, zgv)
 %      ray = [3, 4, 5];
 %      rlim = [1, 10];
 %      ref = repmat(magic(5)/100, [1, 1, 5]);
-%      gv = 0 : 5; 
-%      p = refray(origin, ray, rlim, ref, gv, gv, gv)
+%      gv = 0 : 5;
+%      p = refray(origin, ray, rlim, voxelmap(ref, gv, gv, gv))
 %
-%   See also REFMAP, DECAYRAY.
+%   See also VOXELMAP, REFMAP, DECAYRAY.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check whether the user provided the correct number of input arguments.
-narginchk(7, 7)
+narginchk(4, 4)
 
 % Check if the arguments have the expected numbers of dimensions.
-if ~ismatrix(origin) || ~ismatrix(ray) || ndims(ref) ~= 3
-    error('ORIGIN and RAY must be 2D matrices, REF must be 3D.')
+if ~ismatrix(origin) || ~ismatrix(ray)
+    error('ORIGIN and RAY must be 2D matrices.')
 end
 
 % Check if the arguments have the expected sizes.
@@ -61,21 +53,13 @@ if size(origin, 1) == 1
 end
 
 % Make sure all input arguments contain finite values only.
-if ~all(isfinite([origin(:); ray(:); rlim(:); ref(:)]))
+if ~all(isfinite([origin(:); ray(:); rlim(:); ref.data(:)]))
     error('Input arguments must not be NaN or Inf.')
 end
 
 % Check whether RLIM is ordered.
 if diff(rlim) <= 0
     error('RLIM(2) must be greater than RLIM(1).');
-end
-
-% Check the grid vectors.
-gvchk(xgv, ygv, zgv)
-
-% Check whether REF has the correct size.
-if any(size(ref) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
-    error('Size of REF does not match grid vectors.')
 end
 
 %% Preprocess input arguments.
@@ -93,12 +77,13 @@ ray(inan,:) = (ray(inan,:) ./ repmat(l(inan), 1, 3)) * rmax;
 % Loop over all rays.
 nray = size(origin, 1);
 p = zeros(nray, 1);
+refdata = ref.data;
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
     
     % Convert the subscript indices to linear indices.
-    vi = sub2ind(size(ref), vi(:,1), vi(:,2), vi(:,3));
+    vi = sub2ind(size(refdata), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the probability depending on whether or not the ray returned.
     if ismember(i, inan)
@@ -111,18 +96,18 @@ parfor i = 1 : nray
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
         isub = vi(1 : ilim(1));
-        psub = 1 - prod(1-ref(isub));
+        psub = 1 - prod(1-refdata(isub));
     
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
         isup = vi(ilim(1)+1 : ilim(2));
-        psup = prod(1-ref(isup));
+        psup = prod(1-refdata(isup));
     
         % Sum up the probabilities to get the probability of NaN.
         p(i) = psub + psup;
     else      
         % Compute the probability of the given measurement.
-        m = ref(vi);
+        m = refdata(vi);
         p(i) = m(end) * prod(1 - m(1:end-1));
     end
 end
