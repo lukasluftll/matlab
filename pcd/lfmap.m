@@ -28,7 +28,7 @@ function [lf] = lfmap(pc, sigma, xgv, ygv, zgv)
 %      zgv = min(pcd.z(:)) : 1 : max(pcd.z(:));
 %      lf = lfmap(pc, 1, xgv, ygv, zgv)
 %
-%   See also DECAYMAP, REFMAP.
+%   See also POINTCLOUD, VOXELMAP, LFPC, DECAYMAP, REFMAP.
 
 % Copyright 2016 Alexander Schaefer
 
