@@ -9,6 +9,9 @@
 %   to the likelihood field.
 
 %% Set parameters.
+% File name of the point cloud data file.
+file = 'data/castle.pcd';
+
 % Shifting offset in x and y direction.
 shift = 5;
 
@@ -29,7 +32,7 @@ shiftres = 0.5;
 
 %% Compute decay rate map.
 % Read the point cloud.
-pcd = pcdread('data/castle.pcd');
+pcd = pcdread(file);
 pc = pointCloud([pcd.x(:), pcd.y(:), pcd.z(:)]);
 
 % Compute the likelihood field.
@@ -40,7 +43,9 @@ lf = lfmap(pc, sigma, hgv, hgv, vgv);
 % Visualize and save the likelihood field.
 rayplot(pcd.azimuth, pcd.elevation, pcd.radius);
 plot(lf);
-mkdir('pcd', 'results');
+if ~exist('pcd/results', 'dir')
+    mkdir('pcd', 'results');
+end
 savefig(['pcd/results/lfmap_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 

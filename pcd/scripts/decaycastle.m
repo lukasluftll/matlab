@@ -9,6 +9,9 @@
 %   to the decay map.
 
 %% Set parameters.
+% File name of the point cloud data file.
+file = 'data/castle.pcd';
+
 % Shifting offset in x and y direction.
 shift = 5;
 
@@ -29,7 +32,7 @@ lambdaLim = [2e-3, 1e+1];
 
 %% Compute decay rate map.
 % Read the point cloud.
-pcd = pcdread('data/castle.pcd');
+pcd = pcdread(file);
 
 % Compute the decay rate map.
 radiusFinite = pcd.radius;
@@ -40,17 +43,19 @@ lambda = decaymap(pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the decay rate prior.
-lambda(~isfinite(lambda)) = ...
+lambda.data(~isfinite(lambda)) = ...
     sum(isfinite(pcd.radius(:))) / sum(radiusFinite(:));
 
 % Limit the decay rates to a reasonable interval.
-lambda = max(lambdaLim(1), lambda);
-lambda = min(lambdaLim(2), lambda);
+lambda.data = max(lambdaLim(1), lambda.data);
+lambda.data = min(lambdaLim(2), lambda.data);
 
 % Visualize and save the decay rate map.
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
-alphaplot(lambda/max(lambda(:)), hgv, hgv, vgv);
-mkdir('pcd', 'results');
+plot(lambda);
+if ~exist('pcd/results', 'dir')
+    mkdir('pcd', 'results');
+end
 savefig(['pcd/results/decaymap_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 
@@ -72,12 +77,11 @@ for i = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
         % Compute the log-likelihood of the reflected rays.
-        Lr = sum(decayray(origin, [dirxr, diryr, dirzr], lambda, ...
-            hgv, hgv, vgv));
+        Lr = sum(decayray(origin, [dirxr, diryr, dirzr], lambda));
         
         % Compute the log-likelihood of the no-return rays.
         Lnr = sum(log(decaynanray(origin, [dirxnr, dirynr, dirznr], ...
-            rlim, lambda, hgv, hgv, vgv)));
+            rlim, lambda)));
         
         % Compute the log-likelihood of all measurements.
         L(i,j) = Lr + Lnr;

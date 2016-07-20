@@ -9,6 +9,9 @@
 %   to the reflectivity map.
 
 %% Set parameters.
+% File name of the point cloud data file.
+file = 'data/castle.pcd';
+
 % Shifting offset in x and y direction.
 shift = 5;
 
@@ -29,7 +32,7 @@ refLim = [0.1, 0.9];
 
 %% Compute decay rate map.
 % Read the point cloud.
-pcd = pcdread('data/castle.pcd');
+pcd = pcdread(file);
 
 % Compute the decay rate map.
 radiusFinite = pcd.radius;
@@ -40,16 +43,18 @@ ref = refmap(pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
-ref(~isfinite(ref)) = mean(ref(:), 'omitnan');
+ref.data(~isfinite(ref.data)) = mean(ref.data(:), 'omitnan');
 
 % Limit the decay rates to a reasonable interval.
-ref = max(refLim(1), ref);
-ref = min(refLim(2), ref);
+ref.data = max(refLim(1), ref.data);
+ref.data = min(refLim(2), ref.data);
 
 % Visualize and save the reflectivity map.
-alphaplot(ref, hgv, hgv, vgv);
+plot(ref);
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
-mkdir('pcd', 'results');
+if ~exist('pcd/results', 'dir')
+    mkdir('pcd', 'results');
+end
 savefig(['pcd/results/refmap_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 
@@ -66,8 +71,7 @@ for i = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
         % Compute the log-likelihood of the measurements.
-        L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], rlim, ref, ...
-            hgv, hgv, vgv)));
+        L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], rlim, ref)));
         
         % Advance the progress bar.
         waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, ...
