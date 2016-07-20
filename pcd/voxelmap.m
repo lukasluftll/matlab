@@ -44,7 +44,7 @@ classdef voxelmap < handle
         % Change the map data.
         function set.data(obj, data)
             % Check if DATA has the same size as the current map data.
-            if any(size(data) ~= size(obj.data))
+            if ~isempty(obj.data) && any(size(data) ~= size(obj.data))
                 error(['DATA must be a matrix of size ', ...
                     num2str(size(obj.data, 1)), 'x', ...
                     num2str(size(obj.data, 2)), 'x', ...
@@ -135,4 +135,3 @@ classdef voxelmap < handle
         end
     end
 end
-
