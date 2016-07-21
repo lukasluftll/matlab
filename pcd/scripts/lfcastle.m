@@ -53,7 +53,7 @@ savefig(['pcd/results/lfmap_', ...
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
 L = zeros(numel(gvs));
-parfor i = 1 : numel(gvs)
+for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         % Shift the point cloud horizontally.
         t = affine3d([1 0 0 0; 0 1 0 0; 0 0 1 0; gvs(i), gvs(j), 0, 1]);
@@ -63,7 +63,6 @@ parfor i = 1 : numel(gvs)
         L(i,j) = lfpc(pct, lf);
     end
 end
-close(waitbarHandle);
 
 %% Display result.
 % Display the overall probabilities of the shifted scans.
