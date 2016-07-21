@@ -65,8 +65,8 @@ spmd
 end
 
 % Merge the distance fields.
-df = zeros(gridsize);
-for i = 1 : numel(dfw)
+df = dfw{1};
+for i = 2 : numel(dfw)
     df = df + dfw{i};
 end
 
