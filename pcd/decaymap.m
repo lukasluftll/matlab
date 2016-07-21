@@ -1,11 +1,12 @@
-function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
+function [lambda,r,l]=decaymap(o,azimuth,elevation,radius,ret,xgv,ygv,zgv)
 % DECAYMAP Compute decay rate of Lidar rays in grid volume.
-%   LAMBDA = DECAYMAP(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses
-%   the rays represented in spherical coordinates AZIMUTH, ELEVATION, 
+%   LAMBDA = DECAYMAP(O, AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV)
+%   uses the rays represented in spherical coordinates AZIMUTH, ELEVATION, 
 %   RADIUS to compute the mean ray decay rate LAMBDA for each voxel in the 
 %   grid volume defined by the grid vectors XGV, YGV, ZGV.
 %
-%   It is assumed that all rays originate in the origin [0, 0, 0].
+%   O is a 3-element Cartesian origin vector. All rays originate from this 
+%   point.
 %
 %   AZIMUTH and ELEVATION are HEIGHTxWIDTH matrices, where HEIGHT and WIDTH 
 %   describe the size of the point cloud. The unit is rad.
@@ -29,7 +30,7 @@ function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %   voxel. The lambda value of a voxel that has not been visited by any ray
 %   is NaN.
 %
-%   [LAMBDA, R, L] = DECAYMAP(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
+%   [LAMBDA, R, L] = DECAYMAP(O, AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
 %   also returns the voxelmap objects R and L. 
 %   R contains the number of ray remissions for each voxel. 
 %   L contains the cumulated length of all rays that traversed the 
@@ -55,8 +56,8 @@ function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %      xgv = min(pcd.x(:)) : 5 : max(pcd.x(:));
 %      ygv = min(pcd.y(:)) : 5 : max(pcd.y(:));
 %      zgv = min(pcd.z(:)) : 5 : max(pcd.z(:));
-%      lambda = decaymap(pcd.azimuth, pcd.elevation, radiusFinite, ...
-%                      isfinite(pcd.radius), xgv, ygv, zgv)
+%      lambda = decaymap([0,0,0], pcd.azimuth, pcd.elevation, ...
+%                      radiusFinite, isfinite(pcd.radius), xgv, ygv, zgv)
 %
 %   See also VOXELMAP, DECAYRAY, DECAYNANRAY, REFMAP.
 
@@ -64,7 +65,13 @@ function [lambda,r,l] = decaymap(azimuth,elevation,radius,ret,xgv,ygv,zgv)
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(7, 7);
+narginchk(8, 8);
+
+% Check the origin vector.
+o = o(:)';
+if numel(o) ~= 3 || any(~isfinite(o))
+    error('O must be a 3-element real vector.')
+end
 
 % Check whether the spherical coordinate matrices and the reflection matrix
 % all have the same number of dimensions and the same size.

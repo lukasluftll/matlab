@@ -1,11 +1,12 @@
-function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
+function [ref,h,m] = refmap(o,azimuth,elevation,radius,ret,xgv,ygv,zgv)
 % REFMAP Compute reflectivity map from Lidar rays in grid volume.
-%   REF = REFMAP(AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses the 
-%   rays represented in spherical coordinates AZIMUTH, ELEVATION, RADIUS to
-%   compute the reflectivity of each voxel in the grid volume defined by 
-%   the grid vectors XGV, YGV, ZGV.
+%   REF = REFMAP(O, AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV) uses 
+%   the rays represented in spherical coordinates AZIMUTH, ELEVATION, 
+%   RADIUS to compute the reflectivity of each voxel in the grid volume 
+%   defined by the grid vectors XGV, YGV, ZGV.
 %
-%   It is assumed that all rays originate in the origin [0, 0, 0].
+%   O is a 3-element Cartesian origin vector. All rays originate from this 
+%   point.
 %
 %   AZIMUTH and ELEVATION are HEIGHTxWIDTH matrices, where HEIGHT and WIDTH 
 %   describe the size of the point cloud. The unit is rad.
@@ -31,7 +32,7 @@ function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 %   the voxel. If the voxel has not been visited by any ray, its 
 %   reflectivity is NaN.
 %
-%   [REF, H, M] = REFMAP(AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also 
+%   [REF, H, M] = REFMAP(O, AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV) also 
 %   returns the voxelmap objects H and M. 
 %   H contains the number of ray remissions for each voxel. 
 %   M contains for each voxel the number of rays that traversed the voxel
@@ -42,7 +43,7 @@ function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 %      radiusFinite = pc.radius; radiusFinite(isnan(radiusFinite)) = 130;
 %      hgv = -100 : 5 : 100;
 %      vgv = -20 : 5 : 20;
-%      ref = refmap(pc.azimuth, pc.elevation, radiusFinite, ...
+%      ref = refmap([0,0,0], pc.azimuth, pc.elevation, radiusFinite, ...
 %                   isfinite(pc.radius), hgv, hgv, vgv)
 %
 %   See also VOXELMAP, REFRAY, REFNANRAY, DECAYMAP.
@@ -56,7 +57,13 @@ function [ref,h,m] = refmap(azimuth, elevation, radius, ret, xgv, ygv, zgv)
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(7, 7);
+narginchk(8, 8);
+
+% Check the origin vector.
+o = o(:)';
+if numel(o) ~= 3 || any(~isfinite(o))
+    error('O must be a 3-element real vector.')
+end
 
 % Check whether the spherical coordinate matrices and the reflection matrix
 % all have the same number of dimensions and the same size.
@@ -99,7 +106,7 @@ spmd
     % Loop over the worker's share of all rays.
     for i = labindex : numlabs : nray
         % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav([0,0,0], [dirx(i),diry(i),dirz(i)], xgv, ygv, zgv);
+        [vi, t] = trav(o, [dirx(i), diry(i), dirz(i)], xgv, ygv, zgv);
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
