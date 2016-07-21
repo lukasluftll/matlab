@@ -86,7 +86,7 @@ close(waitbarHandle);
 
 %% Plot log-likelihood of shifted scans.
 % Display the overall log-likelihoods of the shifted scans.
-figure('Name', 'refcastle log-likelihood', 'NumberTitle', 'Off');
+figure('Name', 'refcastle likelihood', 'NumberTitle', 'Off');
 surf(gvs, gvs, L);
 title('Log-likelihood of Lidar measurement from reflection map')
 xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');

@@ -41,6 +41,7 @@ vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
 lf = lfmap(pc, sigma, hgv, hgv, vgv);
 
 % Visualize and save the likelihood field.
+figure('Name', 'lfcastle map', 'NumberTitle', 'Off');
 rayplot(pcd.azimuth, pcd.elevation, pcd.radius);
 plot(lf);
 title('Likelihood field'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
@@ -69,6 +70,7 @@ close(waitbarHandle);
 
 %% Plot log-likelihood of shifted scans.
 % Display the overall log-likelihoods of the shifted scans.
+figure('Name', 'lfcastle likelihood', 'NumberTitle', 'Off');
 surf(gvs, gvs, L);
 title('Log-likelihood of Lidar measurement from likelihood field')
 xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');

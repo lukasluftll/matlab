@@ -54,7 +54,7 @@ lambda.data = max(lambdaLim(1), lambda.data);
 lambda.data = min(lambdaLim(2), lambda.data);
 
 % Visualize and save the decay rate map.
-mapfig = figure('Name', 'decaycastle map', 'NumberTitle', 'Off');
+figure('Name', 'decaycastle map', 'NumberTitle', 'Off');
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
 plot(lambda);
 title('Decay rate map'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
@@ -99,6 +99,7 @@ close(waitbarHandle);
 
 %% Plot log-likelihood of shifted scans.
 % Display the overall log-likelihoods of the shifted scans.
+figure('Name', 'decaycastle likelihood', 'NumberTitle', 'Off');
 surf(gvs, gvs, L);
 title('Log-likelihood of Lidar measurement from decay map');
 xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');
