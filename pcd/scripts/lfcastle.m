@@ -55,12 +55,9 @@ gvs = -shift : shiftres : shift;
 L = zeros(numel(gvs));
 for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
-        % Shift the point cloud horizontally.
+        % Compute the log-likelihood of the shifted point cloud.
         t = affine3d([1 0 0 0; 0 1 0 0; 0 0 1 0; gvs(i), gvs(j), 0, 1]);
-        pct = pctransform(pc, t);
-        
-        % Compute the log-likelihood of all measurements.
-        L(i,j) = lfpc(pct, lf);
+        L(i,j) = lfpc(pctransform(pc, t), lf);
     end
 end
 
