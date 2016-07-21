@@ -18,6 +18,9 @@ function [ix, iy, iz] = grdidx(p, xgv, ygv, zgv)
 %   voxels for every point. If a point does not reside inside the voxel
 %   grid, it is assigned an index of 0 in IX, IY, and IZ.
 %
+%   I = GRDIDX(P, XGV, YGV, ZGV) returns the voxel indices in a single Nx3
+%   matrix.
+%
 %   Example:
 %      [ix, iy, iz] = grididx([4, 5, 6], 1:10, 1:10, 1:10)
 
@@ -26,6 +29,11 @@ function [ix, iy, iz] = grdidx(p, xgv, ygv, zgv)
 %% Validate input.
 % Check number of input arguments.
 narginchk(4, 4);
+
+% Check the number of output arguments.
+if all(nargout ~= [0, 1, 3])
+    error('Number of output arguments must be 1 or 3.')
+end
 
 % Check the size of P.
 if size(p, 2) ~= 3
@@ -59,8 +67,13 @@ for i = 2 : numel(iw)
     idx = idx + iw{i};
 end
 
-ix = idx(:,1);
-iy = idx(:,2);
-iz = idx(:,3);
+% Split the output depending on the number of output arguments.
+if nargout > 1
+    ix = idx(:,1);
+    iy = idx(:,2);
+    iz = idx(:,3);
+else
+    ix = idx;
+end
 
 end

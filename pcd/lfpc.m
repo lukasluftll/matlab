@@ -29,13 +29,9 @@ function L = lfpc(pc, map)
 narginchk(2, 2)
 
 %% Compute likelihood of point cloud.
-% Get the coordinates of the points in the cloud as a Nx3 matrix.
-p = reshape(pc.Location, pc.Count, 3);
-
 % For each point of the point cloud, compute the corresponding index of the
 % voxel grid.
-[ix, iy, iz] = grdidx(p, map.xgv, map.ygv, map.zgv);
-ip = [ix, iy, iz];
+ip = grdidx(reshape(pc.Location, pc.Count, 3), map.xgv, map.ygv, map.zgv);
 
 % Remove rows with zero indices.
 ip(any(ip==0, 2),:) = [];
