@@ -12,6 +12,9 @@
 % File name of the point cloud data file.
 file = 'data/castle.pcd';
 
+% Define the position of the sensor.
+origin = [0, 0, 0];
+
 % Shifting offset in x and y direction.
 shift = 5;
 
@@ -39,11 +42,11 @@ radiusFinite = pcd.radius;
 radiusFinite(~isfinite(radiusFinite)) = rlim(2);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
 vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
-lambda = decaymap(pcd.azimuth, pcd.elevation, radiusFinite, ...
+lambda = decaymap(origin, pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the decay rate prior.
-lambda.data(~isfinite(lambda)) = ...
+lambda.data(~isfinite(lambda.data)) = ...
     sum(isfinite(pcd.radius(:))) / sum(radiusFinite(:));
 
 % Limit the decay rates to a reasonable interval.
@@ -70,7 +73,6 @@ savefig(['pcd/results/decaymap_', ...
 
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
-waitbarHandle = waitbar(0, 'Computing scan probabilities ...');
 L = zeros(numel(gvs));
 for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
@@ -86,22 +88,15 @@ for i = 1 : numel(gvs)
         % Compute the log-likelihood of all measurements.
         L(i,j) = Lr + Lnr;
         
-        % Advance the progress bar.
-        waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, ...
-            waitbarHandle);
+        % Display the overall probabilities of the shifted scans.
+        surfHandle = surf(gvs, gvs, L);
+        title('Log-likelihood of Lidar measurement from decay map')
+        xlabel('x [m]')
+        ylabel('y [m]')
+        drawnow limitrate
     end
 end
-close(waitbarHandle);
 
-%% Display result.
-% Display the overall probabilities of the shifted scans.
-surfHandle = surf(gvs, gvs, L);
-
-% Add title and labels.
-title('Log-likelihood of Lidar measurement from decay map')
-xlabel('x [m]')
-ylabel('y [m]')
-
-% Save figure.
-savefig(['pcd/results/decaycastle_', ...
+%% Save figure.
+savefig(surfHandle, ['pcd/results/decaycastle_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
