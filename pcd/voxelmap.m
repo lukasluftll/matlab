@@ -115,15 +115,16 @@ classdef voxelmap < handle
                     lim = [min(obj.data(:)), max(obj.data(:))];
                     
                     % Compute the transparency values to plot.
-                    t = (obj.data + lim(1)) * diff(lim);
+                    t = (obj.data + lim(1)) / diff(lim);
                 case 'direct'
-                    % Crop data to interval [0; 1].
                     t = obj.data;
-                    t(t < 0) = 0;
-                    t(t > 1) = 1;
                 otherwise
                     error(['MODE ', mode, ' not supported.'])
             end
+            
+            % Crop data to interval [0; 1].
+            t(t < 0) = 0;
+            t(t > 1) = 1;
             
             % Plot.
             alphaplot(t, obj.xgv, obj.ygv, obj.zgv);
