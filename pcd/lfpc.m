@@ -34,19 +34,13 @@ p = reshape(pc.Location, pc.Count, 3);
 
 % For each point of the point cloud, compute the corresponding index of the
 % voxel grid.
-ip = zeros(0, 3);
-for i = 1 : size(p,1)
-    % Compute the grid index of the point.
-    iptmp = [...
-        find(map.xgv <= p(i,1) & p(i,1) < map.xgv(end), 1, 'last'), ...
-        find(map.ygv <= p(i,2) & p(i,2) < map.ygv(end), 1, 'last'), ...
-        find(map.zgv <= p(i,3) & p(i,3) < map.zgv(end), 1, 'last')];
-    
-    % If the point resides inside the grid, add it to the index matrix.
-    ip = [ip; iptmp(repmat(numel(iptmp)==3, size(iptmp)))]; %#ok<AGROW>
-end
+[ix, iy, iz] = grdidx(p, map.xgv, map.ygv, map.zgv);
+ip = [ix, iy, iz];
 
-% Convert the sbuscript indices to linear indices.
+% Remove rows with zero indices.
+ip(any(ip==0, 2),:) = [];
+
+% Convert the subscript indices to linear indices.
 ip = sub2ind(size(map.data), ip(:,1), ip(:,2), ip(:,3));
 
 % Compute the log-likelihood of the scan.
