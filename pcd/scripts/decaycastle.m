@@ -56,6 +56,7 @@ lambda.data = min(lambdaLim(2), lambda.data);
 % Visualize and save the decay rate map.
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
 plot(lambda);
+title('Decay rate map'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
 if ~exist('pcd/results', 'dir')
     mkdir('pcd', 'results');
 end
