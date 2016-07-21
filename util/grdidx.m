@@ -36,38 +36,31 @@ end
 gvchk(xgv, ygv, zgv);
 
 %% Compute voxel indices.
-% Compute the number of points.
-n = size(p, 1);
-
 % Use multiple workers to compute the voxel indices of all points.
 spmd
-    % Initialize the index vectors for this worker.
-    ixw = zeros(n, 1);
-    iyw = zeros(n, 1);
-    izw = zeros(n, 1);
+    % Initialize the index matrix for this worker.
+    iw = zeros(size(p));
     
     % Loop over this worker's share of all points.
-    for i = labindex : numlabs : n
+    for i = labindex : numlabs : size(p,1)
         % Compute the index of the point.
-        ixtmp = find(xgv <= p(i,1), 1, 'last') * (p(i,1) < xgv(end));
-        iytmp = find(ygv <= p(i,2), 1, 'last') * (p(i,2) < ygv(end));
-        iztmp = find(zgv <= p(i,3), 1, 'last') * (p(i,3) < zgv(end));
+        iwtmp = [find(xgv <= p(i,1), 1, 'last') * (p(i,1) < xgv(end)), ...
+            find(ygv <= p(i,2), 1, 'last') * (p(i,2) < ygv(end)), ...
+            find(zgv <= p(i,3), 1, 'last') * (p(i,3) < zgv(end))];
 
         % If the index could not be found, set it to 0.
-        ixw(i && ~isempty(ixtmp)) = ixtmp;
-        iyw(i && ~isempty(iytmp)) = iytmp;
-        izw(i && ~isempty(iztmp)) = iztmp;
+        iw(i, [true,true,true] & numel(iwtmp)==3) = iwtmp;
     end
 end
 
 % Merge the results of all the workers.
-ix = ixw{1};
-iy = iyw{1};
-iz = izw{1};
-for i = 2 : numel(ixw)
-    ix = ix + ixw{i};
-    iy = iy + iyw{i};
-    iz = iz + izw{i};
+idx = iw{1};
+for i = 2 : numel(iw)
+    idx = idx + iw{i};
 end
+
+ix = idx(:,1);
+iy = idx(:,2);
+iz = idx(:,3);
 
 end
