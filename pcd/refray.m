@@ -76,13 +76,13 @@ ray(inan,:) = (ray(inan,:) ./ repmat(l(inan), 1, 3)) * rmax;
 % Loop over all rays.
 nray = size(origin, 1);
 p = zeros(nray, 1);
-refdata = ref.data;
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
+    [vi, t] = trav(origin(i,:), ray(i,:), ...
+        ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
     
     % Convert the subscript indices to linear indices.
-    vi = sub2ind(size(refdata), vi(:,1), vi(:,2), vi(:,3));
+    vi = sub2ind(size(ref.data), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the probability depending on whether or not the ray returned.
     if ismember(i, inan)
@@ -95,18 +95,18 @@ parfor i = 1 : nray
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
         isub = vi(1 : ilim(1));
-        psub = 1 - prod(1-refdata(isub));
+        psub = 1 - prod(1-ref.data(isub));
     
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
         isup = vi(ilim(1)+1 : ilim(2));
-        psup = prod(1-refdata(isup));
+        psup = prod(1-ref.data(isup));
     
         % Sum up the probabilities to get the probability of NaN.
         p(i) = psub + psup;
     else      
         % Compute the probability of the given measurement.
-        m = refdata(vi);
+        m = ref.data(vi);
         p(i) = m(end) * prod(1 - m(1:end-1));
     end
 end
