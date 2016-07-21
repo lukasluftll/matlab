@@ -12,6 +12,9 @@
 % File name of the point cloud data file.
 file = 'data/castle.pcd';
 
+% Define the position of the sensor.
+origin = [0, 0, 0];
+
 % Shifting offset in x and y direction.
 shift = 5;
 
@@ -39,7 +42,7 @@ radiusFinite = pcd.radius;
 radiusFinite(~isfinite(radiusFinite)) = rlim(2);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
 vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
-ref = refmap(pcd.azimuth, pcd.elevation, radiusFinite, ...
+ref = refmap(origin, pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
