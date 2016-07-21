@@ -54,6 +54,7 @@ c = [cx(:), cy(:), cz(:)];
 [~, dist] = knnsearch(reshape(pc.Location, pc.Count, 3), c);
 
 % Compute the likelihood field.
-lf = voxelmap(reshape(normpdf(dist, 0, sigma), size(c)), xgv, ygv, zgv);
+gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+lf = voxelmap(reshape(normpdf(dist, 0, sigma), gridsize), xgv, ygv, zgv);
 
 end
