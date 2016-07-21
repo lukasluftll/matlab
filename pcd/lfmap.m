@@ -44,33 +44,16 @@ end
 gvchk(xgv, ygv, zgv);
 
 %% Calculate the likelihood field.
-% Determine the size of the voxel grid.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
-
 % Compute a IxJxK matrix whose rows contain the coordinates voxel centers.
 [cx, cy, cz] = ndgrid(xgv(1:end-1) + diff(xgv)/2, ...
     ygv(1:end-1) + diff(ygv)/2, zgv(1:end-1) + diff(zgv)/2);
 c = [cx(:), cy(:), cz(:)];
 
-% Use multiple workers to loop over all voxels and compute their distances 
-% to the nearest point.
-spmd
-    % Create the distance field for this worker.
-    dfw = zeros(gridsize);
-    
-    for i = labindex : numlabs : size(c, 1)
-        [~, dist] = findNearestNeighbors(pc, c(i,:), 1);
-        dfw(i) = dist;
-    end
-end
-
-% Merge the distance fields.
-df = dfw{1};
-for i = 2 : numel(dfw)
-    df = df + dfw{i};
-end
+% For each voxel center, compute the distance to the nearest point of the 
+% point cloud.
+[~, dist] = knnsearch(reshape(pc.Location, pc.Count, 3), c);
 
 % Compute the likelihood field.
-lf = voxelmap(normpdf(df, 0, sigma), xgv, ygv, zgv);
+lf = voxelmap(reshape(normpdf(dist, 0, sigma), size(c)), xgv, ygv, zgv);
 
 end
