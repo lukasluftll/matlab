@@ -43,7 +43,7 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
-%% Calculate the likelihood field.
+%% Calculate likelihood field.
 % Compute a IxJxK matrix whose rows contain the coordinates voxel centers.
 [cx, cy, cz] = ndgrid(xgv(1:end-1) + diff(xgv)/2, ...
     ygv(1:end-1) + diff(ygv)/2, zgv(1:end-1) + diff(zgv)/2);
