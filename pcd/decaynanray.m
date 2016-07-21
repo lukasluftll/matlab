@@ -1,9 +1,9 @@
-function p = decaynanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
+function p = decaynanray(origin, ray, rlim, lambda)
 % DECAYNANRAY Compute probability of NaN Lidar measurement from decay map.
-%   P = DECAYNANRAY(ORIGIN, RAY, RLIM, LAMBDA, XGV, YGV, ZGV) computes the
-%   probability of obtaining the measurement NaN from a Lidar sensor that 
-%   sends a ray from ORIGIN in direction RAY through a ray decay voxel 
-%   grid defined by LAMBDA with grid vectors XGV, YGV, ZGV.
+%   P = DECAYNANRAY(ORIGIN, RAY, RLIM, LAMBDA) computes the probability of 
+%   obtaining the measurement NaN from a Lidar sensor that sends a ray from 
+%   ORIGIN in direction RAY through a ray decay voxel grid defined by 
+%   LAMBDA with grid vectors XGV, YGV, ZGV.
 %
 %   ORIGIN and RAY are Mx3 matrices whose rows contain the Cartesian 
 %   origins and ray vectors of the M measured rays. If all rays originate
@@ -14,16 +14,8 @@ function p = decaynanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
 %   radius detected by the Lidar sensor. All other radii are assumed to
 %   result in an NaN measurement.
 %
-%   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
-%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
-%   the inequality:
-%
-%      (XGV(i) <= x < XGV(i+1))
-%      && (YGV(j) <= y < YGV(j+1)) 
-%      && (ZGV(k) <= z < ZGV(k+1))
-%
-%   LAMBDA is a IxJxK matrix that contains the mean decay rate of each map
-%   voxel, where I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
+%   LAMBDA is a voxelmap object that contains the mean decay rate of each 
+%   map voxel.
 %
 %   P is an M-element column vector. The value of the m-th element
 %   corresponds to the probability of obtaining NaN for the m-th 
@@ -33,17 +25,16 @@ function p = decaynanray(origin, ray, rlim, lambda, xgv, ygv, zgv)
 %      origin = [0, 0, 0];
 %      ray = [3, 4, 5];
 %      rlim = [1; 100];
-%      lambda = repmat(magic(5)/100, [1, 1, 5]);
-%      gv = 0 : 5;
-%      p = decaynanray(origin, ray, rlim, lambda, gv, gv, gv)
+%      lambda = voxelmap(repmat(magic(5)/100, [1, 1, 5]), 0:5, 0:5, 0:5);
+%      p = decaynanray(origin, ray, rlim, lambda)
 %
-%   See also DECAYRAY, DECAYMAP.
+%   See also VOXELMAP, DECAYRAY, DECAYMAP.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check whether the user provided the correct number of input arguments.
-narginchk(7, 7);
+narginchk(4, 4);
 
 % Check if the arguments have the expected sizes.
 if ~(ismatrix(origin) && ismatrix(ray))
@@ -59,7 +50,7 @@ if size(origin, 1) == 1
 end
 
 % Make sure all input arguments contain finite values only.
-if ~all(isfinite([origin(:); ray(:); rlim(:); lambda(:)]))
+if ~all(isfinite([origin(:); ray(:); rlim(:); lambda.data(:)]))
     error('All input arguments must not be NaN or Inf.')
 end
 
@@ -71,14 +62,6 @@ end
 % Check whether RLIM is sorted.
 if diff(rlim) <= 0
     error('RLIM(2) must be greater than RLIM(1).');
-end
-
-% Check the grid vectors.
-gvchk(xgv, ygv, zgv)
-
-% Check whether LAMBDA has the correct size.
-if any(size(lambda) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
-    error('Size of LAMBDA does not match grid vectors.')
 end
 
 %% Compute probability of NaN measurements.
@@ -100,10 +83,11 @@ tmin = rlim(1) / rlim(2);
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses from the
     % origin to the maximum sensor range.
-    [vi, t] = trav(origin(i,:), ray(i,:), xgv, ygv, zgv);
+    [vi, t] = trav(origin(i,:), ray(i,:), ...
+        lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
     
     % Convert the subscript indices to linear indices.
-    vi = sub2ind(size(lambda), vi(:,1), vi(:,2), vi(:,3));
+    vi = sub2ind(size(lambda.data), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the length of the ray apportioned to each voxel when
     % traversing the grid from origin to maximum sensor range.
@@ -111,7 +95,7 @@ parfor i = 1 : nray
     
     % Compute the probability of obtaining an NaN measurement between 
     % maximum sensor range and infinity.
-    psup = exp(-sum(lambda(vi) .* d));
+    psup = exp(-sum(lambda.data(vi) .* d));
     
     % Compute the length of the ray apportioned to each voxel when
     % traversing the grid from origin to minimum sensor range.
@@ -120,7 +104,7 @@ parfor i = 1 : nray
     
     % Compute the probability of obtaining an NaN measurement between
     % origin and minimum sensor range.
-    psub = 1 - exp(-sum(lambda(vi(1:max([length(d), 1]))) .* d));
+    psub = 1 - exp(-sum(lambda.data(vi(1:max([length(d), 1]))) .* d));
     
     % Compute the overall probability of obtaining an NaN measurement.
     p(i) = psub + psup;

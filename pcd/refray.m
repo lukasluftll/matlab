@@ -25,9 +25,8 @@ function p = refray(origin, ray, rlim, ref)
 %      origin = [0, 0, 0];
 %      ray = [3, 4, 5];
 %      rlim = [1, 10];
-%      ref = repmat(magic(5)/100, [1, 1, 5]);
-%      gv = 0 : 5;
-%      p = refray(origin, ray, rlim, voxelmap(ref, gv, gv, gv))
+%      ref = voxelmap(repmat(magic(5)/100, [1, 1, 5]), 0:5, 0:5, 0:5);
+%      p = refray(origin, ray, rlim, ref)
 %
 %   See also VOXELMAP, REFMAP, DECAYRAY.
 
