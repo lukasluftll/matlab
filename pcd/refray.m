@@ -71,7 +71,7 @@ inan = l < rlim(1) | l > rlim(2);
 % Set the length of no-return rays to maximum sensor range.
 rmax = rlim(2);
 if sum(inan) > 0
-    ray(inan,:) = ray(inan,:) / l(inan) * rmax;
+    ray(inan,:) = ray(inan,:) ./ l(inan) * rmax;
 end
 
 %% Compute probability of measurements.
