@@ -53,6 +53,7 @@ ref.data = max(refLim(1), ref.data);
 ref.data = min(refLim(2), ref.data);
 
 % Visualize and save the reflectivity map.
+figure('Name', 'refcastle map', 'NumberTitle', 'Off')
 plot(ref);
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
 title('Reflectivity map'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
@@ -69,6 +70,7 @@ savefig(['pcd/results/refmap_', ...
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
 L = zeros(numel(gvs));
+waitbarHandle = waitbar(0, 'Computing scan likelihoods ...');
 for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
@@ -76,14 +78,19 @@ for i = 1 : numel(gvs)
         % Compute the log-likelihood of the measurements.
         L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], rlim, ref)));
         
-        % Display the overall probabilities of the shifted scans.
-        surf(gvs, gvs, L);
-        title('Log-likelihood of Lidar measurement from reflection map')
-        xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');
-        drawnow limitrate
+        % Advance progress bar.
+        waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, waitbarHandle);
     end
 end
+close(waitbarHandle);
 
-%% Save figure.
+%% Plot log-likelihood of shifted scans.
+% Display the overall log-likelihoods of the shifted scans.
+figure('Name', 'refcastle log-likelihood', 'NumberTitle', 'Off');
+surf(gvs, gvs, L);
+title('Log-likelihood of Lidar measurement from reflection map')
+xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');
+
+% Save the figure.
 savefig(['pcd/results/refcastle_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);

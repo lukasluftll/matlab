@@ -54,20 +54,25 @@ savefig(['pcd/results/lfmap_', ...
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
 L = zeros(numel(gvs));
+waitbarHandle = waitbar(0, 'Computing scan likelihoods ...');
 for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         % Compute the log-likelihood of the shifted point cloud.
         t = affine3d([1 0 0 0; 0 1 0 0; 0 0 1 0; gvs(i), gvs(j), 0, 1]);
-        L(i,j) = lfpc(pctransform(pc, t), lf);
+        L(i,j) = lfpc(pctransform(pc, t), lf);       
+        
+        % Advance the progress bar.
+        waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, waitbarHandle);
     end
 end
+close(waitbarHandle);
 
-%% Display result.
-% Display the overall probabilities of the shifted scans.
+%% Plot log-likelihood of shifted scans.
+% Display the overall log-likelihoods of the shifted scans.
 surf(gvs, gvs, L);
 title('Log-likelihood of Lidar measurement from likelihood field')
 xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');
 
-% Save figure.
+% Save the figure.
 savefig(['pcd/results/lfcastle_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
