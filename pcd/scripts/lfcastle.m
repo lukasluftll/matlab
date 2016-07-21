@@ -64,10 +64,10 @@ end
 
 %% Display result.
 % Display the overall probabilities of the shifted scans.
-surfHandle = surf(gvs, gvs, L);
+surf(gvs, gvs, L);
 title('Log-likelihood of Lidar measurement from likelihood field')
 xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');
 
 % Save figure.
-savefig(surfHandle, ['pcd/results/lfcastle_', ...
+savefig(['pcd/results/lfcastle_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);

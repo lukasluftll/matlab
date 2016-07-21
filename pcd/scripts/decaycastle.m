@@ -90,7 +90,7 @@ for i = 1 : numel(gvs)
         L(i,j) = Lr + Lnr;
         
         % Display the overall probabilities of the shifted scans.
-        surfHandle = surf(gvs, gvs, L);
+        surf(gvs, gvs, L);
         title('Log-likelihood of Lidar measurement from decay map')
         xlabel('x [m]')
         ylabel('y [m]')
@@ -99,5 +99,5 @@ for i = 1 : numel(gvs)
 end
 
 %% Save figure.
-savefig(surfHandle, ['pcd/results/decaycastle_', ...
+savefig(['pcd/results/decaycastle_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);

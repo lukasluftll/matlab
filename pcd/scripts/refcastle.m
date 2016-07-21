@@ -77,7 +77,7 @@ for i = 1 : numel(gvs)
         L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], rlim, ref)));
         
         % Display the overall probabilities of the shifted scans.
-        surfHandle = surf(gvs, gvs, L);
+        surf(gvs, gvs, L);
         title('Log-likelihood of Lidar measurement from reflection map')
         xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]');
         drawnow limitrate
@@ -85,5 +85,5 @@ for i = 1 : numel(gvs)
 end
 
 %% Save figure.
-savefig(surfHandle, ['pcd/results/refcastle_', ...
+savefig(['pcd/results/refcastle_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
