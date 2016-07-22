@@ -44,17 +44,32 @@ end
 gvchk(xgv, ygv, zgv);
 
 %% Calculate likelihood field.
-% Compute a IxJxK matrix whose rows contain the coordinates voxel centers.
+% Compute an IxJxK matrix whose rows contain the coordinates of the voxel 
+% centers.
 [cx, cy, cz] = ndgrid(xgv(1:end-1) + diff(xgv)/2, ...
     ygv(1:end-1) + diff(ygv)/2, zgv(1:end-1) + diff(zgv)/2);
 c = [cx(:), cy(:), cz(:)];
 
+% Make sure the points are not organized.
+points = reshape(pc.Location, pc.Count, 3);
+
 % For each voxel center, compute the distance to the nearest point of the 
-% point cloud.
-[~, dist] = knnsearch(reshape(pc.Location, pc.Count, 3), c);
+% point cloud in parallel using multiple workers.spmd 
+spmd
+    % Compute the number of voxels per parallel worker.
+    cpw = ceil(size(c,1) / numlabs);
+
+    % Compute the rows of c that this worker considers.
+    rc = 1 + (labindex-1)*cpw : min(labindex*cpw, size(c,1));
+    
+    % Compute the distance to the nearest neighbor.
+    [~, dist] = knnsearch(points, c(rc,:));
+end
+
+% Merge the results of the individual workers.
+dist = reshape(cell2mat(dist(:)), [numel(xgv),numel(ygv),numel(zgv)] - 1);
 
 % Compute the likelihood field.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
-lf = voxelmap(reshape(normpdf(dist, 0, sigma), gridsize), xgv, ygv, zgv);
+lf = voxelmap(normpdf(dist, 0, sigma), xgv, ygv, zgv);
 
 end
