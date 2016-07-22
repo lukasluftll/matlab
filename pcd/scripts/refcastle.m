@@ -31,7 +31,7 @@ rlim = [0.9, 130];
 elevationMax = deg2rad(16);
 
 % Minimum and maximum admissible reflectivity.
-refLim = [0.1, 0.9];
+refLim = [0.001, 0.999];
 
 %% Compute decay rate map.
 % Read the point cloud.
@@ -46,7 +46,8 @@ ref = refmap(origin, pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
-ref.data(~isfinite(ref.data)) = mean(ref.data(:), 'omitnan');
+ref.data(~isfinite(ref.data)) = refLim(1);
+ref.data(~isfinite(ref.data)) = mean(ref.data(:));
 
 % Limit the decay rates to a reasonable interval.
 ref.data = max(refLim(1), ref.data);
