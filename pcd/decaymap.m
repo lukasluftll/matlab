@@ -101,7 +101,7 @@ gvchk(xgv, ygv, zgv);
 nray = numel(azimuth);
 
 % Determine the size of the voxel grid.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 
 %% Sum up ray lengths and returns.
 % Use multiple workers to compute the ray length per voxel.

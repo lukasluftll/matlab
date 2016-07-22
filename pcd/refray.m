@@ -69,7 +69,7 @@ l = sqrt(sum(ray.^2, 2));
 inan = l < rlim(1) | l > rlim(2);
 
 % Set the length of no-return rays to maximum sensor range.
-if sum(inan) > 0
+if any(inan)
     ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rlim(2);
 end
 

@@ -93,7 +93,7 @@ gvchk(xgv, ygv, zgv);
 nray = numel(azimuth);
 
 % Determine the size of the voxel grid.
-gridsize = [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1];
+gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 
 %% Count hits and misses.
 % Use multiple workers to compute the number of returns and traversals 
