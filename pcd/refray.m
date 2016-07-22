@@ -74,20 +74,20 @@ if sum(inan) > 0
     ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rmax;
 end
 
-%% Compute probability of measurements.
+%% Compute likelihood of measurements.
 % Loop over all rays.
 nray = size(origin, 1);
 p = zeros(nray, 1);
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(origin(i,:), ray(i,:), ...
+    [vi, t] = trav(origin, ray(i,:), ...
         ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
     
     % Convert the subscript indices to linear indices.
     vi = sub2ind(size(ref.data), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the probability depending on whether or not the ray returned.
-    if ismember(i, inan)
+    if ismember(i, inan) % Ray does not return.
         % Compute the indices of the voxels on the ray next to the minimum 
         % and maximum measurement range barrier.
         [~, ilim] = min(abs(...
@@ -106,7 +106,7 @@ parfor i = 1 : nray
     
         % Sum up the probabilities to get the probability of NaN.
         p(i) = psub + psup;
-    else      
+    else % Ray returns.
         % Compute the probability of the given measurement.
         m = ref.data(vi);
         p(i) = m(end) * prod(1 - m(1:end-1));
