@@ -64,6 +64,9 @@ savefig(['pcd/results/refmap_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 
 %% Compute log-likelihood of shifted scans.
+% Set the length of the NaN rays to a value outside the measurement range.
+radiusFinite(~isfinite(pcd.radius)) = -1;
+
 % Compute the direction vectors of the rays.
 [dirx, diry, dirz] = sph2cart(pcd.azimuth, pcd.elevation, radiusFinite);
 
