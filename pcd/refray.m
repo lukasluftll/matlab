@@ -69,12 +69,11 @@ l = sqrt(sum(ray.^2, 2));
 inan = l < rlim(1) | l > rlim(2);
 
 % Set the length of no-return rays to maximum sensor range.
-rmax = rlim(2);
 if sum(inan) > 0
-    ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rmax;
+    ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rlim(2);
 end
 
-%% Compute likelihood of measurements.
+%% Compute probability of measurements.
 % Loop over all rays.
 nray = size(origin, 1);
 p = zeros(nray, 1);
@@ -88,11 +87,9 @@ parfor i = 1 : nray
     
     % Compute the probability depending on whether or not the ray returned.
     if ismember(i, inan) % Ray does not return.
-        % Compute the indices of the voxels on the ray next to the minimum 
+        % Compute the indices of the voxels on the ray before the minimum 
         % and maximum measurement range barrier.
-        [~, ilim] = min(abs(...
-            repmat(t*rmax, 1, numel(rlim)) - repmat(rlim, numel(t), 1)));
-        ilim = ilim - 1;
+        ilim = knnsearch(t*rlim(2), rlim) - 1;
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
@@ -101,15 +98,14 @@ parfor i = 1 : nray
     
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
-        isup = vi(ilim(1)+1 : ilim(2));
+        isup = vi(1 : ilim(2));
         psup = prod(1-ref.data(isup));
     
         % Sum up the probabilities to get the probability of NaN.
         p(i) = psub + psup;
     else % Ray returns.
         % Compute the probability of the given measurement.
-        m = ref.data(vi);
-        p(i) = m(end) * prod(1 - m(1:end-1));
+        p(i) = ref.data(vi(end)) * prod(1 - ref.data(vi(1:end-1)));
     end
 end
 
