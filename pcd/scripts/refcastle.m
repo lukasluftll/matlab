@@ -54,8 +54,8 @@ ref.data = min(refLim(2), ref.data);
 
 % Visualize and save the reflectivity map.
 figure('Name', 'refcastle map', 'NumberTitle', 'Off')
-plot(ref);
 rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
+plot(ref);
 title('Reflectivity map'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
 if ~exist('pcd/results', 'dir')
     mkdir('pcd', 'results');
