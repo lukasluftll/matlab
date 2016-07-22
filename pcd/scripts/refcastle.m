@@ -46,8 +46,9 @@ ref = refmap(origin, pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
-ref.data(~isfinite(ref.data)) = refLim(1);
-ref.data(~isfinite(ref.data)) = mean(ref.data(:));
+prior = ref.data;
+prior(~isfinite(prior)) = refLim(1);
+ref.data(~isfinite(ref.data)) = mean(prior(:));
 
 % Limit the decay rates to a reasonable interval.
 ref.data = max(refLim(1), ref.data);
