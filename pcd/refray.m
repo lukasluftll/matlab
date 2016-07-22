@@ -79,7 +79,7 @@ nray = size(origin, 1);
 p = zeros(nray, 1);
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(origin, ray(i,:), ...
+    [vi, t] = trav(origin(i,:), ray(i,:), ...
         ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
     
     % Convert the subscript indices to linear indices.
@@ -89,7 +89,7 @@ parfor i = 1 : nray
     if ismember(i, inan) % Ray does not return.
         % Compute the indices of the voxels on the ray before the minimum 
         % and maximum measurement range barrier.
-        ilim = knnsearch(t*rlim(2), rlim) - 1;
+        ilim = knnsearch(t*rlim(2), rlim(:)) - 1; %#ok<PFBNS>
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
