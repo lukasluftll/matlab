@@ -1,24 +1,23 @@
 function p = refray(origin, ray, rlim, ref)
 % REFRAY Compute probability of Lidar measurement from reflectivity map.
-%   p = REFRAY(ORIGIN, RAY, RLIM, REF, XGV, YGV, ZGV) computes the 
-%   probability of obtaining the Lidar ray measurement defined by ORIGIN 
-%   and RAY conditioned on the reflectivity map REF with grid vectors XGV, 
-%   YGV, ZGV.
+%   P = REFRAY(ORIGIN, RAY, RLIM, REF) computes the probability of 
+%   obtaining the Lidar measurement defined by ORIGIN and RAY conditioned 
+%   on the reflectivity map REF.
 %
 %   ORIGIN and RAY are Mx3 matrices whose rows contain the Cartesian 
-%   origins and ray vectors of the M measured rays. If all rays originate
-%   from the same point, ORIGIN may also be a 1x3 matrix.
+%   origin coordinates and the ray vectors of the M measured rays. If all 
+%   rays originate from the same point, ORIGIN may also be a 1x3 matrix.
 %
 %   RLIM is a 2-element vector that defines the minimum and the maximum
-%   radius detected by the Lidar sensor. RAY values that are not element of
-%   the interval defined by RLIM are assumed to be no-return measurements.
-%   For these measurements, RAY carries only information about the
-%   direction of the ray, not about its length.
+%   radius detected by the Lidar sensor. RAY rows whose lengths are not 
+%   element of the interval defined by RLIM are assumed to be no-return 
+%   measurements. For these measurements, RAY carries only information 
+%   about the direction of the ray, not about its length.
 %
 %   REF is a voxelmap object that contains the reflectivity of each map 
 %   voxel.
 %
-%   p is an M-element column vector. The value of the m-th element
+%   P is an M-element column vector. The value of the m-th element
 %   corresponds to the probability of obtaining the m-th measurement.
 %
 %   Example:
