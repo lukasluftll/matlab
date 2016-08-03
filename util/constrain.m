@@ -22,7 +22,7 @@ if diff(lim <= 0)
     error('LIM must be ordered.')
 end
 
-%% Fit X into LIM.
+%% Fit input into interval.
 x(x < lim(1)) = lim(1);
 x(x > lim(2)) = lim(2);
 y = x;
