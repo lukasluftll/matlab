@@ -1,4 +1,4 @@
-% Visualizes th log-likelihood of obtaining a shifted Lidar scan given a
+% Visualizes the log-likelihood of obtaining a shifted Lidar scan given a
 % reflectivity map created from the same Lidar scan at the true pose.
 %
 % Steps:
@@ -12,13 +12,13 @@
 % File name of the point cloud data file.
 file = 'data/castle.pcd';
 
-% Define the position of the sensor.
-origin = [0, 0, 0];
+% Define the position of the sensor w.r.t. the reflectivity map.
+mts = affine3d();
 
 % Shifting offset in x and y direction.
 shift = 5;
 
-% Resolution of the decay rate map.
+% Resolution of the reflectivity map.
 res = 1;
 
 % Resolution of the log-likelihood graph.
@@ -33,24 +33,23 @@ elevationMax = deg2rad(16);
 % Minimum and maximum admissible reflectivity.
 refLim = [0.001, 0.999];
 
-%% Compute decay rate map.
+%% Compute reflectivity map.
 % Read the point cloud.
 pcd = pcdread(file);
 
-% Compute the decay rate map.
+% Compute the reflectivity map.
 radiusFinite = pcd.radius;
-radiusFinite(~isfinite(radiusFinite)) = rlim(2);
+radiusFinite(~isfinite(pcd.radius)) = rlim(2);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
 vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
-ref = refmap(origin, pcd.azimuth, pcd.elevation, radiusFinite, ...
+ref = refmap(mts, pcd.azimuth, pcd.elevation, radiusFinite, ...
     isfinite(pcd.radius), hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
 ref.data(~isfinite(ref.data)) = mean(ref.data(:), 'omitnan');
 
-% Limit the decay rates to a reasonable interval.
-ref.data = max(refLim(1), ref.data);
-ref.data = min(refLim(2), ref.data);
+% Limit the decay rates to the admissible reflectivity interval.
+ref.data = constrain(ref.data, refLim);
 
 % Visualize and save the reflectivity map.
 figure('Name', 'refcastle map', 'NumberTitle', 'Off')
