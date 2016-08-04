@@ -90,7 +90,8 @@ parfor i = 1 : nray
     % ray returned.
     if inan(i) % Ray does not return.
         % Compute the indices of the voxels on the ray directly in front
-        % of the beginning and the end of the measurement interval.
+        % of the beginning and in front of the end of the measurement 
+        % interval.
         ilim = knnsearch(t*rnan, rlim(:)) - 1; %#ok<PFBNS>
         
         % Calculate the probability that the ray is reflected before 
