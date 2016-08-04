@@ -119,9 +119,9 @@ end
 
 %% Compute reflectivity.
 % Merge the hits and misses matrices calculated by the workers.
-h = zeros(gridsize);
-m = zeros(gridsize);
-for i = 1 : numel(hw)
+h = hw{1};
+m = mw{1};
+for i = 2 : numel(hw)
     h = h + hw{i};
     m = m + mw{i};
 end
