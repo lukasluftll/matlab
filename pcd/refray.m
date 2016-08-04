@@ -74,7 +74,7 @@ end
 
 %% Compute probability of measurements.
 % Loop over all rays.
-nray = size(origin, 1);
+nray = size(ray, 1);
 p = zeros(nray, 1);
 parfor i = 1 : nray
     % Compute the indices of the grid cells that the ray traverses.
@@ -84,10 +84,11 @@ parfor i = 1 : nray
     % Convert the subscript indices to linear indices.
     vi = sub2ind(size(ref.data), vi(:,1), vi(:,2), vi(:,3));
     
-    % Compute the probability depending on whether or not the ray returned.
-    if ismember(i, inan) % Ray does not return.
-        % Compute the indices of the voxels on the ray before the minimum 
-        % and maximum measurement range barrier.
+    % Compute the measurement probability depending on whether or not the 
+    % ray returned.
+    if inan(i) % Ray does not return.
+        % Compute the indices of the voxels on the ray directly in front
+        % and behind the measurement interval.
         ilim = knnsearch(t*rlim(2), rlim(:)) - 1; %#ok<PFBNS>
         
         % Calculate the probability that the ray is reflected before 
@@ -100,10 +101,12 @@ parfor i = 1 : nray
         isup = vi(1 : ilim(2));
         psup = prod(1-ref.data(isup));
     
-        % Sum up the probabilities to get the probability of NaN.
+        % Sum up the probabilities to get the probability of the ray being
+        % reflected before or after the measurement interval.
         p(i) = psub + psup;
     else % Ray returns.
-        % Compute the probability of the given measurement.
+        % Compute the probability of the ray being reflected in the last
+        % voxel it traverses.
         p(i) = ref.data(vi(end)) * prod(1 - ref.data(vi(1:end-1)));
     end
 end
