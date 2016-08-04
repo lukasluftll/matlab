@@ -67,9 +67,11 @@ l = sqrt(sum(ray.^2, 2));
 % Determine which rays are no-returns.
 inan = l < rlim(1) | l > rlim(2);
 
-% Set the length of no-return rays to maximum sensor range.
+% Set the length of no-return rays to maximum sensor range plus the
+% diameter of the largest voxel.
+rnan = rlim(2) + sqrt(3)*max([diff(ref.xgv),diff(ref.ygv),diff(ref.zgv)]);
 if any(inan)
-    ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rlim(2);
+    ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rnan;
 end
 
 %% Compute probability of measurements.
@@ -88,14 +90,14 @@ parfor i = 1 : nray
     % ray returned.
     if inan(i) % Ray does not return.
         % Compute the indices of the voxels on the ray directly in front
-        % and behind the measurement interval.
-        ilim = knnsearch(t*rlim(2), rlim(:)) - 1; %#ok<PFBNS>
+        % of the beginning and the end of the measurement interval.
+        ilim = knnsearch(t*rnan, rlim(:)) - 1; %#ok<PFBNS>
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
         isub = vi(1 : ilim(1));
         psub = 1 - prod(1-ref.data(isub));
-    
+
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
         isup = vi(1 : ilim(2));
