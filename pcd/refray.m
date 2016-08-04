@@ -70,9 +70,7 @@ inan = l < rlim(1) | l > rlim(2);
 % Set the length of no-return rays to maximum sensor range plus the
 % diameter of the largest voxel.
 rnan = rlim(2) + sqrt(3)*max([diff(ref.xgv),diff(ref.ygv),diff(ref.zgv)]);
-if any(inan)
-    ray(inan,:) = ray(inan,:) ./ repmat(l(inan), 1, 3) * rnan;
-end
+ray(inan,:) = ray(inan,:) ./ [zeros(0, 3); repmat(l(inan), 1, 3)] * rnan;
 
 %% Compute probability of measurements.
 % Loop over all rays.
