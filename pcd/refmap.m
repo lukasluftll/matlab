@@ -8,8 +8,9 @@ function [ref, h, m] = refmap(mts, azi, ele, r, ret, xgv, ygv, zgv)
 %   MTS is an affine3d object that defines the pose of the sensor with
 %   respect to the reflectivity map frame.
 %
-%   AZI and ELE are HEIGHTxWIDTH matrices, where HEIGHT and WIDTH describe 
-%   the size of the point cloud. The unit is rad.
+%   AZI and ELE are HEIGHTxWIDTH matrices that define the azimuth and 
+%   elevation angles of the laser rays with respect to the sensor frame.
+%   HEIGHT and WIDTH describe the size of the point cloud. The unit is rad.
 %
 %   R is a HEIGHTxWIDTH matrix that contains the length of the respective 
 %   ray. For no-return rays, this length must equal the maximum sensor 
@@ -46,7 +47,7 @@ function [ref, h, m] = refmap(mts, azi, ele, r, ret, xgv, ygv, zgv)
 %      ref = refmap(affine3d(), pc.azimuth, pc.elevation, radiusFinite, ...
 %                   isfinite(pc.radius), hgv, hgv, vgv)
 %
-%   See also VOXELMAP, REFRAY, REFNANRAY, DECAYMAP.
+%   See also AFFINE3D, VOXELMAP, REFRAY, REFNANRAY, DECAYMAP.
 
 % Copyright 2016 Alexander Schaefer
 %
@@ -61,7 +62,7 @@ narginchk(8, 8);
 
 % Check the sensor pose.
 if ~isa(mts, 'affine3d')
-    error('ORG must be an affine3d object.')
+    error('MTS must be an affine3d object.')
 end
 
 % Check whether the spherical coordinate matrices and the reflection matrix
