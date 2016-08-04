@@ -40,8 +40,8 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   Example:
 %      origin = [5, 1.5, 1];
 %      ray = [-10, 0, 0];
-%      gv = -2 : 2; xgv = gv; ygv = gv; zgv = gv;
-%      [i, t] = trav2(origin, ray, xgv, ygv, zgv)
+%      gv = -2 : 2;
+%      [i, t] = trav(origin, ray, gv, gv, gv)
 %
 %   See also SLAB, NAN.
 
