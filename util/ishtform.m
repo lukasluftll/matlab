@@ -15,20 +15,32 @@ function h = ishtform(tform)
 % Copyright 2016 Alexander Schaefer
 
 %% Check matrix properties.
+h = false;
+
 % Check finite values.
-finiteOk = all(isfinite(tform(:)));
+if ~all(isfinite(tform(:)))
+    return
+end
 
 % Check size.
-sizeOk = size(tform) == [4, 4];
+if ~ismatrix(tform)
+    return
+end
+if ~all(size(tform) == [4, 4])
+    return
+end
 
 % Check correctness of rotation matrix.
-rotOk = tform(1:3,1:3)' == inv(tform(1:3,1:3));
+if ~all(tform(1:3,1:3)' == inv(tform(1:3,1:3)))
+    return
+end
 
 % Check last row.
-rowOk = tform(4,:) == [0, 0, 0, 1];
+if ~all(tform(4,:) == [0, 0, 0, 1])
+    return
+end
 
-%% Determine matrix type.
-h = finiteOk && sizeOk && rotOk && rowOk;
+h = true;
 
 end
 
