@@ -163,6 +163,7 @@ classdef laserscan < handle
             %   AZIMUTH, ELEVATION, and RADIUS used when constructing the
             %   laserscan object. All elements of INR that correspond to
             %   no-return rays are true, all others are false.
+            
             inr = ~isfinite(obj.radius) | obj.radius < obj.rlim(1) ...
                 | obj.radius > obj.rlim(2);
         end
@@ -170,10 +171,10 @@ classdef laserscan < handle
         % Plot the laser scan.
         function plot(obj)
             % PLOT Plot laser scan.
-            %   PLOT(OBJ) visualizes the rays of the laser scan. Returned 
-            %   rays are plotted in red, no-return rays are plotted in 
-            %   light gray.
-            
+            %   PLOT(OBJ) visualizes the rays originating from the laser 
+            %   scanner. Returned rays are plotted in red, no-return rays 
+            %   are plotted in light gray.
+                        
             %% Compute visualized radius of no-return rays.
             plotradius = obj.radius;
             if isfinite(obj.rlim(2))
@@ -181,9 +182,54 @@ classdef laserscan < handle
             else
                 plotradius(noret(obj)) = max(obj.radius);    
             end
+
+            % Convert the spherical coordinates to Cartesian coordinates.
+            [x, y, z] = sph2cart(obj.azimuth, obj.elevation, plotradius);
             
-            %% Plot scan.
-            rayplot(obj.azimuth, obj.elevation, plotradius, noret(obj));
+            % Rotate the rays around the origin.
+            
+            
+            p = [x, y, z];
+
+%% Plot rays.
+% Plot the returned rays.
+pret = kron(p(ret(:),:), [0; 1]);
+retray = plot3(pret(:,1), pret(:,2), pret(:,3), 'Color', 'red');
+if ~isempty(retray)
+    retray.Color(4) = 0.5;
+end
+
+% Plot the no-return rays.
+pnan = kron(p(~ret(:),:), [0; 1]);
+hold on
+nanray = plot3(pnan(:,1), pnan(:,2), pnan(:,3), 'Color', 'k');
+if ~isempty(nanray)
+    nanray.Color(4) = 0.03;
+end
+
+%% Plot decoration.
+% Plot the sensor origin.
+plot3(0, 0, 0, 'Color', 'k', 'Marker', '.', 'MarkerSize', 50);
+
+% Plot the Cartesian axes.
+plot3([0, max(x(:))], [0, 0], [0, 0], 'Color', 'r', 'LineWidth', 3);
+plot3([0, 0], [0, max(y(:))], [0, 0], 'Color', 'g', 'LineWidth', 3);
+plot3([0, 0], [0, 0], [0, max(z(:))], 'Color', 'b', 'LineWidth', 3);
+
+% Plot the point cloud.
+pcshow(pointCloud(pret), 'MarkerSize', 30);
+hold off
+
+% Label the axes.
+xlabel('x')
+ylabel('y')
+zlabel('z')
+
+axis equal
+grid on
+
+end
+
         end
     end   
 end
