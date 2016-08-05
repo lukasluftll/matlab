@@ -9,7 +9,7 @@ function groundIndex = coneseg(incloud, coneAngle)
 %
 %   Example : segment and display ground points 
 %   -------------------------------------------
-%   data = pcdread('campus.pcd');
+%   data = pcdread('field.pcd');
 %   cloud = pointCloud([data.x(:), data.y(:), data.z(:)]);
 %   pcshow(cloud.select(coneseg(cloud)));
 %
