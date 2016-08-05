@@ -17,7 +17,10 @@ function groundIndex = coneseg(incloud, coneAngle)
  
 %  Copyright 2016 Alexander Schaefer
 
-%% Prepare the input data.
+%% Input validation.
+% Check the number of input arguments.
+narginchk(1, 2)
+
 % If the user did not specify a cone opening angle, do it now.
 if (nargin < 2)
     coneAngle = pi/4;
@@ -31,6 +34,7 @@ if (coneAngle > pi/2)
 end
 cosConeAngle = cos(coneAngle);
 
+%% Prepare input data.
 % If the input cloud is organized, reshape the point location matrix from
 % 3D to 2D for easier computation.
 if (size(incloud.Location, 3) > 1)
@@ -55,7 +59,7 @@ waitbarHandle = waitbar(0, 'Segmenting ground ...');
 %% Perform the cone test.
 % Iterate through all points and perform the cone test.
 progress = 0.0;
-for (p = 1 : size(location, 1)) %#ok<*NO4LP>
+for p = 1 : size(location, 1) %#ok<*NO4LP>
     % If the point has already been detected to fall into a cone, skip it.
     if (isGround(p) > 0)    
         % Store the coordinates of the current point.
@@ -108,4 +112,3 @@ groundIndex = isGround;
 close(waitbarHandle);
 
 end
-
