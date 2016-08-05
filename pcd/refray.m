@@ -1,20 +1,10 @@
-function p = refray(mts, ray, rlim, ref)
-% REFRAY Compute probability of Lidar measurement from reflectivity map.
-%   P = REFRAY(MTS, RAY, RLIM, REF) computes the probability of obtaining 
-%   the Lidar measurement defined by ORIGIN and RAY conditioned on the 
-%   reflectivity map REF.
+function p = refray(ls, ref)
+% REFRAY Compute probability of Lidar scan from reflectivity map.
+%   P = REFRAY(LS, REF) computes the probability of obtaining the Lidar 
+%   scan LS conditioned on the reflectivity map REF.
 %
-%   MTS is an affine3d object that defines the pose of the sensor with
-%   respect to the reflectivity map frame.
-%
-%   RAY is a Mx3 matrix whose rows contain the ray direction vectors of the 
-%   M measured rays in the sensor frame.
-%
-%   RLIM is a 2-element vector that defines the minimum and the maximum
-%   radius detected by the Lidar sensor. RAY rows whose lengths are not 
-%   element of the interval defined by RLIM are assumed to be no-return 
-%   measurements. For these measurements, RAY carries only information 
-%   about the direction of the ray, not about its length.
+%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
+%   specified with respect to the reflectivity map frame.
 %
 %   REF is a voxelmap object that contains the reflectivity of each map 
 %   voxel.
@@ -23,53 +13,33 @@ function p = refray(mts, ray, rlim, ref)
 %   corresponds to the probability of obtaining the m-th measurement.
 %
 %   Example:
-%      ray = [3, 4, 5];
-%      rlim = [1, 10];
-%      ref = voxelmap(repmat(magic(5)/100, [1, 1, 5]), 0:5, 0:5, 0:5);
-%      p = refray(affine3d(), ray, rlim, ref)
+%      pcd = pcdread('castle.pcd');
+%      ls = laserscan(pcd.azimuth,pcd.elevation,pcd.radius,eye(4),[1,100]);
+%      ref = refmap(ls, 0:5, 0:5, 0:5);
+%      p = refray(ls, ref)
 %
-%   See also AFFINE3D, VOXELMAP, REFMAP, DECAYRAY.
+%   See also LASERSCAN, VOXELMAP, REFMAP, DECAYRAY.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check whether the user provided the correct number of input arguments.
-narginchk(4, 4)
+narginchk(2, 2)
 
-% Check the sensor pose.
-if ~isa(mts, 'affine3d')
-    error('MTS must be an affine3d object.')
+% Check the types of the input arguments.
+if ~isa(ls, 'laserscan')
+    error('LS must be a laserscan object.')
 end
-
-% Check the ray matrix.
-if ~ismatrix(ray)
-    error('RAY must be a 2D matrix.')
-end
-if size(ray, 2) ~= 3
-    error('RAY must have 3 columns.')
-end
-
-% Make sure all input arguments contain finite values only.
-if ~all(isfinite([ray(:); rlim(:); ref.data(:)]))
-    error('Input arguments must not be NaN or Inf.')
-end
-
-% Check whether RLIM is ordered.
-if diff(rlim) <= 0
-    error('RLIM(2) must be greater than RLIM(1).');
+if ~isa(ref, 'voxelmap')
+    error('REF must be a voxelmap object.')
 end
 
 %% Preprocess input arguments.
-% Compute ray lengths.
-l = sqrt(sum(ray.^2, 2));
-
-% Determine which rays are no-returns.
-inan = l < rlim(1) | l > rlim(2);
-
 % Set the length of no-return rays to maximum sensor range plus the
 % diameter of the largest voxel.
 rnan = rlim(2) + sqrt(3)*max([diff(ref.xgv),diff(ref.ygv),diff(ref.zgv)]);
-ray(inan,:) = ray(inan,:) ./ [zeros(0, 3); repmat(l(inan), 1, 3)] * rnan;
+radius = ls.radius;
+radius(noret(ls)) = rnan;
 
 % Transform rays from the sensor frame to the map frame.
 
