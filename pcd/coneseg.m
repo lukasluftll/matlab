@@ -9,11 +9,11 @@ function groundIndex = coneseg(incloud, coneAngle)
 %
 %   Example : segment and display ground points 
 %   -------------------------------------------
-%   cloud = pcdread('terrain.pcd');
-%   cloud = cloud.pointCloud;
+%   data = pcdread('campus.pcd');
+%   cloud = pointCloud([data.x(:), data.y(:), data.z(:)]);
 %   pcshow(cloud.select(coneseg(cloud)));
 %
-%   See also POINTCLOUD, PCSHOW.
+%   See also PCDREAD, POINTCLOUD, PCSHOW.
  
 %  Copyright 2016 Alexander Schaefer
 
@@ -53,8 +53,9 @@ zMax = max(incloud.ZLimits);
 % segmented as ground.
 isGround = 1 : size(location, 1);
 
-% Create a progress bar.
+% Create a progress bar and set up automatic destruction after use.
 waitbarHandle = waitbar(0, 'Segmenting ground ...');
+cleanupObj = onCleanup(@() close(waitbarHandle));
 
 %% Perform the cone test.
 % Iterate through all points and perform the cone test.
@@ -89,7 +90,7 @@ for p = 1 : size(location, 1) %#ok<*NO4LP>
         isGround(nongroundIndex) = 0;
     end
 
-    % Advance the process bar every 1/100.
+    % Advance the process bar every 100 iterations.
     if (p / size(location, 1) > progress + 0.01)
         progress = p / size(location, 1);
         waitbar(progress, waitbarHandle);
@@ -107,8 +108,5 @@ end
 % Remove the indices of the points segmented as non-ground.
 isGround(isGround <= 0) = [];
 groundIndex = isGround;
-
-% Close the process bar.
-close(waitbarHandle);
 
 end
