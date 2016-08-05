@@ -1,7 +1,7 @@
 function h = ishtform(tform)
 % ISHTFORM Check whether matrix is homogeneous transformation matrix.
-%   H = ISHTFORM(TFORM) returns true if matrix TFORM is a homogeneous
-%   transformation matrix.
+%   H = ISHTFORM(TFORM) returns true if matrix TFORM is an affine 
+%   homogeneous transformation matrix that s.
 %
 %   A homogeneous transformation matrix has the following properties:
 %      - Its size is 4x4.
@@ -30,7 +30,11 @@ if ~all(size(tform) == [4, 4])
 end
 
 % Check correctness of rotation matrix.
-if ~all(tform(1:3,1:3)' == inv(tform(1:3,1:3)))
+rot = tform(1:3,1:3);
+if det(rot) ~= 1
+    return
+end
+if ~all(rot' == inv(rot))
     return
 end
 
