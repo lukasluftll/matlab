@@ -14,7 +14,6 @@ function h = ishtform(tform)
 
 % Copyright 2016 Alexander Schaefer
 
-%% Check matrix properties.
 h = false;
 
 % Check finite values.
@@ -43,4 +42,3 @@ end
 h = true;
 
 end
-
