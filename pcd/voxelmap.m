@@ -48,7 +48,7 @@ classdef voxelmap < handle
                 error(['DATA must be a matrix of size ', ...
                     num2str(size(obj.data, 1)), 'x', ...
                     num2str(size(obj.data, 2)), 'x', ...
-                    num2str(size(obj.data, 3))])
+                    num2str(size(obj.data, 3)), '.'])
             end
             
             % Assign new map data to object.
@@ -84,7 +84,7 @@ classdef voxelmap < handle
         % Plot the map.
         function plot(obj, mode)
             % PLOT Plot voxel map.
-            %   PLOT(VM, MODE) visualizes the voxelmap object VM using
+            %   PLOT(OBJ, MODE) visualizes the voxelmap object VM using
             %   semi-transparent voxels. 
             %
             %   MODE can assume the following values:
