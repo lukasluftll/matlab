@@ -5,6 +5,7 @@ classdef laserscan < handle
         azimuth;
         elevation;
         radius;
+        rlim;
     end
     
     methods
@@ -42,11 +43,7 @@ classdef laserscan < handle
         end
         
         function set.tform(obj, tform)
-            if ~isempty(obj.tform) && size(tform) ~= size(obj.tform)
-                error('')
-            end
-            
-            if size(tform) ~= [4, 4]
+            if ~ishtform(tform)
                 error('')
             end
             
@@ -57,25 +54,9 @@ classdef laserscan < handle
     methods ( Access = public )
         function obj = laserscan(azimuth, elevation, radius, tform)
             narginchk(3, 4);
-            
-            if ~(ismatrix(azimuth)&&ismatrix(elevation)&&ismatrix(radius))
-                error('')
-            end
-            
-            if size(azimuth)~=size(elevation)||size(azimuth)~=size(radius)
-                error('')
-            end
-            
+                      
             if nargin < 4
                 tform = eye(4);
-            end
-            
-            if ~isht(tform)
-                error('')
-            end
-            
-            if ~all(isfinite([azimuth(:); elevation(:)]))
-                error('')
             end
             
             obj.azimuth = azimuth;
