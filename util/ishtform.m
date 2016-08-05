@@ -14,6 +14,7 @@ function h = ishtform(tform)
 
 % Copyright 2016 Alexander Schaefer
 
+%% Check matrix properties.
 % Check finite values.
 finiteOk = all(isfinite(tform(:)));
 
@@ -26,7 +27,7 @@ rotOk = tform(1:3,1:3)' == inv(tform(1:3,1:3));
 % Check last row.
 rowOk = tform(4,:) == [0, 0, 0, 1];
 
-% Determine whether or not matrix is homogeneous transformation matrix.
+%% Determine matrix type.
 h = finiteOk && sizeOk && rotOk && rowOk;
 
 end
