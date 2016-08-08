@@ -130,7 +130,7 @@ classdef laserscan < handle
         % Construct laserscan object.
         function obj = laserscan(azimuth, elevation, radius, rlim, tform)
             % Check number of input arguments.
-            narginchk(4, 5);
+            narginchk(3, 5);
             
             % If the sensor range is not given, set it to the minimum and
             % maximum RADIUS.
@@ -222,7 +222,7 @@ classdef laserscan < handle
             ir = ret(obj);
             
             % Convert spherical to Cartesian coordinates.
-            p = ray(obj);
+            p = cart(obj);
             
             % Set the plotted length of the no-return rays to the maximum
             % sensor range.
