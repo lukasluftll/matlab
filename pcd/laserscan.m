@@ -178,12 +178,9 @@ classdef laserscan < handle
             %   R = RET(OBJ) returns for each ray of the laser scan 
             %   whether it was reflected by the environment or not.
             %
-            %   R is a HEIGHTxWIDTH logical matrix, where HEIGHT and WIDTH 
-            %   define the size of the spherical coordinate matrices
-            %   AZIMUTH, ELEVATION, and RADIUS used when constructing the
-            %   laserscan object. All true elements of IR correspond to
-            %   returned rays, all false elements correspond to no-return
-            %   rays.
+            %   R is a N-element logical vector. All true elements of R 
+            %   correspond to returned rays, all false elements correspond 
+            %   to no-return rays.
             
             r = obj.radius >= obj.rlim(1) & obj.radius <= obj.rlim(2);
         end
