@@ -79,13 +79,13 @@ r = zeros(gridsize);
 % Loop over all laser scans.
 for s = 1 : numel(ls)
     % Compute the Cartesian ray direction vectors.
-    ray = cart(ls);
+    ray = cart(ls(s));
 
     % Compute the indices of the returned rays.
-    iret = ret(ls);
+    iret = ret(ls(s));
 
     % Set the length of no-return rays to maximum sensor range.
-    ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
+    ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
 
     % Use multiple workers to compute ray length and number of returns per 
     % voxel.
@@ -94,10 +94,12 @@ for s = 1 : numel(ls)
         lw = zeros(gridsize);
         rw = zeros(gridsize);
 
-        % For all rays of the worker's share compute the ray length per voxel.
-        for i = labindex : numlabs : ls.count   
-            % Compute the indices of the voxels through which the ray travels.
-            [vi, t] = trav(ls.position, ray(i,:), xgv, ygv, zgv);
+        % For all rays of the worker's share compute the ray length per 
+        % voxel.
+        for i = labindex : numlabs : ls(s).count   
+            % Compute the indices of the voxels through which the ray 
+            % travels.
+            [vi, t] = trav(ls(s).position, ray(i,:), xgv, ygv, zgv);
 
             % Convert the subscript indices to linear indices.
             vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
@@ -111,9 +113,9 @@ for s = 1 : numel(ls)
     end
 
     % Merge the results of all workers.
-    for i = 1 : numel(lw)
-        l = l + lw{i};
-        r = r + rw{i};
+    for w = 1 : numel(lw)
+        l = l + lw{w};
+        r = r + rw{w};
     end
 end
 
