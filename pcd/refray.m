@@ -52,7 +52,7 @@ ray(~iret,:) = ray(~iret,:) * radiusnr;
 p = zeros(ls.count, 1);
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
-    [vi,t] = trav(ls.pos, ray(i,:), ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
+    [vi,t] = trav(ls.position,ray(i,:),ref.xgv,ref.ygv,ref.zgv);%#ok<PFBNS>
     
     % Convert the subscript voxel indices to linear indices.
     vi = sub2ind(size(ref.data), vi(:,1), vi(:,2), vi(:,3));

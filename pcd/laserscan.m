@@ -189,19 +189,19 @@ classdef laserscan < handle
         end
         
         % Get the sensor position.
-        function p = pos(obj)
-            % POS Laser sensor position.
-            %   P = POS(OBJ) returns a 1x3 vector that specifies the laser
-            %   sensor position.
+        function p = position(obj)
+            % POSITION Laser sensor position.
+            %   P = POSITION(OBJ) returns a 1x3 vector that specifies the 
+            %   laser sensor position.
             
             p = obj.tform(1:3,4)';
         end
         
         % Get the sensor orientation.
-        function r = rot(obj)
-            % ROT Laser sensor orientation.
-            %   R = ROT(OBJ) returns a 3x3 rotation matrix that specifies
-            %   the laser sensor orientation.
+        function r = rotation(obj)
+            % ROTATION Laser sensor orientation.
+            %   R = ROTATION(OBJ) returns a 3x3 rotation matrix that 
+            %   specifies the laser sensor orientation.
             
             r = obj.tform(1:3,1:3);
         end

@@ -84,7 +84,7 @@ spmd
     % Loop over the worker's share of all rays.
     for i = labindex : numlabs : ls.count
         % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav(pos(ls), ray(i,:), xgv, ygv, zgv);
+        [vi, t] = trav(ls.position, ray(i,:), xgv, ygv, zgv);
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
