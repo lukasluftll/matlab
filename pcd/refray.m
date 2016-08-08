@@ -38,10 +38,14 @@ end
 % Compute the Cartesian ray direction vectors.
 ray = cart(ls);
 
+% Compute the indices of the returned rays.
+iret = ret(ls);
+
 % Set the length of no-return rays to maximum sensor range plus the
 % diameter of the largest voxel.
-d = sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
-ray(~ret(ls),:) = ray(~ret(ls),:) * (ls.rlim(2) + d);
+radiusnr = ls.rlim(2) + ...
+    sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
+ray(~iret,:) = ray(~iret,:) * radiusnr;
 
 %% Compute probability of measurements.
 % Loop over all rays.
@@ -55,7 +59,7 @@ parfor i = 1 : ls.count
     
     % Compute the measurement probability depending on whether or not the 
     % ray returned.
-    if ret(i) % Ray returns.
+    if iret(i) % Ray returns.
         % Compute the probability of the ray being reflected in the last
         % voxel it traverses.
         p(i) = ref.data(vi(end)) * prod(1 - ref.data(vi(1:end-1)));
@@ -63,7 +67,7 @@ parfor i = 1 : ls.count
         % Compute the indices of the voxels on the ray directly in front
         % of the beginning and in front of the end of the measurement 
         % interval.
-        ilim = knnsearch(t*nrray, ls.rlim(:)) - 1;
+        ilim = knnsearch(t*radiusnr, ls.rlim(:)) - 1;
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
