@@ -211,32 +211,37 @@ classdef laserscan < handle
             %   are plotted in light gray.
 
             %% Prepare data.
+            % Get the logical indices of the returned rays.
+            ir = ret(obj);
+            
             % Convert spherical to Cartesian coordinates.
-            v = ray(obj);
-            v(~ret(obj),:) = v(~ret(obj),:) * obj.rlim(2);
+            p = ray(obj);
+            
+            % Set the plotted length of the no-return rays to the maximum
+            % sensor range.
+            p(~ir,:) = p(~ir,:) * obj.rlim(2);
             
             % Get the sensor position.
-            o = pos(obj);
+            o = obj.position;
 
             %% Plot rays.
             % Plot the returned rays.
-            r = ret(obj);
-            pr = kron(v(r(:),:), [0; 1]);
+            pr = kron(p(ir(:),:), [0; 1]);
             pr = pr + repmat(o, size(pr, 1), 1);
-            rray = plot3(pr(:,1), pr(:,2), pr(:,3), 'Color', 'red');
-            if ~isempty(rray)
+            lsr = plot3(pr(:,1), pr(:,2), pr(:,3), 'Color', 'red');
+            if ~isempty(lsr)
                 % Set transparency.
-                rray.Color(4) = 0.5;
+                lsr.Color(4) = 0.5;
             end
 
             % Plot the no-return rays.
-            pnr = kron(v(~r(:),:), [0; 1]);
+            pnr = kron(p(~ir(:),:), [0; 1]);
             pnr = pnr + repmat(o, size(pnr, 1), 1);
             hold on
-            nrray = plot3(pnr(:,1), pnr(:,2), pnr(:,3), 'Color', 'k');
-            if ~isempty(nrray)
+            lsnr = plot3(pnr(:,1), pnr(:,2), pnr(:,3), 'Color', 'k');
+            if ~isempty(lsnr)
                 % Set transparency.
-                nrray.Color(4) = 0.03;
+                lsnr.Color(4) = 0.03;
             end
             
             %% Plot ray endpoints.
@@ -248,11 +253,11 @@ classdef laserscan < handle
                 'Marker', '.', 'MarkerSize', 50);
             
             % Plot the Cartesian axes.
-            plot3(o(1) + [0,max(v(:,1))], o(2) + [0,0], o(3) + [0,0], ...
+            plot3(o(1) + [0,max(p(:,1))], o(2) + [0,0], o(3) + [0,0], ...
                 'Color', 'r', 'LineWidth', 3);
-            plot3(o(1) + [0,0], o(2) + [0,max(v(:,2))], o(3) + [0,0], ...
+            plot3(o(1) + [0,0], o(2) + [0,max(p(:,2))], o(3) + [0,0], ...
                 'Color', 'g', 'LineWidth', 3);
-            plot3(o(1) + [0,0], o(2) + [0,0], o(3) + [0,max(v(:,3))], ...
+            plot3(o(1) + [0,0], o(2) + [0,0], o(3) + [0,max(p(:,3))], ...
                 'Color', 'b', 'LineWidth', 3);
 
             % Label the axes.
