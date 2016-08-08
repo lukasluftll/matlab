@@ -1,11 +1,11 @@
 function [lambda, r, l] = decaymap(ls, xgv, ygv, zgv)
-% DECAYMAP Compute decay rate map from laser scan in grid volume.
-%   LAMBDA = DECAYMAP(LS, XGV, YGV, ZGV) uses the laser scan LS to compute 
+% DECAYMAP Compute decay rate map from laser scans in grid volume.
+%   LAMBDA = DECAYMAP(LS, XGV, YGV, ZGV) uses the laser scans LS to compute 
 %   the mean ray decay rate LAMBDA for each voxel in the grid volume 
 %   defined by the grid vectors XGV, YGV, ZGV.
 %
-%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
-%   specified with respect to the decay rate map frame.
+%   LS is vector of laserscan objects. The sensor poses of the scans are
+%   assumed to be specified with respect to the decay rate map frame.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -67,56 +67,57 @@ if ls.rlim(1) > 0
       'assumed to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
 end
 
-%% Preprocess input data.
-% Compute the Cartesian ray direction vectors.
-ray = cart(ls);
-
-% Compute the indices of the returned rays.
-iret = ret(ls);
-
-% Compute the length of each ray.
-radius = ls.radius;
-radius(~iret) = ls.rlim(2);
-
-% Set the length of no-return rays to maximum sensor range.
-ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
-
+%% Compute ray lengths and returns per voxel.
 % Determine the size of the voxel grid.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 
-%% Sum up ray lengths and returns.
-% Use multiple workers to compute the ray length per voxel.
-spmd
-    % Create return matrices for this worker.
-    lw = zeros(gridsize);
-    rw = zeros(gridsize);
-    
-    % For all rays of the worker's share compute the ray length per voxel.
-    for i = labindex : numlabs : ls.count   
-        % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav(ls.position, ray(i,:), xgv, ygv, zgv);
+% Preallocate the matrices that store the ray length and the returns per
+% voxel.
+l = zeros(gridsize);
+r = zeros(gridsize);
 
-        % Convert the subscript indices to linear indices.
-        vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+% Loop over all laser scans.
+for s = 1 : numel(ls)
+    % Compute the Cartesian ray direction vectors.
+    ray = cart(ls);
 
-        % Sum up the lengths the rays travel in each voxel.
-        lw(vi) = lw(vi) + diff(t) * radius(i);
+    % Compute the indices of the returned rays.
+    iret = ret(ls);
 
-        % In case of reflection, increment the number of returns.
-        rw(vi(end)) = rw(vi(end)) + (iret(i) && t(end)==1);
+    % Set the length of no-return rays to maximum sensor range.
+    ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
+
+    % Use multiple workers to compute ray length and number of returns per 
+    % voxel.
+    spmd
+        % Create return matrices for this worker.
+        lw = zeros(gridsize);
+        rw = zeros(gridsize);
+
+        % For all rays of the worker's share compute the ray length per voxel.
+        for i = labindex : numlabs : ls.count   
+            % Compute the indices of the voxels through which the ray travels.
+            [vi, t] = trav(ls.position, ray(i,:), xgv, ygv, zgv);
+
+            % Convert the subscript indices to linear indices.
+            vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+
+            % Sum up the lengths the rays travel in each voxel.
+            lw(vi) = lw(vi) + diff(t) * norm(ray(i,:));
+
+            % In case of reflection, increment the number of returns.
+            rw(vi(end)) = rw(vi(end)) + (iret(i) && t(end)==1);
+        end
+    end
+
+    % Merge the results of all workers.
+    for i = 1 : numel(lw)
+        l = l + lw{i};
+        r = r + rw{i};
     end
 end
 
-%% Compute ray decay rate.
-% Merge the results of all workers.
-l = zeros(gridsize);
-r = zeros(gridsize);
-for i = 1 : numel(lw)
-    l = l + lw{i};
-    r = r + rw{i};
-end
-
-% Compute the decay rate.
+%% Compute the decay rate.
 lambda = voxelmap(r ./ l, xgv, ygv, zgv);
 lambda.data(l == 0) = NaN;
 
