@@ -28,6 +28,14 @@ function L = lfpc(pc, map)
 % Check number of input arguments.
 narginchk(2, 2)
 
+% Check the input argument types.
+if ~isa(pc, 'pointCloud')
+    error('PC must be a pointCloud object.')
+end
+if ~isa(map, 'voxelmap')
+    error('MAP must be a voxelmap object.')
+end
+
 %% Compute likelihood of point cloud.
 % For each point of the point cloud, compute the corresponding index of the
 % voxel grid.

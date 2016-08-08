@@ -35,6 +35,11 @@ function lf = lfmap(pc, sigma, xgv, ygv, zgv)
 % Check number of input arguments.
 narginchk(5, 5);
 
+% Check the pointCloud object.
+if ~isa(pc, 'pointCloud')
+    error('PC must be a pointCloud object.')
+end
+
 % Make sure the variance is positive.
 if sigma <= 0
     error('SIGMA must be positive.')
