@@ -1,20 +1,17 @@
-function L = lfpc(pc, map)
+function L = lfpc(pc, lf)
 % LFPC Compute log-likelihood of point cloud given likelihood field.
-%   L = LFPC(pc, map) computes the likelihood of obtaining the Lidar scan
-%   PC given a likelihood field MAP.
+%   L = LFPC(PC, LF) computes the likelihood of obtaining the Lidar scan
+%   PC given a likelihood field LF.
 %
-%   PC is a point cloud object; MAP is a voxelmap object.
+%   PC is a point cloud object; LF is a voxelmap object.
 %
 %   L is the log-likelihood of obtaining PC.
 %
 %   Example:
-%      pcd = pcdread('data/castle.pcd');
-%      pc = pointCloud([pcd.x(:), pcd.y(:), pcd.z(:)]);
-%      xgv = min(pcd.x(:)) : max(pcd.x(:));
-%      ygv = min(pcd.y(:)) : max(pcd.y(:));
-%      zgv = min(pcd.z(:)) : max(pcd.z(:));
-%      map = lfmap(pc, 1, xgv, ygv, zgv);
-%      l = lfpc(pc, map)
+%      pcd = pcdread('castle.pcd');
+%      pc = pointCloud([pcd.x, pcd.y, pcd.z]);
+%      lf = lfmap(pc, 1, xgv, ygv, zgv);
+%      l = lfpc(pc, lf)
 %
 %   See also POINTCLOUD, VOXELMAP, LFMAP.
 
@@ -32,22 +29,22 @@ narginchk(2, 2)
 if ~isa(pc, 'pointCloud')
     error('PC must be a pointCloud object.')
 end
-if ~isa(map, 'voxelmap')
+if ~isa(lf, 'voxelmap')
     error('MAP must be a voxelmap object.')
 end
 
 %% Compute likelihood of point cloud.
 % For each point of the point cloud, compute the corresponding index of the
 % voxel grid.
-ip = grdidx(reshape(pc.Location, pc.Count, 3), map.xgv, map.ygv, map.zgv);
+ip = grdidx(reshape(pc.Location, pc.Count, 3), lf.xgv, lf.ygv, lf.zgv);
 
 % Remove rows with zero indices.
 ip(any(ip==0, 2),:) = [];
 
 % Convert the subscript indices to linear indices.
-ip = sub2ind(size(map.data), ip(:,1), ip(:,2), ip(:,3));
+ip = sub2ind(size(lf.data), ip(:,1), ip(:,2), ip(:,3));
 
 % Compute the log-likelihood of the scan.
-L = sum(log(map.data(ip)));
+L = sum(log(lf.data(ip)));
 
 end
