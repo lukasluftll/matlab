@@ -162,6 +162,26 @@ classdef laserscan < handle
             obj.rlim = rlim;
         end
         
+        % Get Cartesian ray vectors.
+        function v = ray(obj)
+            % RAY(OBJ) Get Cartesian ray vectors.
+            %   V = RAY(OBJ) returns a Nx3 matrix that contains the
+            %   Cartesian direction vectors of the rays of the laser scan,
+            %   where N is the number of rays. The length of the direction 
+            %   vectors of no-return rays are guaranteed to exceed RLIM(2).
+            
+            finiteradius = obj.radius;
+            finiteradius(~ret(obj)) = 1.1 * obj.rlim(2);
+            [x, y, z] = sph2cart(obj.azimuth, obj.elevation, finiteradius);
+            v = [x, y, z];
+            
+            % Rotate the ray vectors around the origin.
+            p = zeros(numel(x), 3);
+            for i = 1 : numel(x)
+                p(i,:) = (rot(obj) * [x(i); y(i); z(i)])';
+            end
+        end
+        
         % Identify the return and no-return rays.
         function r = ret(obj)
             % RET Identify return and no-return rays.
@@ -176,6 +196,24 @@ classdef laserscan < handle
             %   rays.
             
             r = obj.radius >= obj.rlim(1) & obj.radius <= obj.rlim(2);
+        end
+        
+        % Get the sensor position.
+        function p = pos(obj)
+            % POS Laser sensor position.
+            %   P = POS(OBJ) returns a 1x3 vector that specifies the laser
+            %   sensor position.
+            
+            p = obj.tform(1:3,4)';
+        end
+        
+        % Get the sensor orientation.
+        function r = rot(obj)
+            % ROT Laser sensor orientation.
+            %   R = ROT(OBJ) returns a 3x3 rotation matrix that specifies
+            %   the laser sensor orientation.
+            
+            r = obj.tform(1:3,1:3);
         end
         
         % Plot the laser scan.
@@ -197,11 +235,11 @@ classdef laserscan < handle
             % Rotate the rays around the origin.
             p = zeros(numel(x), 3);
             for i = 1 : numel(x)
-                p(i,:) = (obj.tform(1:3,1:3) * [x(i); y(i); z(i)])';
+                p(i,:) = (rot(obj) * [x(i); y(i); z(i)])';
             end
             
-            % Extract the scan origin from the transformation matrix.
-            o = obj.tform(1:3,4)';
+            % Get the sensor position.
+            o = pos(obj);
 
             %% Plot rays.
             % Plot the returned rays.
@@ -231,7 +269,7 @@ classdef laserscan < handle
             % Plot the sensor origin.
             plot3(o(1), o(2), o(3), 'Color', 'k', ...
                 'Marker', '.', 'MarkerSize', 50);
-
+            
             % Plot the Cartesian axes.
             plot3(o(1) + [0, max(x(:))], o(2) + [0, 0], o(3) + [0, 0], ...
                 'Color', 'r', 'LineWidth', 3);
