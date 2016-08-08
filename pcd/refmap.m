@@ -82,7 +82,7 @@ spmd
     mw = zeros(gridsize);
     
     % Loop over the worker's share of all rays.
-    for i = labindex : numlabs : nray
+    for i = labindex : numlabs : ls.count
         % Compute the indices of the voxels through which the ray travels.
         [vi, t] = trav(pos(ls), ray(i,:), xgv, ygv, zgv);
 
