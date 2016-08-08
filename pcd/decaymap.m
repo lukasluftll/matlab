@@ -1,22 +1,11 @@
-function [lambda,r,l]=decaymap(o,azimuth,elevation,radius,ret,xgv,ygv,zgv)
-% DECAYMAP Compute decay rate of Lidar rays in grid volume.
-%   LAMBDA = DECAYMAP(O, AZIMUTH, ELEVATION, RADIUS, RET, XGV, YGV, ZGV)
-%   uses the rays represented in spherical coordinates AZIMUTH, ELEVATION, 
-%   RADIUS to compute the mean ray decay rate LAMBDA for each voxel in the 
-%   grid volume defined by the grid vectors XGV, YGV, ZGV.
+function [lambda, r, l] = decaymap(ls, xgv, ygv, zgv)
+% DECAYMAP Compute decay rate map from laser scan in grid volume.
+%   LAMBDA = DECAYMAP(LS, XGV, YGV, ZGV) uses the laser scan LS to compute 
+%   the mean ray decay rate LAMBDA for each voxel in the grid volume 
+%   defined by the grid vectors XGV, YGV, ZGV.
 %
-%   O is a 3-element Cartesian origin vector. All rays originate from this 
-%   point.
-%
-%   AZIMUTH and ELEVATION are HEIGHTxWIDTH matrices, where HEIGHT and WIDTH 
-%   describe the size of the point cloud. The unit is rad.
-%
-%   RADIUS is a HEIGHTxWIDTH matrix that contains the length of the
-%   respective ray. For no-return rays, this length must equal the maximum
-%   sensor range.
-%
-%   RET is a HEIGHTxWIDTH logical matrix that indicates whether or not the
-%   respective ray was reflected within the sensor range. 
+%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
+%   specified with respect to the decay rate map frame.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -30,8 +19,8 @@ function [lambda,r,l]=decaymap(o,azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %   voxel. The lambda value of a voxel that has not been visited by any ray
 %   is NaN.
 %
-%   [LAMBDA, R, L] = DECAYMAP(O, AZIMUTH, ELEVATION, RADIUS, XGV, YGV, ZGV)
-%   also returns the voxelmap objects R and L. 
+%   [LAMBDA, R, L] = DECAYMAP(LS, XGV, YGV, ZGV) also returns the voxelmap 
+%   objects R and L. 
 %   R contains the number of ray remissions for each voxel. 
 %   L contains the cumulated length of all rays that traversed the 
 %   respective grid cell.
@@ -52,53 +41,45 @@ function [lambda,r,l]=decaymap(o,azimuth,elevation,radius,ret,xgv,ygv,zgv)
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
-%      radiusFinite = pcd.radius; radiusFinite(isnan(radiusFinite)) = 130;
-%      xgv = min(pcd.x(:)) : 5 : max(pcd.x(:));
-%      ygv = min(pcd.y(:)) : 5 : max(pcd.y(:));
-%      zgv = min(pcd.z(:)) : 5 : max(pcd.z(:));
-%      lambda = decaymap([0,0,0], pcd.azimuth, pcd.elevation, ...
-%                      radiusFinite, isfinite(pcd.radius), xgv, ygv, zgv)
+%      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius);
+%      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20)
 %
-%   See also VOXELMAP, DECAYRAY, DECAYNANRAY, REFMAP.
+%   See also LASERSCAN, VOXELMAP, DECAYRAY, REFMAP.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(8, 8);
+narginchk(4, 4);
 
-% Check the origin vector.
-o = o(:)';
-if numel(o) ~= 3 || any(~isfinite(o))
-    error('O must be a 3-element real vector.')
-end
-
-% Check whether the spherical coordinate matrices and the reflection matrix
-% all have the same number of dimensions and the same size.
-if ~(ismatrix(azimuth) && ismatrix(elevation) && ismatrix(radius) ...
-        && ismatrix(ret))
-    error('AZIMUTH, ELEVATION, RADIUS, and RET must be 2D matrices.')
-end
-if any(size(azimuth) ~= size(elevation) | size(azimuth) ~= size(radius) ...
-        | size(azimuth) ~= size(ret))
-    error('AZIMUTH, ELEVATION, RADIUS, and RET must have the same size.')
-end
-
-% Make sure all input arguments are finite.
-if ~all(isfinite([azimuth(:); elevation(:); radius(:); ret(:); ...
-        xgv(:); ygv(:); zgv(:)]))
-    error('Input arguments must not be NaN or Inf.')
+% Check the laser scan.
+if ~isa(ls, 'laserscan')
+    error('LS must be a laserscan object.')
 end
 
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
-%% Preprocess input data.
-% Compute the ray direction vectors.
-[dirx, diry, dirz] = sph2cart(azimuth, elevation, radius);
+% If the sensor measurement range starts at a positive value, issue a
+% warning.
+if ls.rlim(1) > 0
+    warning(['LS.RLIM(1) > 0, but all no-return ray lengths are ', ...
+      'assumed to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
+end
 
-% Determine the number of rays.
-nray = numel(azimuth);
+%% Preprocess input data.
+% Compute the Cartesian ray direction vectors.
+ray = cart(ls);
+
+% Compute the indices of the returned rays.
+iret = ret(ls);
+
+% Compute the length of each ray.
+radius = ls.radius;
+radius(~iret) = ls.rlim(2);
+
+% Set the length of no-return rays to maximum sensor range.
+ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
 
 % Determine the size of the voxel grid.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
@@ -111,9 +92,9 @@ spmd
     rw = zeros(gridsize);
     
     % For all rays of the worker's share compute the ray length per voxel.
-    for i = labindex : numlabs : nray   
+    for i = labindex : numlabs : ls.count   
         % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav([0,0,0], [dirx(i),diry(i),dirz(i)], xgv, ygv, zgv);
+        [vi, t] = trav(pos(ls), ray(i,:), xgv, ygv, zgv);
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
@@ -122,7 +103,7 @@ spmd
         lw(vi) = lw(vi) + diff(t) * radius(i);
 
         % In case of reflection, increment the number of returns.
-        rw(vi(end)) = rw(vi(end)) + (ret(i) && t(end)==1);
+        rw(vi(end)) = rw(vi(end)) + (iret(i) && t(end)==1);
     end
 end
 
