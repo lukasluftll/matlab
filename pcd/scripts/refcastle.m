@@ -38,12 +38,10 @@ refLim = [0.001, 0.999];
 pcd = pcdread(file);
 
 % Compute the reflectivity map.
-radiusFinite = pcd.radius;
-radiusFinite(~isfinite(pcd.radius)) = rlim(2);
+ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, rlim);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
 vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
-ref = refmap(mts, pcd.azimuth, pcd.elevation, radiusFinite, ...
-    isfinite(pcd.radius), hgv, hgv, vgv);
+ref = refmap(ls, hgv, hgv, vgv);
 
 % Set all voxels without data to the reflectivity prior.
 ref.data(~isfinite(ref.data)) = mean(ref.data(:), 'omitnan');
@@ -53,7 +51,7 @@ ref.data = constrain(ref.data, refLim);
 
 % Visualize and save the reflectivity map.
 figure('Name', 'refcastle map', 'NumberTitle', 'Off')
-rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
+plot(ls)
 plot(ref);
 title('Reflectivity map'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
 if ~exist('pcd/results', 'dir')
@@ -63,12 +61,6 @@ savefig(['pcd/results/refmap_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 
 %% Compute log-likelihood of shifted scans.
-% Set the length of the NaN rays to a value outside the measurement range.
-radiusFinite(~isfinite(pcd.radius)) = 1.1 * rlim(2);
-
-% Compute the direction vectors of the rays.
-[dirx, diry, dirz] = sph2cart(pcd.azimuth, pcd.elevation, radiusFinite);
-
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
 L = zeros(numel(gvs));
@@ -78,7 +70,8 @@ for i = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
         % Compute the log-likelihood of the measurements.
-        L(i,j) = sum(log(refray(origin, [dirx, diry, dirz], rlim, ref)));
+        ls.tform(1:2,4) = [gvs(i); gvs(j)];
+        L(i,j) = sum(log(refray(ls, ref)));
         
         % Advance progress bar.
         waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, waitbarHandle);
