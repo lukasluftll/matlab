@@ -168,7 +168,7 @@ classdef laserscan < handle
             % Rotate the ray vectors around the origin.
             v = zeros(numel(x), 3);
             for i = 1 : numel(x)
-                v(i,:) = (rot(obj) * [x(i); y(i); z(i)])';
+                v(i,:) = (obj.rotation * [x(i); y(i); z(i)])';
             end
         end
         
