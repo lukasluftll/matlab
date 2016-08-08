@@ -1,11 +1,11 @@
 function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
-% REFMAP Compute reflectivity map from laser scan in grid volume.
-%   REF = REFMAP(LS, XGV, YGV, ZGV) uses the laser scan LS to compute the 
+% REFMAP Compute reflectivity map from laser scans in grid volume.
+%   REF = REFMAP(LS, XGV, YGV, ZGV) uses the laser scans LS to compute the 
 %   reflectivity of each voxel in the grid volume defined by the grid 
 %   vectors XGV, YGV, ZGV.
 %
-%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
-%   specified with respect to the reflectivity map frame.
+%   LS is a vector of laserscan objects. The sensor poses of the scans are
+%   assumed to be specified with respect to the reflectivity map frame.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
 %   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
@@ -60,51 +60,57 @@ if ls.rlim(1) > 0
       'assumed to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
 end
 
-%% Preprocess input data.
-% Compute the Cartesian ray direction vectors.
-ray = cart(ls);
-
-% Compute the indices of the returned rays.
-iret = ret(ls);
-
-% Set the length of no-return rays to maximum sensor range.
-ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
-
+%% Compute hits and misses per voxel.
 % Determine the size of the voxel grid.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 
-%% Count hits and misses.
-% Use multiple workers to compute the number of returns and traversals 
-% per voxel for each ray.
-spmd
-    % Create return matrices.
-    hw = zeros(gridsize);
-    mw = zeros(gridsize);
-    
-    % Loop over the worker's share of all rays.
-    for i = labindex : numlabs : ls.count
-        % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav(ls.position, ray(i,:), xgv, ygv, zgv);
+% Preallocate the matrices that store the number of hits and misses per
+% voxel.
+h = zeros(gridsize);
+m = zeros(gridsize);
 
-        % Convert the subscript indices to linear indices.
-        vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+% Loop over all laser scans.
+for s = 1 : numel(ls)
+    % Compute the Cartesian ray direction vectors.
+    ray = cart(ls(s));
 
-        % For each voxel, sum up the number of hits and misses.
-        hw(vi(end)) = hw(vi(end)) + (iret(i) && t(end)==1);
-        mw(vi) = mw(vi) + t(2:end)<1;
+    % Compute the indices of the returned rays.
+    iret = ret(ls(s));
+
+    % Set the length of no-return rays to maximum sensor range.
+    ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
+
+    % Use multiple workers to compute the number of returns and traversals 
+    % per voxel for each ray.
+    spmd
+        % Create return matrices.
+        hw = zeros(gridsize);
+        mw = zeros(gridsize);
+
+        % Loop over the worker's share of all rays.
+        for w = labindex : numlabs : ls.count
+            % Compute the indices of the voxels through which the ray travels.
+            [vi, t] = trav(ls.position, ray(w,:), xgv, ygv, zgv);
+
+            % Convert the subscript indices to linear indices.
+            vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+
+            % For each voxel, sum up the number of hits and misses.
+            hw(vi(end)) = hw(vi(end)) + (iret(w) && t(end)==1);
+            mw(vi) = mw(vi) + t(2:end)<1;
+        end
+    end
+
+    % Merge the hits and misses matrices calculated by the workers.
+    h = hw{1};
+    m = mw{1};
+    for w = 2 : numel(hw)
+        h = h + hw{w};
+        m = m + mw{w};
     end
 end
 
-%% Compute reflectivity.
-% Merge the hits and misses matrices calculated by the workers.
-h = hw{1};
-m = mw{1};
-for i = 2 : numel(hw)
-    h = h + hw{i};
-    m = m + mw{i};
-end
-
-% For each voxel compute the reflectivity value.
+%% Compute reflectivity map.
 ref = voxelmap(h ./ (h + m), xgv, ygv, zgv);
 
 end
