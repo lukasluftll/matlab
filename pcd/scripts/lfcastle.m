@@ -42,7 +42,7 @@ lf = lfmap(pc, sigma, hgv, hgv, vgv);
 
 % Visualize and save the likelihood field.
 figure('Name', 'lfcastle map', 'NumberTitle', 'Off');
-rayplot(pcd.azimuth, pcd.elevation, pcd.radius);
+plot(laserscan(pcd.azimuth, pcd.elevation, pcd.radius));
 plot(lf);
 title('Likelihood field'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
 if ~exist('pcd/results', 'dir')
