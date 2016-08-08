@@ -11,10 +11,10 @@ function [L, p] = decayray(ls, lambda)
 %
 %   The measurement probability is computed for each ray individually. 
 %   If the m-th ray is reflected back to the sensor, the measurement 
-%   probability is expressed as log-likelihood L(m). L(m) is not 
-%   equal to the log-likelihood of the ray, but it is shifted by an unknown 
-%   offset. p(m) is unity.
-%   If the m-th ray is a no-return, p(m) contains the corresponding 
+%   probability is expressed by L(m). L(m) is not exactly equal to the 
+%   log-likelihood of the ray, but it is shifted by an unknown offset. This
+%   offset is constant for all m. p(m) is unity.
+%   If the m-th ray is a no-return, p(m) indicates the corresponding 
 %   measurement probability. L(m) is zero.
 %
 %   Example:
@@ -43,72 +43,53 @@ end
 % Compute the Cartesian ray direction vectors.
 ray = cart(ls);
 
-% Compute the indices of the returned rays.
+% Compute the logical indices of the returned rays.
 iret = ret(ls);
 
 % Set the length of no-return rays to maximum sensor range.
 ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
 
-%% Compute log-likelihood of returned rays.
-% Loop over all returned rays.
-retray = ray(:,iret);
-Lr = zeros(sum(ret), 1);
-parfor i = 1 : size(retray, 1)
-    % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(ls.position, retray(i,:), ...
-        lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
-    
-    % Convert the subscript voxel indices to linear indices.
-    vi = sub2ind(size(lambda.data), vi(:,1), vi(:,2), vi(:,3));
-    
-    % Compute the length of the ray apportioned to each voxel.
-    d = diff(t) * norm(ray(i,:));
-
-    % Compute the log-likelihood of the measurement.
-    Lr(i) = log(lambda.data(vi(end))) - sum(lambda.data(vi) .* d);
-end
-
-% Construct the log-likelihood vector for all rays.
+%% Compute measurement probability for all rays.
+% Preallocate the result matrices.
 L = zeros(ls.count, 1);
-L(iret) = Lr;
-
-%% Compute probability of no-return rays.
-% Preallocate the return matrix.
-pnr = zeros(ls.count-sum(ret), 1);
+p = ones(ls.count, 1);
 
 % Compute the line parameter from origin to minimum sensor range.
-tmin = rlim(1) / rlim(2);
+tmin = ls.rlim(1) / ls.rlim(2);
 
-% Loop over all rays and compute the respective probabilities for NaN
-% measurements.
-parfor i = 1 : size(pnr, 1)
-    % Compute the indices of the grid cells that the ray traverses from the
-    % origin to the maximum sensor range.
+% Loop over all rays.
+parfor i = 1 : ls.count
+    % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(ls.position, ray(i,:), ...
         lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
-    
-    % Convert the subscript indices to linear indices.
+
+    % Convert the subscript voxel indices to linear indices.
     vi = sub2ind(size(lambda.data), vi(:,1), vi(:,2), vi(:,3));
+
+    % Compute the length of the ray apportioned to each voxel.
+    d = diff(t) * norm(ray(i,:));
     
-    % Compute the length of the ray apportioned to each voxel when
-    % traversing the grid from origin to maximum sensor range.
-    d = diff(t) * rlim(2); %#ok<PFBNS>
-    
-    % Compute the probability of obtaining an NaN measurement between 
-    % maximum sensor range and infinity.
-    psup = exp(-sum(lambda.data(vi) .* d));
-    
-    % Compute the length of the ray apportioned to each voxel when
-    % traversing the grid from origin to minimum sensor range.
-    t = [t(t < tmin); tmin];
-    d = diff(t) * rlim(2);
-    
-    % Compute the probability of obtaining an NaN measurement between
-    % origin and minimum sensor range.
-    psub = 1 - exp(-sum(lambda.data(vi(1:max([length(d), 1]))) .* d));
-    
-    % Compute the overall probability of obtaining an NaN measurement.
-    p(i) = psub + psup;
+    % Compute log-likelihood or probability of ray measurement.
+    if iret(i) % Ray returned.
+        % Compute log-likelihood of returned rays.
+        L(i) = log(lambda.data(vi(end))) - sum(lambda.data(vi) .* d);
+    else % No-return ray.
+        % Compute the probability of obtaining a no-return measurement
+        % between maximum sensor range and infinity.
+        psup = exp(-sum(lambda.data(vi) .* d));
+
+        % Compute the length of the ray apportioned to each voxel when
+        % traversing the grid from origin to minimum sensor range.
+        t = [t(t < tmin); tmin];
+        d = diff(t) * ls.rlim(2);
+
+        % Compute the probability of obtaining an NaN measurement between
+        % origin and minimum sensor range.
+        psub = 1 - exp(-sum(lambda.data(vi(1:max([length(d), 1]))) .* d));
+
+        % Compute the overall probability of obtaining an NaN measurement.
+        p(i) = psub + psup;
+    end
 end
 
 end
