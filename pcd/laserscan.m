@@ -144,6 +144,13 @@ classdef laserscan < handle
             obj.rlim = rlim;
         end
         
+        % Return number of rays.
+        function n = count(obj)
+            % Return number of rays, both returned rays and no-returns.
+            
+            n = numel(obj.azimuth);
+        end
+        
         % Get Cartesian ray direction vectors.
         function v = cart(obj)
             % CART(OBJ) Get Cartesian ray direction vectors.
