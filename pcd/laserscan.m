@@ -3,9 +3,9 @@ classdef laserscan < handle
     %   L = LASERSCAN(AZIMUTH, ELEVATION, RADIUS, RLIM, TFORM) creates a 
     %   laser scan object.
     %
-    %   AZIMUTH, ELEVATION, and RADIUS are HEIGHTxWIDTH matrices defining
+    %   AZIMUTH, ELEVATION, and RADIUS are N-element vectors defining
     %   the rays the laser sensor measured in spherical coordinates w.r.t.
-    %   the sensor frame.
+    %   the sensor frame. N is the number of measured rays.
     %   AZIMUTH and ELEVATION must be finite angles in [rad].
     %   RADIUS may contain real and infinite values. All RADIUS values 
     %   outside interval RLIM are interpreted as no-return rays.
@@ -36,17 +36,11 @@ classdef laserscan < handle
     methods
         % Change the azimuth angles.
         function set.azimuth(obj, azimuth)
-            % Check if AZIMUTH is a 2D matrix.
-            if ~ismatrix(azimuth)
-                error('AZIMUTH must be a 2D matrix.')
-            end
-            
-            % Check if AZIMUTH has the same size as the current azimuth
-            % data.
-            if ~isempty(obj.azimuth) && size(azimuth) ~= size(obj.azimuth)
-                error(['AZIMUTH must be a matrix of size ', ...
-                    num2str(size(obj.azimuth, 1)), 'x', ...
-                    num2str(size(obj.azimuth, 2)), '.'])
+            % Check if AZIMUTH contains the same number of elements as the 
+            % current azimuth data.
+            if ~isempty(obj.azimuth) && numel(azimuth)~=numel(obj.azimuth)
+                error(['AZIMUTH must contain ', ...
+                    num2str(numel(obj.azimuth)), 'elements.'])
             end
             
             % Make sure all angles are finite.
@@ -55,23 +49,17 @@ classdef laserscan < handle
             end
             
             % Assign new azimuth data to object.
-            obj.azimuth = azimuth;
+            obj.azimuth = azimuth(:);
         end
         
         % Change the elevation angles.
-        function set.elevation(obj, elevation)
-            % Check if ELEVATION is a 2D matrix.
-            if ~ismatrix(elevation)
-                error('ELEVATION must be a 2D matrix.')
-            end
-            
-            % Check if ELEVATION has the same size as the current elevation
-            % data.
+        function set.elevation(obj, elevation)            
+            % Check if ELEVATION contains the same number of elements as 
+            % the current elevation data.
             if ~isempty(obj.elevation) ...
-                    && size(elevation)~=size(obj.elevation)
-                error(['ELEVATION must be a matrix of size ', ...
-                    num2str(size(obj.elevation, 1)), 'x', ...
-                    num2str(size(obj.elevation, 2)), '.'])
+                    && numel(elevation)~=numel(obj.elevation)
+                error(['ELEVATION must contain ', 
+                    num2str(numel(obj.elevation)), 'elements.'])
             end
             
             % Make sure all angles are finite.
@@ -80,28 +68,22 @@ classdef laserscan < handle
             end
             
             % Assign new elevation data to object.
-            obj.elevation = elevation;
+            obj.elevation = elevation(:);
         end
         
         % Change the ray radii.
-        function set.radius(obj, radius)
-            % Check if RADIUS is a 2D matrix.
-            if ~ismatrix(radius)
-                error('RADIUS must be a 2D matrix.')
-            end
-            
-            % Check if RADIUS has the same size as the current radius data.
-            if ~isempty(obj.radius) && size(radius) ~= size(obj.radius)
-                error(['RADIUS must be a matrix of size ', ...
-                    num2str(size(obj.radius, 1)), 'x', ...
-                    num2str(size(obj.radius, 2)), '.'])
+        function set.radius(obj, radius)           
+            % Check if RADIUS contains the size as the current radius data.
+            if ~isempty(obj.radius) && numel(radius)~=numel(obj.radius)
+                error(['RADIUS must contain ', ...
+                    num2str(numel(obj.radius)), 'elements.'])
             end
             
             % Set all infinite values to NaN.
             radius(~isfinite(radius)) = NaN;
             
             % Assign new radius data to object.
-            obj.radius = radius;
+            obj.radius = radius(:);
         end
         
         % Change the sensor pose.
@@ -162,23 +144,24 @@ classdef laserscan < handle
             obj.rlim = rlim;
         end
         
-        % Get Cartesian ray vectors.
+        % Get Cartesian ray direction vectors.
         function v = ray(obj)
-            % RAY(OBJ) Get Cartesian ray vectors.
+            % RAY(OBJ) Get Cartesian ray direction vectors.
             %   V = RAY(OBJ) returns a Nx3 matrix that contains the
-            %   Cartesian direction vectors of the rays of the laser scan,
-            %   where N is the number of rays. The length of the direction 
-            %   vectors of no-return rays are guaranteed to exceed RLIM(2).
+            %   Cartesian direction vectors of the rays of the laser scan
+            %   w.r.t. the global reference frame. N is the number of rays.
+            %   The length of the direction vectors of no-return rays is
+            %   set to unity.
             
+            % Convert spherical to Cartesian coordinates.
             finiteradius = obj.radius;
-            finiteradius(~ret(obj)) = 1.1 * obj.rlim(2);
+            finiteradius(~ret(obj)) = 1;
             [x, y, z] = sph2cart(obj.azimuth, obj.elevation, finiteradius);
-            v = [x, y, z];
-            
+                        
             % Rotate the ray vectors around the origin.
-            p = zeros(numel(x), 3);
+            v = zeros(numel(x), 3);
             for i = 1 : numel(x)
-                p(i,:) = (rot(obj) * [x(i); y(i); z(i)])';
+                v(i,:) = (rot(obj) * [x(i); y(i); z(i)])';
             end
         end
         
@@ -223,20 +206,10 @@ classdef laserscan < handle
             %   scanner. Returned rays are plotted in red, no-return rays 
             %   are plotted in light gray.
 
-            %% Convert spherical to Cartesian coordinates.
-            % Define the plotted length of all rays.
-            plotradius = obj.radius;
-            plotradius(~ret(obj)) = obj.rlim(2);
-            
-            % Convert the spherical coordinates to Cartesian coordinates.
-            [x, y, z] = sph2cart(obj.azimuth(:), obj.elevation(:), ...
-                plotradius(:));
-            
-            % Rotate the rays around the origin.
-            p = zeros(numel(x), 3);
-            for i = 1 : numel(x)
-                p(i,:) = (rot(obj) * [x(i); y(i); z(i)])';
-            end
+            %% Prepare data.
+            % Convert spherical to Cartesian coordinates.
+            v = ray(obj);
+            v(~ret(obj),:) = v(~ret(obj),:) * obj.rlim(2);
             
             % Get the sensor position.
             o = pos(obj);
@@ -244,7 +217,7 @@ classdef laserscan < handle
             %% Plot rays.
             % Plot the returned rays.
             r = ret(obj);
-            pr = kron(p(r(:),:), [0; 1]);
+            pr = kron(v(r(:),:), [0; 1]);
             pr = pr + repmat(o, size(pr, 1), 1);
             rray = plot3(pr(:,1), pr(:,2), pr(:,3), 'Color', 'red');
             if ~isempty(rray)
@@ -253,7 +226,7 @@ classdef laserscan < handle
             end
 
             % Plot the no-return rays.
-            pnr = kron(p(~r(:),:), [0; 1]);
+            pnr = kron(v(~r(:),:), [0; 1]);
             pnr = pnr + repmat(o, size(pnr, 1), 1);
             hold on
             nrray = plot3(pnr(:,1), pnr(:,2), pnr(:,3), 'Color', 'k');
@@ -271,11 +244,11 @@ classdef laserscan < handle
                 'Marker', '.', 'MarkerSize', 50);
             
             % Plot the Cartesian axes.
-            plot3(o(1) + [0, max(x(:))], o(2) + [0, 0], o(3) + [0, 0], ...
+            plot3(o(1) + [0,max(v(:,1))], o(2) + [0,0], o(3) + [0,0], ...
                 'Color', 'r', 'LineWidth', 3);
-            plot3(o(1) + [0, 0], o(2) + [0, max(y(:))], o(3) + [0, 0], ...
+            plot3(o(1) + [0,0], o(2) + [0,max(v(:,2))], o(3) + [0,0], ...
                 'Color', 'g', 'LineWidth', 3);
-            plot3(o(1) + [0, 0], o(2) + [0, 0], o(3) + [0, max(z(:))], ...
+            plot3(o(1) + [0,0], o(2) + [0,0], o(3) + [0,max(v(:,3))], ...
                 'Color', 'b', 'LineWidth', 3);
 
             % Label the axes.
