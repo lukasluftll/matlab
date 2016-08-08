@@ -11,7 +11,8 @@ classdef laserscan < handle
     %   outside interval RLIM are interpreted as no-return rays.
     %
     %   RLIM is a 2-element vector that defines the minimum and maximum 
-    %   radius the sensor is able to measure.
+    %   radius the sensor is able to measure. It defaults to the minimum
+    %   and maximum given RADIUS.
     %
     %   TFORM is a homogeneous 4x4 transformation matrix defining the 
     %   transformation from a global reference frame to the laser sensor 
@@ -130,6 +131,12 @@ classdef laserscan < handle
         function obj = laserscan(azimuth, elevation, radius, rlim, tform)
             % Check number of input arguments.
             narginchk(4, 5);
+            
+            % If the sensor range is not given, set it to the minimum and
+            % maximum RADIUS.
+            if nargin < 4
+                rlim = [min(radius(:)), max(radius(:))];
+            end
             
             % If the sensor pose is not given, set it to identity.
             if nargin < 5
