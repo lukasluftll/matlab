@@ -1,13 +1,10 @@
-function L = decayray(origin, ray, lambda)
-% DECAYRAY Compute log-likelihood of Lidar measurement given ray decay map.
-%   L = DECAYRAY(ORIGIN, RAY, LAMBDA, XGV, YGV, ZGV) computes the
-%   log-likelihood of obtaining the Lidar ray measurement defined by ORIGIN 
-%   and RAY conditioned on the decay map LAMBDA with grid vectors XGV, YGV,
-%   ZGV.
+function L = decayray(ls, lambda)
+% DECAYRAY Compute log-likelihood of laser scan given ray decay map.
+%   L = DECAYRAY(LS, LAMBDA) computes the log-likelihood of obtaining the 
+%   laser scan LS conditioned on the decay map LAMBDA.
 %
-%   ORIGIN and RAY are Mx3 matrices whose rows contain the Cartesian 
-%   origins and ray vectors of the M measured rays. If all rays originate
-%   from the same point, ORIGIN may also be a 1x3 matrix.
+%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
+%   specified with respect to the decay rate map frame.
 %
 %   LAMBDA is a voxelmap object that contains the mean decay rate of each 
 %   map voxel.
@@ -18,51 +15,51 @@ function L = decayray(origin, ray, lambda)
 %   shifted by an unknown offset.
 %
 %   Example:
-%      origin = [0, 0, 0];
-%      ray = [3, 4, 5];
-%      lambda = voxelmap(repmat(magic(5)/100, [1, 1, 5]), 0:5, 0:5, 0:5);
-%      L = decayray(origin, ray, lambda)
+%      pcd = pcdread('castle.pcd');
+%      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [1, 100]);
+%      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
+%      L = decayray(ls, lambda)
 %
-%   See also VOXELMAP, DECAYNANRAY, DECAYMAP.
+%   See also LASERSCAN, VOXELMAP, DECAYNANRAY, DECAYMAP.
 
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
 % Check whether the user provided the correct number of input arguments.
-narginchk(3, 3)
+narginchk(2, 2)
 
-% Check if the arguments have the expected sizes.
-if ~(ismatrix(origin) && ismatrix(ray))
-    error('ORIGIN and RAY must be 2D matrices.')
+% Check the input argument types.
+if ~isa(ls, 'laserscan')
+    error('LS must be a laserscan object.')
 end
-if size(origin, 2) ~= 3 || size(ray, 2) ~= 3
-    error('ORIGIN and RAY must have 3 columns.')
-end
-
-% If ORIGIN has only one row, expand it to match the row size of RAY.
-if size(origin, 1) == 1
-    origin = repmat(origin, size(ray, 1), 1);
+if ~isa(lambda, 'voxelmap')
+    error('LAMBDA must be a voxelmap object.')
 end
 
-% Make sure all input arguments contain finite values only.
-if ~all(isfinite([origin(:); ray(:); lambda.data(:)]))
-    error('Input arguments must not be NaN or Inf.')
-end
+%% Preprocess input arguments.
+% Compute the Cartesian ray direction vectors.
+ray = cart(ls);
+
+% Compute the indices of the returned rays.
+iret = ret(ls);
+
+% Set the length of no-return rays to maximum sensor range plus the
+% diameter of the largest voxel.
+radiusnr = ls.rlim(2) + ...
+    sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
+ray(~iret,:) = ray(~iret,:) * radiusnr;
 
 %% Compute log-likelihood of measurements.
-% Determine the number of rays.
-nray = size(origin, 1);
-
 % Preallocate the return matrix.
-L = zeros(nray, 1);
+L = zeros(ls.count, 1);
 
 % Loop over all rays.
-parfor i = 1 : nray
+parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(origin(i,:), ray(i,:), ...
+    [vi, t] = trav(ls.position, ray(i,:), ...
         lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
     
-    % Convert the subscript indices to linear indices.
+    % Convert the subscript voxel indices to linear indices.
     vi = sub2ind(size(lambda.data), vi(:,1), vi(:,2), vi(:,3));
     
     % Compute the length of the ray apportioned to each voxel.
