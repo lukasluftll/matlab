@@ -38,12 +38,10 @@ lambdaLim = [2e-3, 1e+1];
 pcd = pcdread(file);
 
 % Compute the decay rate map.
-radiusFinite = pcd.radius;
-radiusFinite(~isfinite(radiusFinite)) = rlim(2);
+ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, rlim);
 hgv = -rlim(2)-shift : res : rlim(2)+res+shift;
 vgv = -rlim(2)*sin(elevationMax) : res : rlim(2)*sin(elevationMax);
-lambda = decaymap(origin, pcd.azimuth, pcd.elevation, radiusFinite, ...
-    isfinite(pcd.radius), hgv, hgv, vgv);
+lambda = decaymap(ls, hgv, hgv, vgv);
 
 % Set all voxels without data to the decay rate prior.
 lambda.data(~isfinite(lambda.data)) = ...
@@ -55,7 +53,7 @@ lambda.data = min(lambdaLim(2), lambda.data);
 
 % Visualize and save the decay rate map.
 figure('Name', 'decaycastle map', 'NumberTitle', 'Off');
-rayplot(pcd.azimuth, pcd.elevation, radiusFinite, isfinite(pcd.radius));
+plot(ls);
 plot(lambda);
 title('Decay rate map'); xlabel('x[m]'); ylabel('y[m]'); zlabel('z[m]');
 if ~exist('pcd/results', 'dir')
@@ -65,14 +63,6 @@ savefig(['pcd/results/decaymap_', ...
     datestr(now, 'yyyy-mm-dd_HH-MM-SS'), '.fig']);
 
 %% Compute log-likelihood of shifted scans.
-% Compute the direction vectors of the returned rays.
-[dirxr, diryr, dirzr] = sph2cart(pcd.azimuth(isfinite(pcd.radius)), ...
-    pcd.elevation(isfinite(pcd.radius)), pcd.radius(isfinite(pcd.radius)));
-
-% Compute the direction vectors of the no-return rays.
-[dirxnr, dirynr, dirznr] = sph2cart(pcd.azimuth(~isfinite(pcd.radius)), ...
-    pcd.elevation(~isfinite(pcd.radius)), rlim(2));
-
 % Shift the scan and compute the probability of obtaining it.
 gvs = -shift : shiftres : shift;
 L = zeros(numel(gvs));
@@ -81,15 +71,12 @@ for i = 1 : numel(gvs)
     for j = 1 : numel(gvs)
         origin = [gvs(i), gvs(j), 0];
         
-        % Compute the log-likelihood of the reflected rays.
-        Lr = sum(decayray(origin, [dirxr, diryr, dirzr], lambda));
-        
-        % Compute the log-likelihood of the no-return rays.
-        Lnr = sum(log(decaynanray(origin, [dirxnr, dirynr, dirznr], ...
-            rlim, lambda)));
-        
+        % Compute the log-likelihood of the measurements.
+        ls.tform(1:2,4) = [gvs(i); gvs(j)];
+        [Ls, ps] = decayray(ls, lambda);
+              
         % Compute the log-likelihood of all measurements.
-        L(i,j) = Lr + Lnr;
+        L(i,j) = sum([Ls; log(ps)]);
         
         % Advance the progress bar.
         waitbar(((i-1)*numel(gvs) + j) / numel(gvs)^2, waitbarHandle);
