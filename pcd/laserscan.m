@@ -186,24 +186,28 @@ classdef laserscan < handle
             %   are plotted in light gray.
 
             %% Convert spherical to Cartesian coordinates.
-            % Define the plotted length of all rays, also no-returns.
+            % Define the plotted length of all rays.
             plotradius = obj.radius;
             plotradius(~ret(obj)) = obj.rlim(2);
             
             % Convert the spherical coordinates to Cartesian coordinates.
-            [x, y, z] = sph2cart(obj.azimuth, obj.elevation, plotradius);
+            [x, y, z] = sph2cart(obj.azimuth(:), obj.elevation(:), ...
+                plotradius(:));
             
             % Rotate the rays around the origin.
             p = zeros(numel(x), 3);
             for i = 1 : numel(x)
                 p(i,:) = (obj.tform(1:3,1:3) * [x(i); y(i); z(i)])';
             end
+            
+            % Extract the scan origin from the transformation matrix.
+            o = obj.tform(1:3,4)';
 
             %% Plot rays.
             % Plot the returned rays.
             r = ret(obj);
             pr = kron(p(r(:),:), [0; 1]);
-            pr = pr + repmat(obj.tform(1:3,4)', size(pr, 1), 1);
+            pr = pr + repmat(o, size(pr, 1), 1);
             rray = plot3(pr(:,1), pr(:,2), pr(:,3), 'Color', 'red');
             if ~isempty(rray)
                 % Set transparency.
@@ -212,34 +216,36 @@ classdef laserscan < handle
 
             % Plot the no-return rays.
             pnr = kron(p(~r(:),:), [0; 1]);
-            pnr = pnr + repmat(obj.tform(1:3,4)', size(pnr, 1), 1);
+            pnr = pnr + repmat(o, size(pnr, 1), 1);
             hold on
             nrray = plot3(pnr(:,1), pnr(:,2), pnr(:,3), 'Color', 'k');
             if ~isempty(nrray)
                 % Set transparency.
                 nrray.Color(4) = 0.03;
             end
-            hold off
+            
+            %% Plot ray endpoints.
+            pcshow(pointCloud(pr), 'MarkerSize', 25);
 
             %% Plot decoration.
             % Plot the sensor origin.
-            plot3(0, 0, 0, 'Color', 'k', 'Marker', '.', 'MarkerSize', 50);
+            plot3(o(1), o(2), o(3), 'Color', 'k', ...
+                'Marker', '.', 'MarkerSize', 50);
 
             % Plot the Cartesian axes.
-            plot3([0, max(x(:))], [0, 0], [0, 0], 'Color', 'r', ...
-                'LineWidth', 3);
-            plot3([0, 0], [0, max(y(:))], [0, 0], 'Color', 'g', ...
-                'LineWidth', 3);
-            plot3([0, 0], [0, 0], [0, max(z(:))], 'Color', 'b', ...
-                'LineWidth', 3);
+            plot3(o(1) + [0, max(x(:))], o(2) + [0, 0], o(3) + [0, 0], ...
+                'Color', 'r', 'LineWidth', 3);
+            plot3(o(1) + [0, 0], o(2) + [0, max(y(:))], o(3) + [0, 0], ...
+                'Color', 'g', 'LineWidth', 3);
+            plot3(o(1) + [0, 0], o(2) + [0, 0], o(3) + [0, max(z(:))], ...
+                'Color', 'b', 'LineWidth', 3);
 
             % Label the axes.
-            xlabel('x')
-            ylabel('y')
-            zlabel('z')
+            xlabel('x'); ylabel('y'); zlabel('z');
 
             axis equal
             grid on
+            hold off
         end
     end
 end
