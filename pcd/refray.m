@@ -35,7 +35,7 @@ if ~isa(ref, 'voxelmap')
 end
 
 %% Preprocess input arguments.
-% Convert the ray coordinates from spherical to Cartesian.
+% Compute the Cartesian ray direction vectors.
 ray = cart(ls);
 
 % Set the length of no-return rays to maximum sensor range plus the
@@ -45,9 +45,8 @@ ray(~ret(ls),:) = ray(~ret(ls),:) * (ls.rlim(2) + d);
 
 %% Compute probability of measurements.
 % Loop over all rays.
-nray = size(ray, 1);
-p = zeros(nray, 1);
-parfor i = 1 : nray
+p = zeros(ls.count, 1);
+parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
     [vi,t] = trav(ls.pos, ray(i,:), ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
     
