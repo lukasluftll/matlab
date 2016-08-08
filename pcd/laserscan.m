@@ -145,9 +145,9 @@ classdef laserscan < handle
         end
         
         % Get Cartesian ray direction vectors.
-        function v = ray(obj)
-            % RAY(OBJ) Get Cartesian ray direction vectors.
-            %   V = RAY(OBJ) returns a Nx3 matrix that contains the
+        function v = cart(obj)
+            % CART(OBJ) Get Cartesian ray direction vectors.
+            %   V = CART(OBJ) returns a Nx3 matrix that contains the
             %   Cartesian direction vectors of the rays of the laser scan
             %   w.r.t. the global reference frame. N is the number of rays.
             %   The length of the direction vectors of no-return rays is
