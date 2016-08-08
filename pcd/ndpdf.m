@@ -61,7 +61,7 @@ end
 remove = false(size(Sigma, 3), 1);
 for i = 1 : size(Sigma, 3)
     % Check if the covariance matrix is symmetric positive definite.
-    SigmaStable = spd(Sigma(:,:,i));
+    SigmaStable = isspd(Sigma(:,:,i));
     
     % If it is not positive definite, remove the corresponding normal 
     % distribution. If it is close to singular, change it slightly to 
