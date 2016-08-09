@@ -8,7 +8,7 @@ function data = pcdread(filename)
 %   'version'       PCD version
 %   'width'         width of the point cloud
 %   'height'        height of the point cloud
-%   'viewpoint'     homogeneous 4x4 transformation matrix that represents 
+%   'viewpoint'     4x4 homogeneous transformation matrix that represents 
 %                   the sensor frame defined in the PCD file
 %   'count'         number of points contained in the point cloud
 %
@@ -166,7 +166,7 @@ data.viewpoint(1:3,:) = [quat2rotm(viewpoint(4:7)'), viewpoint(1:3)];
 data.count = count;
 
 %% Read DAT file.
-% Read position information.
+% Read position information if available.
 try
     pos = posread([filename(1:end-length('.pcd')), '_info.dat']);
     
