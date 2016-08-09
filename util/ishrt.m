@@ -26,10 +26,10 @@ end
 
 % Check correctness of rotation matrix.
 rot = tform(1:3,1:3);
-if det(rot) ~= 1
+if det(rot) - 1 > det(rot)
     return
 end
-if ~all(rot' == inv(rot))
+if max(abs(rot'-inv(rot))) > eps(max(rot(:)))
     return
 end
 
