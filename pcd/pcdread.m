@@ -1,43 +1,30 @@
 function data = pcdread(filename)
 % PCDREAD Read contents of point cloud from PCD file.
-%   DATA = PCDREAD(FILENAME) reads all data fields of the PCD file defined 
-%   by FILENAME and returns them in a struct DATA. Each field of DATA
-%   contains a matrix of size HEIGHTxWIDTHxCOUNT, with WIDTH and HEIGHT 
-%   being the width and height of the point cloud and COUNT being the data 
-%   element count specified in the PCD file header.
+%   DATA = PCDREAD(FILENAME) reads header and data fields of the 
+%   ASCII-coded PCD file FILENAME and returns them in struct DATA. 
 %
-%   If an accompanying DAT file is available, its contents are also
-%   accessible via DATA.
+%   DATA contains the following elements read from the PCD header.
 %
-%   DAT file naming convention
-%   --------------------------
-%   The DAT file must obey the following naming convention:
-% 
-%   PCD file name   <filename>.pcd
-%   DAT file name   <filename>_info.dat
+%   'version'       PCD version
+%   'width'         width of the point cloud
+%   'height'        height of the point cloud
+%   'viewpoint'     homogeneous 4x4 transformation matrix that represents 
+%                   the sensor frame defined in the PCD file
+%   'count'         number of points contained in the point cloud
 %
-%   Recognized field names
-%   ----------------------
-%   PCDREAD recognizes the following data field names in the PCD file 
-%   header and in the DAT file and returns the corresponding data types:
+%   Moreover, DATA contains the PCD field data as matrices of size 
+%   HEIGHTxWIDTHxCOUNT, with WIDTH and HEIGHT being the width and height of 
+%   the point cloud and COUNT being the data element count of the 
+%   respective field as specified in the PCD header.
 %
-%   'viewpoint'     affine3d object that represents the sensor frame 
-%                   defined in the PCD file
+%   If an accompanying DAT file is available, its contents are also read
+%   and are accessible via DATA. For the naming of the respective elements 
+%   of DATA, see POSREAD. 
+%   In order for the DAT file to be recognized correctly, it must obey the 
+%   following naming convention:
 %
-%   'odometry'      affine3d object that represents the odometry pose 
-%                   defined in the DAT file
-%
-%   'gps'           structure array that represents the GPS coordinates 
-%                   in the DAT file; it contains the following elements:
-%                   'time'            time stamp of the GPS reading
-%                   'longitude'       GPS longitude
-%                   'latitude'        GPS latitude
-%                   'elevation'       GPS elevation
-% 
-%   PCD file format
-%   ---------------
-%   PCD files occur in different formats: ASCII and binary. This function
-%   only reads ASCII files.
+%      PCD file name   <filename>.pcd
+%      DAT file name   <filename>_info.dat
 %  
 %   Example:
 %      data = pcdread('office.pcd');
@@ -50,26 +37,29 @@ function data = pcdread(filename)
 
 %% Validate input.
 % Check the number of input arguments.
-narginchk(1, 1);
+narginchk(1, 1)
 
 % Make sure the given file name is a string.
 if ~ischar(filename)
-    error(message('vision:pointcloud:badFileName'));
+    error('FILENAME must be a string.')
 end
 
-% Verify that the file exists.
+% Verify the file exists.
+if exist(filename, 'file') ~= 2
+    error(['File ', filename, ' does not exist.'])
+end
+
+%% Open file.
+% Try to open the file.
 fid = fopen(filename, 'r');
 if fid == -1
-    if isempty(dir(filename))
-        error(message('MATLAB:imagesci:imread:fileDoesNotExist', ...
-              filename));
-    else
-        error(message('MATLAB:imagesci:imread:fileReadPermission', ...
-              filename));
-    end
+    error(['Cannot read ', filename, '.'])
 end
 
-%% Read PCD header entries.
+% Make sure the file is closed upon function termination.
+cleaner = onCleanup(@() fclose(fid));
+
+%% Read PCD header.
 % Skip the opening line.
 fgetl(fid);
 
@@ -87,7 +77,7 @@ fieldname = fieldname{:};
 % Size of each field in bytes.
 fieldsize = fgetl(fid);
 fieldsize = fieldsize(length('SIZE')+1:end);
-fieldsize = cell2mat(textscan(fieldsize, '%d'));
+fieldsize = cell2mat(textscan(fieldsize, '%d')); %#ok<*NASGU>
 
 % Data type of each field.
 fieldtype = fgetl(fid);
@@ -125,9 +115,7 @@ pcdtype = pcdtype(length('DATA')+1:end);
 pcdtype = textscan(pcdtype, '%s');
 pcdtype = pcdtype{:};
 
-fclose(fid);
-
-%% Check file and read payload data.
+%% Check file contents.
 % Warn if the PCD file version is older than the official entry point for
 % the PCD file format.
 if pcdversion < 0.7
@@ -142,68 +130,52 @@ end
 
 % Make sure the PCD file's data type is ASCII. 
 if ~strcmpi(pcdtype, 'ascii')
-    error('This function only reads PCD files of type ''ascii''.')
+    error('This function only reads PCD files of type ASCII.')
 end
 
-%% Read payload data.
+%% Read PCD payload data.
 % Read raw data.
 rawdata = dlmread(filename, ' ', 11, 0);
 
-% Remove duplicate points.
-rawdata(isnan(rawdata)) = -Inf;
-if numel(rawdata) ~= numel(unique(rawdata))
-    rawdata = unique(rawdata, 'rows');
-    
-    % In case there are duplicates, make the payload data matrices 
-    % unorganized.
-    width = 1;
-    height = size(rawdata, 1);
-end
-rawdata(rawdata == -Inf) = NaN;
-
 % Convert raw data to cell array. Each cell element contains a matrix of
 % size WIDTH x HEIGHT x COUNT.
-data = cell(length(fieldcount), 1);
+celldata = cell(length(fieldcount), 1);
 col = [0; cumsum(fieldcount)];
 for i = 1 : length(fieldcount)
-    data{i} = rawdata(:, col(i)+1:col(i+1));
-    data{i} = reshape(data{i}, width, height, fieldcount(i));
-    data{i} = permute(data{i}, [2 1 3]);
+    celldata{i} = rawdata(:, col(i)+1:col(i+1));
+    celldata{i} = reshape(celldata{i}, width, height, fieldcount(i));
+    celldata{i} = permute(celldata{i}, [2 1 3]);
 end
 
 % If the data type of a raw data column is not double, convert it to the 
 % data type given in the PCD file header.
 uint = regexp(fieldtype', '[uU]');
-data(uint) = cellfun(@uint32, data(uint), 'UniformOutput', false);
+celldata(uint) = cellfun(@uint32, celldata(uint), 'UniformOutput', false);
 int = regexp(fieldtype', '[iI]');
-data(int) = cellfun(@int32, data(int), 'UniformOutput', false);
+celldata(int) = cellfun(@int32, celldata(int), 'UniformOutput', false);
 
 % Transform the cell array into a structure array.
-data = cell2struct(data, fieldname, 1);
+data = cell2struct(celldata, fieldname, 1);
 
-%% Append viewpoint to return structure.
-viewpointMatrix = quat2rotm(viewpoint(4:7)');
-viewpointMatrix(:, 4) = viewpoint(1:3)';
-viewpointMatrix(4, :) = [0, 0, 0, 1];
-data.viewpoint = affine3d(viewpointMatrix');
+%% Add header data to return structure.
+data.version = pcdversion;
+data.width = width;
+data.height = height;
+data.viewpoint = eye(4);
+data.viewpoint(1:3,:) = [quat2rotm(viewpoint(4:7)'), viewpoint(1:3)];
+data.count = count;
 
-%% Read DAT file and append position information to return structure.
-% Create the DAT file name according to the naming convention.
-datFilename = [filename(1:end-length('.pcd')), '_info.dat'];
-
+%% Read DAT file.
 % Read position information.
-fid = fopen(datFilename, 'r');
-if fid ~= -1
-    pos = posread(datFilename);
+try
+    pos = posread([filename(1:end-length('.pcd')), '_info.dat']);
     
     % Append position information to return structure.
     posfield = fieldnames(pos);
     for i = 1 : numel(posfield)
         data.(posfield{i}) = pos.(posfield{i});
     end
-    
-    % Close the file.
-    fclose(fid);
+catch
 end
 
 end

@@ -53,7 +53,7 @@ end
 % Try to open the file.
 fid = fopen(filename, 'r');
 if fid == -1
-    error(['Cannot read ', filename, '; probably missing permisson.'])
+    error(['Cannot read ', filename, '.'])
 end
 
 % Make sure the file is closed upon function termination.
