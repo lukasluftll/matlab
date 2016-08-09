@@ -25,6 +25,10 @@ function pos = posread(filename)
 %   Odometry: -4.21839 -3.69559 0.955 0 -0 2.11513
 %   GPS: 1454504682.677756915 6.96038 47.4405 0
 %
+%   Odometry information is given as a list of x, y, z, roll, pitch, yaw.
+%   GPS information is given as a list of time, longitude, latitude, 
+%   elevation.
+%
 %   If a line is missing in the DAT file, the corresponding element of POS
 %   is empty.
 % 
@@ -82,8 +86,8 @@ if ischar(line)
     odometry = textscan(line, '%s %f %f %f %f %f %f');
     if strcmpi(odometry{1}, 'Odometry:')
         odometry = [odometry{2:7}];
-        pos.odometry = eye(4);
-        pos.odometry(1:3,:) = [eul2rotm(odometry(4:6)), odometry(1:3)'];
+        pos.odometry = eul2tform(odometry(4:6));
+        pos.odometry(1:3,4) = odometry(1:3)';
     else
         error(formatError);
     end
