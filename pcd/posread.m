@@ -1,13 +1,13 @@
 function pos = posread(filename)
-% POSREAD Read position information about a laser scan.
+% POSREAD Read position information from file.
 %   POS = POSREAD(FILENAME) reads position information from the DAT file
 %   specified by the string FILENAME. The return value POS is a structure 
-%   with the following elements:
+%   that contains the following elements.
 %
 %   'time'          scalar that represents the time stamp of the laser scan
 %
-%   'odometry'      affine3d object that represents the odometry pose at 
-%                   which the scan was captured
+%   'odometry'      4x4 homogeneous transformation matrix that represents 
+%                   the odometry pose at which the scan was captured
 %
 %   'gps'           structure containing the GPS coordinates of the place 
 %                   where the scan was captured; its elements are:
@@ -24,6 +24,9 @@ function pos = posread(filename)
 %   Time: 1454504682.921031963
 %   Odometry: -4.21839 -3.69559 0.955 0 -0 2.11513
 %   GPS: 1454504682.677756915 6.96038 47.4405 0
+%
+%   If a line is missing in the DAT file, the corresponding element of POS
+%   is empty.
 % 
 %   Example:
 %      pos = posread('campus_info.dat')
@@ -34,31 +37,34 @@ function pos = posread(filename)
 
 %% Validate input.
 % Check the number of input arguments.
-narginchk(1, 1);
+narginchk(1, 1)
 
 % Make sure the given file name is a string.
 if ~ischar(filename)
-    error(message('vision:pointcloud:badFileName'));
+    error('FILENAME must be a string.')
 end
 
-% Verify that the file exists.
+% Verify the file exists.
+if exist(filename, 'file') ~= 2
+    error(['File ', filename, ' does not exist.'])
+end
+
+%% Open file.
+% Try to open the file.
 fid = fopen(filename, 'r');
 if fid == -1
-    if isempty(dir(filename))
-        error(message('MATLAB:imagesci:imread:fileDoesNotExist', ...
-              filename));
-    else
-        error(message('MATLAB:imagesci:imread:fileReadPermission', ...
-              filename));
-    end
+    error(['Cannot read ', filename, '; probably missing permisson.'])
 end
 
-%% Read file.
+% Make sure the file is closed upon function termination.
+cleaner = onCleanup(@() fclose(fid));
+
+%% Read file content.
 % Define the format error message.
 formatError = 'Invalid input file format.';
 
 % Read time stamp.
-pos.time = 0;
+pos.time = [];
 line = fgetl(fid);
 if ischar(line)
     time = textscan(line, '%s %f64');
@@ -70,7 +76,7 @@ if ischar(line)
 end
 
 % Read odometry data.
-pos.odometry = affine3d();
+pos.odometry = [];
 line = fgetl(fid);
 if ischar(line)
     odometry = textscan(line, '%s %f %f %f %f %f %f');
@@ -78,11 +84,8 @@ if ischar(line)
         error(formatError);
     else
         odometry = [odometry{2:7}];
-        translation = [odometry(1:3), 1];
-        rotation = eul2rotm(odometry(4:6));
-        transform(1:3, 1:3) = rotation;
-        transform(4, 1:4) = translation;
-        pos.odometry = affine3d(transform);
+        pos.odometry = eye(4);
+        pos.odometry(1:3,:) = [eul2rotm(odometry(4:6)), odometry(1:3)];
     end
 end
 
@@ -100,8 +103,5 @@ if ischar(line)
         pos.gps.elevation = gps{5};
     end
 end
-
-% Close the file.
-fclose(fid);
 
 end
