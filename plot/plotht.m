@@ -28,29 +28,18 @@ if ~ishrt(ht)
 end
 
 %% Plot unit vectors.
-% Define the origin and the unit vectors of system B in B in homogeneous 
-% coordinates.
-ob = [0; 0; 0; 1];
-xb = [1; 0; 0; 1];
-yb = [0; 1; 0; 1];
-zb = [0; 0; 1; 1];
+% Define the origin of B in A.
+o = ht(1:3,4);
 
-% Transform the origin and the unit vectors of B into system A.
-oba = ht * ob;
-xba = ht * xb;
-yba = ht * yb;
-zba = ht * zb;
-
-% Compute the unit vector directions in A.
-dx = xba - oba;
-dy = yba - oba;
-dz = zba - oba;
+% Compute the endpoints of the unit vectors of B in A.
+e = [eye(3); 1, 1, 1];
+e = ht * e;
 
 % Plot the unit vectors of B in A.
-quiver3(oba(1), oba(2), oba(3), dx(1), dx(2), dx(3), 0, 'r', varargin{:})
+quiver3(o(1), o(2), o(3), e(1,1), e(2,1), e(3,1), 0, 'r', varargin{:})
 hold on
-quiver3(oba(1), oba(2), oba(3), dy(1), dy(2), dy(3), 0, 'g', varargin{:})
-quiver3(oba(1), oba(2), oba(3), dz(1), dz(2), dz(3), 0, 'b', varargin{:})
+quiver3(o(1), o(2), o(3), e(1,2), e(2,2), e(3,2), 0, 'g', varargin{:})
+quiver3(o(1), o(2), o(3), e(1,3), e(2,3), e(3,3), 0, 'b', varargin{:})
 hold off
 
 end
