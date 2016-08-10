@@ -31,9 +31,8 @@ end
 % Define the origin of B in A.
 o = ht(1:3,4);
 
-% Compute the endpoints of the unit vectors of B in A.
-e = [eye(3); 1, 1, 1];
-e = ht * e;
+% Compute the unit vectors of B in A.
+e = ht(1:3,1:3) * eye(3);
 
 % Plot the unit vectors of B in A.
 quiver3(o(1), o(2), o(3), e(1,1), e(2,1), e(3,1), 0, 'r', varargin{:})
