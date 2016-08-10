@@ -22,10 +22,11 @@ function pos = posread(filename)
 %   in such a file is ordered and formatted:
 %
 %   Time: 1454504682.921031963
-%   Odometry: -4.21839 -3.69559 0.955 0 -0 2.11513
+%   Odometry: -9.23 -62.10 -0.11 -0.00 -0.02 0.61 0.78
 %   GPS: 1454504682.677756915 6.96038 47.4405 0
 %
-%   Odometry information is given as a list of x, y, z, roll, pitch, yaw.
+%   Odometry information is given as a list of Cartesian position and 
+%   rotation as quaternion: x, y, z, qw, qx, qy, qz.
 %   GPS information is given as a list of time, longitude, latitude, 
 %   elevation.
 %
@@ -83,11 +84,10 @@ end
 pos.odometry = [];
 line = fgetl(fid);
 if ischar(line)
-    odometry = textscan(line, '%s %f %f %f %f %f %f');
+    odometry = textscan(line, '%s %f %f %f %f %f %f %f');
     if strcmpi(odometry{1}, 'Odometry:')
-        odometry = [odometry{2:7}];
-        pos.odometry = eul2tform(odometry(4:6));
-        pos.odometry(1:3,4) = odometry(1:3)';
+        pos.odometry = quat2tform([odometry{5:8}]);
+        pos.odometry(1:3,4) = [odometry{2:4}]';
     else
         error(formatError);
     end
