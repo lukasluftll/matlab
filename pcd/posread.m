@@ -22,7 +22,7 @@ function pos = posread(filename)
 %   in such a file is ordered and formatted:
 %
 %   Time: 1454504682.921031963
-%   Odometry: -9.23 -62.10 -0.11 -0.00 -0.02 0.61 0.78
+%   Odometry: -9.23 -62.10 -0.11 0.787 -0.006 -0.025 0.617
 %   GPS: 1454504682.677756915 6.96038 47.4405 0
 %
 %   Odometry information is given as a list of Cartesian position and 
