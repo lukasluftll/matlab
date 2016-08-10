@@ -1,7 +1,7 @@
 function map = pcmap(folder, step)
 % PCMAP Build map from multiple PCD files.
 %   MAP = PCMAP(FOLDER, STEP) reads all PCD files in directory FOLDER and 
-%   concatenates them to a single pointCloud object MAP. 
+%   merges them into a single pointCloud object MAP. 
 %   If the PCD files come with DAT files that provide odometry information, 
 %   the MAP point cloud is built w.r.t. the odometry frame.
 %
@@ -36,7 +36,7 @@ waitbarHandle = waitbar(0, 'Building map ...');
 cleanupObj = onCleanup(@() close(waitbarHandle));
 
 % Loop over all PCD files.
-for i = 1 : 10 : numel(file)
+for i = 1 : numel(file)
     % Read the PCD file.
     pcd = pcdread([folder, '/', file(i).name]);
     pc = pointCloud([pcd.x(:), pcd.y(:), pcd.z(:)]);
@@ -44,9 +44,9 @@ for i = 1 : 10 : numel(file)
     % If odometry information is given, transform the point cloud
     % accordingly.
     if isfield(pcd, 'odometry')
-        pc = pctransform(pc, ht2affine3d(pcd.odometry));
+        pc = pctransform(pc, ht2affine3d(pcd.odometry));    
     end
-    hold on; plotht(pcd.odometry); axis equal; pcd.odometry
+
     % Merge the point cloud with the map.
     map = pcmerge(map, pc, step);
     
