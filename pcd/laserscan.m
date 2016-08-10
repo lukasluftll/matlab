@@ -173,10 +173,7 @@ classdef laserscan < handle
             [x, y, z] = sph2cart(obj.azimuth, obj.elevation, finiteradius);
                         
             % Rotate the ray vectors around the origin.
-            v = zeros(numel(x), 3);
-            for i = 1 : numel(x)
-                v(i,:) = (obj.rotation * [x(i); y(i); z(i)])';
-            end
+            v = (obj.rotation * [x, y, z].').';
         end
         
         % Identify the return and no-return rays.
