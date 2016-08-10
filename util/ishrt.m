@@ -25,11 +25,12 @@ if ~all(size(tform) == [4, 4])
 end
 
 % Check correctness of rotation matrix.
+epsFactor = 100;
 rot = tform(1:3,1:3);
-if det(rot) - 1 > det(rot)
+if abs(det(rot)-1) > eps(epsFactor)
     return
 end
-if max(abs(rot'-inv(rot))) > eps(max(rot(:)))
+if max(abs(rot'-inv(rot))) > eps(epsFactor * max(rot(:)))
     return
 end
 
