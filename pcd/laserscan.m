@@ -14,9 +14,23 @@ classdef laserscan < handle
     %   radius the sensor is able to measure. It defaults to the minimum
     %   and maximum given RADIUS.
     %
-    %   TFORM is a homogeneous 4x4 transformation matrix defining the 
+    %   TFORM is a 4x4 homogeneous transformation matrix defining the 
     %   transformation from a global reference frame to the laser sensor 
     %   frame. It defaults to identity.
+    %
+    %   LASERSCAN properties:
+    %   TFORM      - Transformation from global frame to sensor frame
+    %   AZIMUTH    - Azimuth angles of the rays
+    %   ELEVATION  - Elevation angles of the rays
+    %   RADIUS     - Radius of the rays
+    %   RLIM       - Sensor measurement range
+    %
+    %   LASERSCAN methods:
+    %   CART       - Transform spherical to Cartesian coordinates
+    %   RET        - Identify returned rays
+    %   POSITION   - Get laser sensor position
+    %   ROTATION   - Get laser sensor orientation
+    %   PLOT       - Plot laser scan
     %
     %   Example:
     %      pcd = pcdread('castle.pcd');
@@ -27,10 +41,29 @@ classdef laserscan < handle
     % Copyright 2016 Alexander Schaefer
     
     properties
+        % TFORM 4x4 homogeneous transformation matrix defining the 
+        % transformation from a global reference frame to the laser sensor 
+        % frame.
         tform;
+        
+        % AZIMUTH N-element vector defining the azimuth angle of the rays 
+        % w.r.t. the sensor frame in [rad]. 
+        % N is the number of measured rays.
         azimuth;
+        
+        % ELEVATION N-element vector defining the elevation angle of the  
+        % rays w.r.t. the sensor frame in [rad]. 
+        % N is the number of measured rays.
         elevation;
+        
+        % RADIUS N-element vector defining the length of the rays
+        % originating from the laser sensor. 
+        % N is the number of measured rays.
+        % NaN values identify no-return rays.
         radius;
+        
+        % RLIM 2-element vector defining the minimum and maximum radius the
+        % sensor is able to measure.
         rlim;
     end
     
@@ -159,9 +192,9 @@ classdef laserscan < handle
         end
         
         % Get Cartesian ray direction vectors.
-        function v = cart(obj)
+        function p = cart(obj)
             % CART(OBJ) Get Cartesian ray direction vectors.
-            %   V = CART(OBJ) returns a Nx3 matrix that contains the
+            %   P = CART(OBJ) returns a Nx3 matrix that contains the
             %   Cartesian direction vectors of the rays of the laser scan
             %   w.r.t. the global reference frame. N is the number of rays.
             %   The length of the direction vectors of no-return rays is
@@ -172,8 +205,9 @@ classdef laserscan < handle
             finiteradius(~ret(obj)) = 1;
             [x, y, z] = sph2cart(obj.azimuth, obj.elevation, finiteradius);
                         
-            % Rotate the ray vectors around the origin.
-            v = (obj.rotation * [x, y, z].').';
+            % Transform the ray endpoints into the global frame.
+            p = (obj.tform * [x, y, z, ones(size(x))].').';
+            p = p(:,1:3);
         end
         
         % Identify the return and no-return rays.
