@@ -166,16 +166,28 @@ data.viewpoint(1:3,:) = [quat2rotm(viewpoint(4:7)'), viewpoint(1:3)];
 data.count = count;
 
 %% Read DAT file.
+% Determine the name of the DAT file.
+datFilename = [filename(1:end-length('.pcd')), '_info.dat'];
+
+% Check if the DAT file exists.
+if exist(datFilename, 'file') ~= 2
+    return
+end
+
+% Check if the DAT file can be opened for read access.
+datFid = fopen(datFilename, 'r');
+if datFid == -1
+    return
+end
+fclose(datFid);
+
 % Read position information if available.
-try
-    pos = posread([filename(1:end-length('.pcd')), '_info.dat']);
-    
-    % Append position information to return structure.
-    posfield = fieldnames(pos);
-    for i = 1 : numel(posfield)
-        data.(posfield{i}) = pos.(posfield{i});
-    end
-catch
+pos = posread(datFilename);
+
+% Append position information to return structure.
+posfield = fieldnames(pos);
+for i = 1 : numel(posfield)
+    data.(posfield{i}) = pos.(posfield{i});
 end
 
 end
