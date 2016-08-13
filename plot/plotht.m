@@ -1,10 +1,12 @@
-function plotht(ht, varargin)
+function plotht(ht, l, varargin)
 % PLOTPOSE Plot 3D homogeneous transformation.
 %   PLOTHT(HT) plots a Cartesian coordinate system that represents the
 %   rotation and translation contained in the 4x4 homogeneous
 %   transformation matrix HT. Given HT is a transformation from system A 
 %   to system B, PLOTHT(HT) plots the x, y, and z unit vectors of B in
 %   system A as red, green, and blue arrows.
+%
+%   PLOTHT(HT, L) plots the axis vectors with length L.
 %
 %   PLOTHT(HT, VARARGIN) additionally specifies the plot linestyle for the
 %   axis vectors. Any marker in LINESPEC is drawn at the base instead of an
@@ -32,7 +34,7 @@ end
 o = ht(1:3,4);
 
 % Compute the unit vectors of B in A.
-e = ht(1:3,1:3) * eye(3);
+e = ht(1:3,1:3) * l * eye(3);
 
 % Plot the unit vectors of B in A.
 quiver3(o(1), o(2), o(3), e(1,1), e(2,1), e(3,1), 0, 'r', varargin{:})
