@@ -29,6 +29,14 @@ if ~ishrt(ht)
     error('HT must be a 4x4 homogeneous translation-rotation matrix.')
 end
 
+% If axis vector length is not given, define it.
+l(nargin<2) = 1;
+
+% Check axis vector length argument.
+if l <= 0
+    error('L must be positive.')
+end
+
 %% Plot unit vectors.
 % Define the origin of B in A.
 o = tform2trvec(ht);
