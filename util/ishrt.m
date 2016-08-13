@@ -20,7 +20,7 @@ end
 if ~ismatrix(tform)
     return
 end
-if ~all(size(tform) == [4, 4])
+if ~all(size(tform) == 4)
     return
 end
 
@@ -35,7 +35,7 @@ if max(abs(rot'-inv(rot))) > eps(epsFactor * max(rot(:)))
 end
 
 % Check last row.
-if ~all(tform2trvec(tform) == [0, 0, 0, 1])
+if ~all(tform(4,:) == [0, 0, 0, 1])
     return
 end
 
