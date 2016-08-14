@@ -1,11 +1,17 @@
 classdef laserscan < handle
     % LASERSCAN Object for storing 3D laser scan.
-    %   L = LASERSCAN(AZIMUTH, ELEVATION, RADIUS, RLIM, TFORM) creates a 
+    %   L = LASERSCAN(SP, AZIMUTH, ELEVATION, RADIUS, RLIM) creates a 
     %   laser scan object.
     %
+    %   SP is a 4x4xN matrix, where N is the number of rays the laser 
+    %   scan contains. Its n-th page defines the laser sensor pose at the 
+    %   moment of the n-th observation; it is a 4x4 homogeneous
+    %   transformation matrix from the reference frame of the scan to the 
+    %   laser sensor pose.
+    %
     %   AZIMUTH, ELEVATION, and RADIUS are N-element vectors defining
-    %   the rays the laser sensor measured in spherical coordinates w.r.t.
-    %   the sensor frame. N is the number of measured rays.
+    %   the rays the laser sensor measured in spherical coordinates with
+    %   respect to the sensor frame.
     %   AZIMUTH and ELEVATION must be finite angles in [rad].
     %   RADIUS may contain real and infinite values. All RADIUS values 
     %   outside interval RLIM are interpreted as no-return rays.
@@ -14,45 +20,38 @@ classdef laserscan < handle
     %   radius the sensor is able to measure. It defaults to the minimum
     %   and maximum given RADIUS.
     %
-    %   TFORM is a 4x4 homogeneous transformation matrix defining the 
-    %   transformation from a global reference frame to the laser sensor 
-    %   frame. It defaults to identity.
-    %
     %   LASERSCAN properties:
-    %   TFORM      - Transformation from global frame to sensor frame
-    %   AZIMUTH    - Azimuth angles of the rays
-    %   ELEVATION  - Elevation angles of the rays
-    %   RADIUS     - Radius of the rays
+    %   SP         - Sensor poses in global reference frame
+    %   AZIMUTH    - Azimuth angles [rad]
+    %   ELEVATION  - Elevation angles [rad]
+    %   RADIUS     - Ray lengths
     %   RLIM       - Sensor measurement range
     %
     %   LASERSCAN methods:
-    %   CART       - Transform spherical to Cartesian coordinates
+    %   COUNT      - Number of rays
+    %   LS2CART    - Cartesian coordinates of ray endpoints
+    %   LS2PC      - Transform laser scan to point cloud
     %   RET        - Identify returned rays
-    %   POSITION   - Get laser sensor position
-    %   ROTATION   - Get laser sensor orientation
     %   PLOT       - Plot laser scan
-    %
-    %   Example:
-    %      pcd = pcdread('castle.pcd');
-    %      l = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [0, 100])
     %
     %   See also TRAV, SLAB.
     
     % Copyright 2016 Alexander Schaefer
     
     properties
-        % TFORM 4x4 homogeneous transformation matrix defining the 
-        % transformation from a global reference frame to the laser sensor 
-        % frame.
-        tform;
+        % SP 4x4xN matrix; concatenation of 4x4 homogeneous transformation 
+        % matrices defining for each ray the transformation from the 
+        % reference frame of the laser scan to the laser sensor.
+        % N is the number of rays.
+        sp;
         
         % AZIMUTH N-element vector defining the azimuth angle of the rays 
-        % w.r.t. the sensor frame in [rad]. 
+        % with respect to the sensor frame in [rad]. 
         % N is the number of measured rays.
         azimuth;
         
         % ELEVATION N-element vector defining the elevation angle of the  
-        % rays w.r.t. the sensor frame in [rad]. 
+        % rays with respect to the sensor frame in [rad]. 
         % N is the number of measured rays.
         elevation;
         
@@ -68,6 +67,35 @@ classdef laserscan < handle
     end
     
     methods
+        % Change the sensor poses.
+        function set.sp(obj, sp)
+            % Check if SP contains the same number of dimensions and
+            % elements as the current sensor pose data.
+            if ~isempty(obj.sp)
+                if ndims(sp) ~= ndims(obj.sp)
+                    error(['SP must be a ', num2str(ndims(obj.sp)), ...
+                        'D matrix.'])
+                end
+                if any(size(sp) ~= size(obj.sp))
+                    error(['SP must be of size ', ...
+                        num2str(size(obj.sp, 1)), 'x', ...
+                        num2str(size(obj.sp, 2)), 'x', ...
+                        num2str(size(obj.sp, 3)), '.'])
+                end
+            end
+            
+            % Check if SP contains homogeneous transformation matrices.
+            for i = 1 : size(sp, 3)
+                if ~ishrt(sp(:,:,i))
+                    error(['SP(:,:,', num2str(i), ...
+                        ') is not a homogeneous transformation.'])
+                end
+            end
+            
+            % Assign new sensor pose data to object.
+            obj.sp = sp;
+        end
+        
         % Change the azimuth angles.
         function set.azimuth(obj, azimuth)
             % Check if AZIMUTH contains the same number of elements as the 
@@ -92,7 +120,7 @@ classdef laserscan < handle
             % the current elevation data.
             if ~isempty(obj.elevation) ...
                     && numel(elevation)~=numel(obj.elevation)
-                error(['ELEVATION must contain ', 
+                error(['ELEVATION must contain ', ...
                     num2str(numel(obj.elevation)), 'elements.'])
             end
             
@@ -118,18 +146,6 @@ classdef laserscan < handle
             
             % Assign new radius data to object.
             obj.radius = radius(:);
-        end
-        
-        % Change the sensor pose.
-        function set.tform(obj, tform)
-            % Check if TFORM is a homogeneous transformation matrix.
-            if ~ishrt(tform)
-                error(['TFORM must be a homogeneous ', ...
-                    '4x4 rotation-translation matrix.'])
-            end
-            
-            % Assign new pose to object.
-            obj.tform = tform;
         end
         
         % Change the sensor radius limits.
@@ -161,53 +177,68 @@ classdef laserscan < handle
     
     methods ( Access = public )
         % Construct laserscan object.
-        function obj = laserscan(azimuth, elevation, radius, rlim, tform)
+        function obj = laserscan(sp, azimuth, elevation, radius, rlim)
             % Check number of input arguments.
-            narginchk(3, 5);
+            narginchk(4, 5);
             
             % If the sensor range is not given, set it to the minimum and
             % maximum RADIUS.
-            if nargin < 4
+            if nargin < 5
                 rlim = [min(radius(:)), max(radius(:))];
             end
             
-            % If the sensor pose is not given, set it to identity.
-            if nargin < 5
-                tform = eye(4);
-            end
-            
             % Store the input.
+            obj.sp = sp;
             obj.azimuth = azimuth;
             obj.elevation = elevation;
             obj.radius = radius;
-            obj.tform = tform;
             obj.rlim = rlim;
         end
         
         % Return number of rays.
         function n = count(obj)
-            % Return number of rays, both returned rays and no-returns.
-            
+            % COUNT Number of rays.
             n = numel(obj.azimuth);
         end
         
-        % Get Cartesian ray direction vectors.
-        function p = cart(obj)
-            % CART(OBJ) Get Cartesian ray direction vectors.
-            %   P = CART(OBJ) returns a Nx3 matrix that contains the
-            %   Cartesian direction vectors of the rays of the laser scan
-            %   w.r.t. the global reference frame. N is the number of rays.
-            %   The length of the direction vectors of no-return rays is
-            %   set to unity.
+        % Get Cartesian coordinates of ray endpoints.
+        function p = ls2cart(obj)
+            % LS2CART(OBJ) Cartesian coordinates of ray endpoints.
+            %   p = LS2CART(OBJ) returns an Nx3 matrix that contains the
+            %   Cartesian coordinates of the ray endpoints with respect to
+            %   the reference frame of the laser scan.
+            %   N is the number of rays.
+            %   The coordinates of no-return rays are set to NaN.
             
-            % Convert spherical to Cartesian coordinates.
-            finiteradius = obj.radius;
-            finiteradius(~ret(obj)) = 1;
-            [x, y, z] = sph2cart(obj.azimuth, obj.elevation, finiteradius);
+            % Compute the ray endpoint coordinates in the sensor frame.
+            [x, y, z] = sph2cart(obj.azimuth, obj.elevation, obj.radius);
                         
-            % Transform the ray endpoints into the global frame.
-            p = (obj.tform * [x, y, z, ones(size(x))].').';
-            p = p(:,1:3);
+            % Convert the Cartesian coordinates to homogeneous coordinates.
+            ps = cart2hom([x, y, z]).';
+            
+            % Transform the ray endpoints into the reference frame of the
+            % laser scan.
+            p = zeros(size(ps));
+            for i = 1 : size(obj.sp, 3)
+                p(:,i) = obj.sp(:,:,i) * ps(:,i);
+            end
+            
+            % Revert the homogeneous coordinates back to Cartesian.
+            p = hom2cart(p.');
+        end
+        
+        % Transform laser scan to point cloud.
+        function pc = ls2pc(obj)
+            % LS2PC Transform laser scan to point cloud.
+            %   PC = LS2PC(OBJ) returns a pointCloud object that contains 
+            %   the ray endpoints of the laser scan.
+            %   
+            %   No-return rays of the laser scan result in NaN points.
+            %
+            %   The reference frames of the point cloud and of the laser 
+            %   scan are the same.
+            
+            pc = pointCloud(ls2cart(obj));
         end
         
         % Identify the return and no-return rays.
@@ -216,92 +247,47 @@ classdef laserscan < handle
             %   R = RET(OBJ) returns for each ray of the laser scan 
             %   whether it was reflected by the environment or not.
             %
-            %   R is a N-element logical vector. All true elements of R 
+            %   R is an N-element logical vector. All true elements of R 
             %   correspond to returned rays, all false elements correspond 
             %   to no-return rays.
             
             r = obj.radius >= obj.rlim(1) & obj.radius <= obj.rlim(2);
         end
-        
-        % Get the sensor position.
-        function p = position(obj)
-            % POSITION Laser sensor position.
-            %   P = POSITION(OBJ) returns a 1x3 vector that specifies the 
-            %   laser sensor position.
-            
-            p = obj.tform(1:3,4)';
-        end
-        
-        % Get the sensor orientation.
-        function r = rotation(obj)
-            % ROTATION Laser sensor orientation.
-            %   R = ROTATION(OBJ) returns a 3x3 rotation matrix that 
-            %   specifies the laser sensor orientation.
-            
-            r = obj.tform(1:3,1:3);
-        end
-        
+       
         % Plot the laser scan.
         function plot(obj)
             % PLOT Plot laser scan.
             %   PLOT(OBJ) visualizes the rays originating from the laser 
             %   scanner. Returned rays are plotted in red, no-return rays 
-            %   are plotted in light gray.
+            %   are plotted in light gray. 
 
-            %% Prepare data.
-            % Get the logical indices of the returned rays.
+            % Identify returned and no-return rays.
             ir = ret(obj);
             
-            % Convert spherical to Cartesian coordinates.
-            p = cart(obj);
+            % Get sensor origin for each ray.
+            s = tform2trvec(obj.sp);
             
-            % Set the plotted length of the no-return rays to the maximum
-            % sensor range.
-            p(~ir,:) = p(~ir,:) * obj.rlim(2);
+            % Compute ray endpoints.
+            r = ls2cart(obj);
             
-            % Get the sensor position.
-            o = obj.position;
-
-            %% Plot rays.
-            % Plot the returned rays.
-            pr = kron(p(ir(:),:), [0; 1]);
-            pr = pr + repmat(o, size(pr, 1), 1);
-            lsr = plot3(pr(:,1), pr(:,2), pr(:,3), 'Color', 'red');
-            if ~isempty(lsr)
-                % Set transparency.
-                lsr.Color(4) = 0.5;
-            end
-
-            % Plot the no-return rays.
-            pnr = kron(p(~ir(:),:), [0; 1]);
-            pnr = pnr + repmat(o, size(pnr, 1), 1);
+            % Plot returned rays.
+            retplot = plot3([s(ir,1).'; r(ir,1).'], ...
+                [s(ir,2).'; r(ir,2).'], ...
+                [s(ir,3).'; r(ir,3).'], ...
+                'r.-', 'MarkerSize', 25);
+            retplot.Color(4) = 0.5;
+            
+            % Plot no-return rays.
             hold on
-            lsnr = plot3(pnr(:,1), pnr(:,2), pnr(:,3), 'Color', 'k');
-            if ~isempty(lsnr)
-                % Set transparency.
-                lsnr.Color(4) = 0.03;
-            end
+            nrplot = plot3([s(~ir,1).'; r(~ir,1).'], ...
+                [s(~ir,2).'; r(~ir,2).'], ...
+                [s(~ir,3).'; r(~ir,3).'], ...
+                'k.-', 'MarkerSize', 25);
+            nrplot.Color(4) = 0.03;
             
-            %% Plot ray endpoints.
-            pcshow(pointCloud(pr), 'MarkerSize', 25);
-
-            %% Plot decoration.
-            % Plot the sensor origin.
-            plot3(o(1), o(2), o(3), 'Color', 'k', ...
-                'Marker', '.', 'MarkerSize', 50);
-            
-            % Plot the Cartesian axes.
-            plot3(o(1) + [0,max(p(:,1))], o(2) + [0,0], o(3) + [0,0], ...
-                'Color', 'r', 'LineWidth', 3);
-            plot3(o(1) + [0,0], o(2) + [0,max(p(:,2))], o(3) + [0,0], ...
-                'Color', 'g', 'LineWidth', 3);
-            plot3(o(1) + [0,0], o(2) + [0,0], o(3) + [0,max(p(:,3))], ...
-                'Color', 'b', 'LineWidth', 3);
-
-            % Label the axes.
-            xlabel('x'); ylabel('y'); zlabel('z');
-
-            axis equal
+            % Plot decoration.
+            plotht(eye(4), min(max(r)), 'LineWidth', 5)
+            labelaxes
             grid on
             hold off
         end
