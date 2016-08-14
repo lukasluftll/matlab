@@ -26,7 +26,7 @@ end
 
 % Check correctness of rotation matrix.
 epsFactor = 100;
-rot = tform2rotm(tform);
+rot = tform(1:3,1:3);
 if abs(det(rot)-1) > eps(epsFactor)
     return
 end
