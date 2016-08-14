@@ -258,7 +258,7 @@ classdef laserscan < handle
             %   are plotted in light gray. 
           
             % Limit number of rays to plot.
-            nl = 5000;
+            nl = 1000;
             il = false(obj.count, 1);
             il(round(linspace(1, obj.count, min([obj.count, nl])))) = true;
             
@@ -266,30 +266,39 @@ classdef laserscan < handle
             ir = ret(obj) & il;
             inr = ~ret(obj) & il;
             
-            % Get sensor origin for each ray.
-            s = tform2trvec(obj.sp);
+            % Create laserscan objects that contain the returned rays to
+            % plot and the no-returns to plot.
+            lsr = laserscan(obj.sp(:,:,ir), obj.azimuth(ir), ...
+                obj.elevation(ir), obj.radius(ir), obj.rlim);            
+            lsnr = laserscan(obj.sp(:,:,inr), obj.azimuth(inr), ...
+                obj.elevation(inr), obj.radius(obj.rlim(2)), obj.rlim);
             
-            % Compute ray endpoints.
-            r = ls2cart(obj);
+            % Compute plotted ray endpoints.
+            er = ls2cart(lsr);
+            enr = ls2cart(lsnr);
+            
+            % Get sensor origin for each ray.
+            sr = tform2trvec(lsr.sp);
+            snr = tform2trvec(lsnr.sp);
             
             % Plot returned rays.
-            retplot = plot3([s(ir,1).'; r(ir,1).'], ...
-                [s(ir,2).'; r(ir,2).'], ...
-                [s(ir,3).'; r(ir,3).']);
+            retplot = plot3([sr(:,1).'; er(:,1).'], ...
+                [sr(:,2).'; er(:,2).'], ...
+                [sr(:,3).'; er(:,3).']);
             set(retplot, 'Color', [1,0,0,0.3])
             
             % Plot no-return rays.
             hold on
-            nrplot = plot3([s(inr,1).'; r(inr,1).'], ...
-                [s(inr,2).'; r(inr,2).'], ...
-                [s(inr,3).'; r(inr,3).']);
+            nrplot = plot3([snr(:,1).'; enr(:,1).'], ...
+                [snr(:,2).'; enr(:,2).'], ...
+                [snr(:,3).'; enr(:,3).']);
             set(nrplot, 'Color', [1,1,1,0.03]);
             
             % Plot point cloud.
-            pcshow(pointCloud(r(ir,:)), 'MarkerSize', 80);
+            pcshow(pointCloud(er), 'MarkerSize', 80);
             
             % Plot decoration.
-            plotht(eye(4), min(max(r)), 'LineWidth', 5)
+            plotht(eye(4), min(max(er)), 'LineWidth', 5)
             labelaxes
             grid on
         end
