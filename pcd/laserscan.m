@@ -213,17 +213,14 @@ classdef laserscan < handle
             [x, y, z] = sph2cart(obj.azimuth, obj.elevation, obj.radius);
                         
             % Convert the Cartesian coordinates to homogeneous coordinates.
-            ps = cart2hom([x, y, z]).';
+            ps = reshape([x, y, z, ones(size(x))].', 4, 1, []);
             
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p = zeros(size(ps));
-            parfor i = 1 : size(obj.sp, 3)
-                p(:,i) = obj.sp(:,:,i) * ps(:,i);
-            end
+            p = reshape(pagefun(@mtimes, gpuArray(obj.sp), ps), 4, []).';
             
             % Revert the homogeneous coordinates back to Cartesian.
-            p = hom2cart(p.');
+            p = gather(p(:,1:3));
         end
         
         % Transform laser scan to point cloud.
@@ -259,9 +256,15 @@ classdef laserscan < handle
             %   PLOT(OBJ) visualizes the rays originating from the laser 
             %   scanner. Returned rays are plotted in red, no-return rays 
             %   are plotted in light gray. 
-
+          
+            % Limit number of rays to plot.
+            nl = 5000;
+            il = false(obj.count, 1);
+            il(round(linspace(1, obj.count, min([obj.count, nl])))) = true;
+            
             % Identify returned and no-return rays.
-            ir = ret(obj);
+            ir = ret(obj) & il;
+            inr = ~ret(obj) & il;
             
             % Get sensor origin for each ray.
             s = tform2trvec(obj.sp);
@@ -272,23 +275,23 @@ classdef laserscan < handle
             % Plot returned rays.
             retplot = plot3([s(ir,1).'; r(ir,1).'], ...
                 [s(ir,2).'; r(ir,2).'], ...
-                [s(ir,3).'; r(ir,3).'], ...
-                'r-', 'MarkerSize', 25);
-            retplot.Color(4) = 0.5;
+                [s(ir,3).'; r(ir,3).']);
+            set(retplot, 'Color', [1,0,0,0.3])
             
             % Plot no-return rays.
             hold on
-            nrplot = plot3([s(~ir,1).'; r(~ir,1).'], ...
-                [s(~ir,2).'; r(~ir,2).'], ...
-                [s(~ir,3).'; r(~ir,3).'], ...
-                'k.-', 'MarkerSize', 25);
-            nrplot.Color(4) = 0.03;
+            nrplot = plot3([s(inr,1).'; r(inr,1).'], ...
+                [s(inr,2).'; r(inr,2).'], ...
+                [s(inr,3).'; r(inr,3).']);
+            set(nrplot, 'Color', [1,1,1,0.03]);
+            
+            % Plot point cloud.
+            pcshow(pointCloud(r(ir,:)), 'MarkerSize', 80);
             
             % Plot decoration.
             plotht(eye(4), min(max(r)), 'LineWidth', 5)
             labelaxes
             grid on
-            hold off
         end
     end
 end
