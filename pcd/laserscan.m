@@ -218,7 +218,7 @@ classdef laserscan < handle
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
             p = zeros(size(ps));
-            for i = 1 : size(obj.sp, 3)
+            parfor i = 1 : size(obj.sp, 3)
                 p(:,i) = obj.sp(:,:,i) * ps(:,i);
             end
             
