@@ -258,7 +258,7 @@ classdef laserscan < handle
             %   are plotted in light gray. 
           
             % Limit number of rays to plot.
-            nl = 1000;
+            nl = 2000;
             il = false(obj.count, 1);
             il(round(linspace(1, obj.count, min([obj.count, nl])))) = true;
             
@@ -298,7 +298,7 @@ classdef laserscan < handle
             pcshow(pointCloud(er), 'MarkerSize', 80);
             
             % Plot decoration.
-            plotht(eye(4), min(max(er)), 'LineWidth', 5)
+            plotht(eye(4), min(max(er)), 'LineWidth', 2)
             labelaxes
             grid on
         end
