@@ -37,8 +37,8 @@ t(t) = t(t) & all(all(isfinite(tform(:,:,t))));
 % Check whether rotation matrices are valid.
 parfor i = 1 : numel(t)
     rot = tform(1:3,1:3,i);
-    t(i) = t(i) && abs(det(rot)-1) < eps(kEps);
-    t(i) = t(i) && max(max(abs(rot.' - inv(rot)))) < eps(kEps*max(rot(:)));
+    t(i) = t(i) && abs(det(rot)-1) < eps(kEps) ...
+        && max(max(abs(rot.' - inv(rot)))) < eps(kEps*max(rot(:)));
 end
 
 % Convert result to column vector.
