@@ -85,11 +85,10 @@ classdef laserscan < handle
             end
             
             % Check if SP contains homogeneous transformation matrices.
-            for i = 1 : size(sp, 3)
-                if ~ishrt(sp(:,:,i))
-                    error(['SP(:,:,', num2str(i), ...
+            hrt = ishrt(sp);
+            if ~all(hrt)
+                error(['SP(:,:,', num2str(find(hrt, 'first')), ...
                         ') is not a homogeneous transformation.'])
-                end
             end
             
             % Assign new sensor pose data to object.
@@ -274,7 +273,7 @@ classdef laserscan < handle
             retplot = plot3([s(ir,1).'; r(ir,1).'], ...
                 [s(ir,2).'; r(ir,2).'], ...
                 [s(ir,3).'; r(ir,3).'], ...
-                'r.-', 'MarkerSize', 25);
+                'r-', 'MarkerSize', 25);
             retplot.Color(4) = 0.5;
             
             % Plot no-return rays.
