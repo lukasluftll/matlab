@@ -87,7 +87,7 @@ classdef laserscan < handle
             % Check if SP contains homogeneous transformation matrices.
             hrt = ishrt(sp);
             if ~all(hrt)
-                error(['SP(:,:,', num2str(find(hrt, 'first')), ...
+                error(['SP(:,:,', num2str(find(hrt, 1)), ...
                         ') is not a homogeneous transformation.'])
             end
             
