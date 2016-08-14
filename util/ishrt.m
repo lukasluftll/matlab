@@ -1,44 +1,47 @@
 function t = ishrt(tform)
-% ISHRT Check whether matrix is homogeneous rotation-translation matrix.
-%   H = ISHRT(TFORM) returns true if matrix TFORM is an affine homogeneous 
-%   transformation matrix that specifies rotation and translation only,
-%   no scaling, sheering, etc.
+% ISHRT Verify homogeneous rotation-translation matrices.
+%   H = ISHRT(TFORM) checks whether each transformation matrix in TFORM is
+%   a 4x4 affine homogeneous transformation matrix that specifies rotation 
+%   and translation only.
+%
+%   TFORM is a 4x4xN matrix, whose pages contain N transformation matrices.
+%
+%   T is an N-element logical column vector. If TFORM(:,:,n) is a
+%   homogeneous rotation-translation matrix, T(n) is true; otherwise, it is
+%   false.
 %
 %   Example:
 %      ishrt(eye(4))
 
 % Copyright 2016 Alexander Schaefer
 
-t = false;
+%% Validate input.
+% Check matrix size.
+if ndims(tform) > 3
+    error('TFORM must be 2D or 3D.')
+end
+if size(tform, 1) ~= 4 || size(tform, 2) ~= 4
+    error('TFORM must be of size 4x4xN.')
+end
+
+%% Perform check.
+% Define tolerance factor for double-to-double equality comparisons.
+kEps = 100;
+
+% Check last row of all transformation matrices.
+t = all(tform(4,:,:) == repmat([0,0,0,1], 1, 1, size(tform, 3)), 2);
 
 % Check whether all values are finite.
-if ~all(isfinite(tform(:)))
-    return
+t(t) = t(t) & all(all(isfinite(tform(:,:,t))));
+    
+% Check whether rotation matrices are valid.
+parfor i = 1 : numel(t)
+    rot = tform(1:3,1:3,i);
+    t(i) = t(i) && abs(det(rot)-1) < eps(kEps);
+    t(i) = t(i) && max(max(abs(rot.' - inv(rot)))) < eps(kEps*max(rot(:)));
 end
 
-% Check correct matrix size.
-if ~ismatrix(tform)
-    return
-end
-if ~all(size(tform) == 4)
-    return
-end
-
-% Check correctness of rotation matrix.
-epsFactor = 100;
-rot = tform(1:3,1:3);
-if abs(det(rot)-1) > eps(epsFactor)
-    return
-end
-if max(abs(rot'-inv(rot))) > eps(epsFactor * max(rot(:)))
-    return
-end
-
-% Check last row.
-if ~all(tform(4,:) == [0, 0, 0, 1])
-    return
-end
-
-t = true;
+% Convert result to column vector.
+t = t(:);
 
 end
