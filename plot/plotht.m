@@ -45,9 +45,9 @@ o = tform2trvec(ht);
 e = tform2rotm(ht) * l * eye(3);
 
 % Plot the unit vectors of B in A.
-quiver3(o(1), o(2), o(3), e(1,1), e(2,1), e(3,1), 0, 'r', varargin{:})
+quiver3(o(1), o(2), o(3), e(1,1), e(2,1), e(3,1), 'r', varargin{:})
 hold on
-quiver3(o(1), o(2), o(3), e(1,2), e(2,2), e(3,2), 0, 'g', varargin{:})
-quiver3(o(1), o(2), o(3), e(1,3), e(2,3), e(3,3), 0, 'b', varargin{:})
+quiver3(o(1), o(2), o(3), e(1,2), e(2,2), e(3,2), 'g', varargin{:})
+quiver3(o(1), o(2), o(3), e(1,3), e(2,3), e(3,3), 'b', varargin{:})
 
 end
