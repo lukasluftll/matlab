@@ -211,23 +211,10 @@ classdef laserscan < handle
             
             % Compute the ray endpoint coordinates in the sensor frame.
             [x, y, z] = sph2cart(obj.azimuth, obj.elevation, obj.radius);
-                        
-            % Convert the Cartesian coordinates to homogeneous coordinates.
-            ps = reshape([x, y, z, ones(size(x))].', 4, 1, []);
-            
+           
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            if parallel.gpu.GPUDevice.isAvailable % Use GPU.
-                p = reshape(pagefun(@mtimes,gpuArray(obj.sp), ps),4,[]).';
-            else % Use CPU.
-                p = zeros(obj.count, 4);
-                parfor i = 1 : size(obj.sp, 3)
-                    p(i,:) = (obj.sp(:,:,i) * ps(:,1,i)).'; %#ok<PFBNS>
-                end
-            end
-            
-            % Revert the homogeneous coordinates back to Cartesian.
-            p = gather(p(:,1:3));
+            p = hom2cart(httimes(obj.sp, cart2hom([x, y, z]).').');
         end
         
         % Transform laser scan to point cloud.
@@ -239,8 +226,7 @@ classdef laserscan < handle
             %   No-return rays of the laser scan result in NaN points.
             %
             %   The reference frames of the point cloud and of the laser 
-            %   scan are the same.
-            
+            %   scan are the same.   
             pc = pointCloud(ls2cart(obj));
         end
         
@@ -253,7 +239,6 @@ classdef laserscan < handle
             %   R is an N-element logical vector. All true elements of R 
             %   correspond to returned rays, all false elements correspond 
             %   to no-return rays.
-            
             r = obj.radius >= obj.rlim(1) & obj.radius <= obj.rlim(2);
         end
        
