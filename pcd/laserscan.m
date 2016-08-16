@@ -217,10 +217,18 @@ classdef laserscan < handle
             
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p = reshape(pagefun(@mtimes, gpuArray(obj.sp), ps), 4, []).';
-            
-            % Revert the homogeneous coordinates back to Cartesian.
-            p = gather(p(:,1:3));
+            if parallel.gpu.GPUDevice.isAvailable % Use GPU.
+                p = reshape(pagefun(@mtimes,gpuArray(obj.sp), ps),4,[]).';
+                           
+                % Revert the homogeneous coordinates back to Cartesian.
+                p = gather(p(:,1:3));
+            else % Use CPU.
+                p = zeros(obj.count, 4);
+                parfor i = 1 : size(obj.sp, 3)
+                    p(i,:) = (obj.sp(:,:,3) * ps(:,1,i)).'; %#ok<PFBNS>
+                end
+                p = p(:,1:3);
+            end
         end
         
         % Transform laser scan to point cloud.
