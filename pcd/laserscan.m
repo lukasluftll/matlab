@@ -222,7 +222,7 @@ classdef laserscan < handle
             else % Use CPU.
                 p = zeros(obj.count, 4);
                 parfor i = 1 : size(obj.sp, 3)
-                    p(i,:) = (obj.sp(:,:,3) * ps(:,1,i)).'; %#ok<PFBNS>
+                    p(i,:) = (obj.sp(:,:,i) * ps(:,1,i)).'; %#ok<PFBNS>
                 end
             end
             
