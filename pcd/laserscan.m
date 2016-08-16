@@ -304,6 +304,10 @@ classdef laserscan < handle
             % Plot point cloud.
             pcshow(pointCloud(er), 'MarkerSize', 80);
             
+            % Plot sensor position.
+            s = tform2trvec(obj.sp);
+            plot3(s(:,1), s(:,2), s(:,3), 'k.');
+            
             % Plot decoration.
             plotht(eye(4), min(max(er)), 'LineWidth', 2)
             labelaxes
