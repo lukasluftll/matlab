@@ -1,6 +1,6 @@
-function [L, p] = decayray(ls, lambda)
+function [p, L] = decayray(ls, lambda)
 % DECAYRAY Compute probability of laser scan given ray decay map.
-%   [L, p] = DECAYRAY(LS, LAMBDA) computes the probability of obtaining the 
+%   [P, L] = DECAYRAY(LS, LAMBDA) computes the probability of obtaining the 
 %   laser scan LS conditioned on the decay map LAMBDA.
 %
 %   LS is a laserscan object. The sensor pose of the scan is assumed to be 
@@ -13,15 +13,15 @@ function [L, p] = decayray(ls, lambda)
 %   If the m-th ray is reflected back to the sensor, the measurement 
 %   probability is expressed by L(m). L(m) is not exactly equal to the 
 %   log-likelihood of the ray, but it is shifted by an unknown offset. This
-%   offset is constant for all m. p(m) is unity.
-%   If the m-th ray is a no-return, p(m) indicates the corresponding 
+%   offset is constant for all m. P(m) is unity.
+%   If the m-th ray is a no-return, P(m) indicates the corresponding 
 %   measurement probability. L(m) is zero.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
 %      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [1, 100]);
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
-%      [L, p] = decayray(ls, lambda)
+%      [p, L] = decayray(ls, lambda)
 %
 %   See also LASERSCAN, VOXELMAP, DECAYMAP.
 
