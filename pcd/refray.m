@@ -1,4 +1,4 @@
-function p = refray(ls, ref)
+function [p, L] = refray(ls, ref)
 % REFRAY Compute probability of Lidar scan from reflectivity map.
 %   P = REFRAY(LS, REF) computes the probability of obtaining the Lidar 
 %   scan LS conditioned on the reflectivity map REF.
@@ -11,6 +11,11 @@ function p = refray(ls, ref)
 %
 %   P is an M-element column vector. The value of the m-th element
 %   corresponds to the probability of obtaining the m-th measurement.
+%
+%   [P, L] = REFRAY(LS, REF) also returns the M-element column vector L.
+%   L(m) gives the log-likelihood of the m-th ray, which is equal to the 
+%   logarithm of p(m) divided by the length of the ray inside the voxel
+%   where the ray ends. For no-return rays, L(m) is zero.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
@@ -50,6 +55,7 @@ ray(~iret,:) = ray(~iret,:) * radiusnr;
 %% Compute probability of measurements.
 % Loop over all rays.
 p = zeros(ls.count, 1);
+L = zeros(ls.count, 1);
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
     [vi,t] = trav(ls.position,ray(i,:),ref.xgv,ref.ygv,ref.zgv);%#ok<PFBNS>
@@ -63,6 +69,10 @@ parfor i = 1 : ls.count
         % Compute the probability of the ray being reflected in the last
         % voxel it traverses.
         p(i) = ref.data(vi(end)) * prod(1 - ref.data(vi(1:end-1)));
+        
+        % Compute the log-likelihood normalized over the ray length.
+        % TODO: Make sure the ray traverses the voxel.
+        L(i) = log(p(i) / (t(end) * norm(ray(i,:))));
     else % Ray does not return.
         % Compute the indices of the voxels on the ray directly in front
         % of the beginning and in front of the end of the measurement 
