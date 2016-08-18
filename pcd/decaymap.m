@@ -110,16 +110,16 @@ for s = 1 : numel(ls)
     end
 
     % Merge the results of all workers.
-    l = lw{1};
-    r = rw{1};
+    r = voxelmap(rw{1}, xgv, ygv, zgv);
+    l = voxelmap(lw{1}, xgv, ygv, zgv);
     for w = 2 : numel(lw)
-        l = l + lw{w};
         r = r + rw{w};
+        l = l + lw{w};
     end
 end
 
 %% Compute the decay rate.
-lambda = voxelmap(r ./ l, xgv, ygv, zgv);
+lambda = r ./ l;
 lambda.data(l == 0) = NaN;
 
 end
