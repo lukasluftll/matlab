@@ -24,7 +24,7 @@ function [p, L] = decayray(ls, lambda)
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
 %      [p, L] = decayray(ls, lambda)
 %
-%   See also LASERSCAN, VOXELMAP, DECAYMAP.
+%   See also LASERSCAN, VOXELMAP, DECAYMAP, REFRAY.
 
 % Copyright 2016 Alexander Schaefer
 
