@@ -2,7 +2,7 @@ classdef voxelmap < handle
     % VOXELMAP Object for storing a 3D voxel map.
     %   M = VOXELMAP(DATA) creates a voxel map object.
     %   
-    %   DATA is a IxJxK matrix that contains the map data.
+    %   DATA is an IxJxK matrix that contains the map data.
     %
     %   M = VOXELMAP(DATA, XGV, YGV, ZGV) creates a voxel map object with a
     %   defined voxel grid.
@@ -15,28 +15,29 @@ classdef voxelmap < handle
     %      && (YGV(j) <= y < YGV(j+1)) 
     %      && (ZGV(k) <= z < ZGV(k+1))
     %
-    %   DATA is a IxJxK matrix that contains the map data, where 
+    %   DATA is an IxJxK matrix that contains the map data, where 
     %   I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
     %
     %   Example:
-    %      data = [0.1, 0.2, 0.3; 0, 0, 0; 0, 0, 0];
-    %      data = cat(3, data, zeros(3), 0.5 * ones(3));
+    %      data = rand(10, 10, 10);
     %      m = voxelmap(data)
     %
     %   VOXELMAP properties:
-    %   DATA     - Cell data
+    %   DATA     - Map data
     %   XGV      - x-axis grid vector
     %   YGV      - y-axis grid vector
     %   ZGV      - z-axis grid vector
     %
     %   VOXELMAP methods:
-    %   PLUS     - Add cell data element-wise
-    %   MINUS    - Subtract cell data element-wise
-    %   TIMES    - Multiply cell data element-wise
-    %   RDIVIDE  - Divide cell data element-wise from right
-    %   LOG      - Natural logarithm
-    %   UMINUS   - Unary minus
-    %   PLOT     - Visualize the map using transparency values
+    %   PLUS     - Add map data element-wise
+    %   ADD      - Increment map data
+    %   MINUS    - Subtract map data element-wise
+    %   SUBTRACT - Decrement map data
+    %   TIMES    - Multiply map data element-wise
+    %   RDIVIDE  - Divide map data element-wise from right
+    %   LOG      - Natural logarithm of map dta
+    %   UMINUS   - Unary minus of map data
+    %   PLOT     - Visualize map using transparency values
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
     
@@ -67,22 +68,22 @@ classdef voxelmap < handle
             obj.data = data;
         end
         
-        % Check if the data matrices of the two voxelmaps are amenable to 
+        % Check if the map data of two voxelmaps are amenable to 
         % element-wise operations.
-        function chkewo(l, r)
+        function chkewo(a, b)
             % Check if the grid vectors match.
-            if ~(all(l.xgv == r.xgv) && all(l.ygv == r.ygv) ...
-                && any(l.zgv == r.zgv))
+            if ~(all(a.xgv == b.xgv) && all(a.ygv == b.ygv) ...
+                && any(a.zgv == b.zgv))
                 error('Grid vectors of both voxelmaps must match.')
             end
                         
             % Check if the data matrix sizes match.
-            if ~all(size(l.data) == size(r.data))
+            if ~all(size(a.data) == size(b.data))
                 error('Voxelmaps must be of same size.');
             end
         end
         
-        % Converts a pair of input arguments to voxelmap objects.
+        % Convert a pair of input arguments to voxelmap objects.
         % At least one of the arguments must already be a voxelmap object.
         function [a, b] = any2voxelmap(a, b)
             % If any input argument is not a voxelmap, convert it.
@@ -90,6 +91,18 @@ classdef voxelmap < handle
                 a = voxelmap(a, b.xgv, b.ygv, b.zgv);
             elseif ~isa(b, 'voxelmap')
                 b = voxelmap(b, a.xgv, a.ygv, a.zgv);
+            end
+        end
+        
+        % Fit the size of the map data of two voxelmaps to match, if 
+        % possible.
+        function [a, b] = fitsize(a, b)
+            % If any voxelmap is empty, set its size to match the other
+            % voxelmap.
+            if isempty(a.data)
+                a.data = zeros(size(b.data));
+            elseif isempty(b.data)
+                b.data = zeros(size(a.data));
             end
         end
     end
@@ -119,34 +132,74 @@ classdef voxelmap < handle
             obj.zgv = zgv;
         end
         
-        % Add cell data element-wise.
+        % Add map data element-wise.
         function c = plus(a, b)
-            % +  Add cell data element-wise.
+            % +  Add map data element-wise.
+            %   C = A + B adds the map data A and B element-wise and 
+            %   returns the sum.
+            %
+            %   A and B are voxelmap objects. One of them may also be a 3D
+            %   matrix of the same size as the voxelmap object's data
+            %   matrix.
+            %
+            %   C is a voxelmap object.
             
             % Check number of input arguments.
             narginchk(2, 2)
             
-            % Force the input arguments to be voxelmaps.
+            % Convert the input arguments to voxelmap.
             [a, b] = any2voxelmap(a, b);
             
             % If any voxelmap is empty, set its size to match the other
             % voxelmap.
-            if isempty(a.data)
-                a.data = zeros(size(b.data));
-            elseif isempty(b.data)
-                b.data = zeros(size(a.data));
-            end
+            [a, b] = fitsize(a, b);
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
             
-            % Add cell data.
+            % Add map data and create resulting voxelmap.
             c = voxelmap(a.data + b.data, a.xgv, a.ygv, a.zgv);
+        end
+        
+        % Increment map data element-wise.
+        function add(obj, d)
+            % ADD Increment map data element-wise.
+            %   ADD(OBJ, D) adds the data D to the map data of voxelmap
+            %   object OBJ.
+            %
+            %   OBJ must be a voxelmap object.
+            %
+            %   D is a voxelmap object or a 3D matrix. The data matrix must
+            %   be of the same size as the map data of OBJ.
+            
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Convert the data to add to a voxelmap object.
+            [obj, d] = any2voxelmap(obj, d);
+            
+            % If any voxelmap is empty, set its size to match the other
+            % voxelmap.
+            [obj, d] = fitsize(obj, d);
+            
+            % Check whether element-wise operation can be performed.
+            chkewo(obj, d)
+            
+            % Add the data to the voxelmap object.
+            obj.data = obj.data + d.data;
         end
             
         % Subtract cell data element-wise.
         function c = minus(a, b)
             % -  Subtract cell data element-wise.
+            %   C = A - B subtracts the map data B element-wise from A and 
+            %   returns the difference.
+            %
+            %   A and B are voxelmap objects. One of them may also be a 3D
+            %   matrix of the same size as the voxelmap object's data
+            %   matrix.
+            %
+            %   C is a voxelmap object.   
             
             % Check number of input arguments.
             narginchk(2, 2)
@@ -156,11 +209,7 @@ classdef voxelmap < handle
             
             % If any voxelmap is empty, set its size to match the other
             % voxelmap.
-            if isempty(a.data)
-                a.data = zeros(size(b.data));
-            elseif isempty(b.data)
-                b.data = zeros(size(a.data));
-            end
+            [a, b] = fitsize(a, b);
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -169,9 +218,30 @@ classdef voxelmap < handle
             c = voxelmap(a.data - b.data, a.xgv, a.ygv, a.zgv);
         end
         
+        % Decrement map data element-wise.
+        function subtract(obj, d)
+            % SUBTRACT Decrement map data element-wise.
+            %   SUBTRACT(OBJ, D) subtracts the data D from the map data of 
+            %   voxelmap object OBJ.
+            %
+            %   OBJ must be a voxelmap object.
+            %
+            %   D is a voxelmap object or a 3D matrix. The data matrix must
+            %   be of the same size as the map data of OBJ.
+            add(obj, -d);
+        end
+        
         % Multiply cell data element-wise.
         function c = times(a, b)
             % .*  Multiply cell data element-wise.
+            %   C = A .* B multiplies the map data A element-wise by B and 
+            %   returns the product C.
+            %
+            %   A and B are voxelmap objects. One of them may also be a 3D
+            %   matrix of the same size as the voxelmap object's data
+            %   matrix.
+            %
+            %   C is a voxelmap object. 
             
             % Check number of input arguments.
             narginchk(2, 2)
@@ -189,6 +259,14 @@ classdef voxelmap < handle
         % Divide cell data element-wise from right.
         function c = rdivide(a, b)
             % ./  Divide cell data element-wise from right.
+            %   C = A ./ B divides the map data A element-wise from right 
+            %   by B and returns the quotient.
+            %
+            %   A and B are voxelmap objects. One of them may also be a 3D
+            %   matrix of the same size as the voxelmap object's data
+            %   matrix.
+            %
+            %   C is a voxelmap object. 
             
             % Check number of input arguments.
             narginchk(2, 2)
