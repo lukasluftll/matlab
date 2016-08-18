@@ -100,7 +100,8 @@ for s = 1 : numel(ls)
         for i = labindex : numlabs : ls(s).count   
             % Compute the indices of the voxels through which the ray 
             % travels.
-            [vi, t] = trav(ls(s).position, ray(i,:), xgv, ygv, zgv);
+            pos = tform2trvec(ls(s).sp(:,:,i));
+            [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
 
             % Convert the subscript indices to linear indices.
             vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
