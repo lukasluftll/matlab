@@ -82,8 +82,7 @@ parfor i = 1 : ls.count
         % Compute the length of the ray apportioned to this voxel.
         li = (t(ti) - t(ti-1)) * l(i);
         
-        % Compute the logaritm of the probability density that the ray is 
-        % reflected.
+        % Compute the density of the probability that the ray is reflected.
         L(i) = log(ref.data(vi(ti)) * prod(1 - ref.data(vi(1:ti-1))) / li);
     else % Ray does not return.
         % Compute the indices of the voxels where the sensor measurement 
