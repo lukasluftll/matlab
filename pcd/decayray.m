@@ -3,20 +3,22 @@ function [p, L] = decayray(ls, lambda)
 %   [P, L] = DECAYRAY(LS, LAMBDA) computes the probability of obtaining the 
 %   laser scan LS conditioned on the decay map LAMBDA.
 %
-%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
-%   specified with respect to the decay rate map frame.
+%   LS is a laserscan object containing N rays. The sensor pose of the scan
+%   is assumed to be specified with respect to the decay rate map frame.
 %
 %   LAMBDA is a voxelmap object that contains the mean decay rate of each 
 %   map voxel.
 %
-%   The measurement probability is computed for each ray individually. 
+%   P and L are N-element row vectors. Together, they indicate the 
+%   measurement probability for each ray.
+%
+%   If the m-th ray is a no-return, P(m) gives the corresponding 
+%   measurement probability. For no-return rays, L(m) is zero.
+%
 %   If the m-th ray is reflected back to the sensor, the measurement 
 %   probability is expressed by L(m). L(m) is the logarithm of the 
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
-%   If the m-th ray is a no-return, P(m) directly indicates the 
-%   corresponding measurement probability. For no-return rays, L(m) is 
-%   zero.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');

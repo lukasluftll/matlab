@@ -1,26 +1,31 @@
 function [p, L] = refray(ls, ref)
 % REFRAY Compute probability of Lidar scan from reflectivity map.
-%   P = REFRAY(LS, REF) computes the probability of obtaining the Lidar 
-%   scan LS conditioned on the reflectivity map REF.
+%   [P, L] = REFRAY(LS, REF) computes the probability of obtaining the 
+%   lidar scan LS conditioned on the reflectivity map REF.
 %
-%   LS is a laserscan object. The sensor pose of the scan is assumed to be 
-%   specified with respect to the reflectivity map coordinate frame.
+%   LS is a laserscan object containing N rays. The sensor pose of the scan
+%   is assumed to be specified with respect to the reflectivity map 
+%   coordinate frame.
 %
 %   REF is a voxelmap object that contains the reflectivity of each map 
 %   voxel.
 %
-%   P is an M-element column vector. The value of the m-th element
-%   corresponds to the probability of obtaining the m-th measurement.
+%   P and L are N-element row vectors. Together, they indicate the 
+%   measurement probability for each ray.
 %
-%   [P, L] = REFRAY(LS, REF) also returns the M-element column vector L.
-%   L(m) is the logarithm of the probability density of the m-th ray, 
-%   evaluated at the ray endpoint. For no-return rays, L(m) is zero.
+%   If the m-th ray is a no-return, P(m) gives the corresponding 
+%   measurement probability. For no-return rays, L(m) is zero.
+%
+%   If the m-th ray is reflected back to the sensor, the measurement 
+%   probability is expressed by L(m). L(m) is the logarithm of the 
+%   measurement probability density along the ray, evaluated at the ray 
+%   endpoint. For returned rays, P(m) is unity.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
 %      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [1,100]);
 %      ref = refmap(ls, 0:5, 0:5, 0:5);
-%      p = refray(ls, ref)
+%      [p, L] = refray(ls, ref)
 %
 %   See also LASERSCAN, VOXELMAP, REFMAP, DECAYRAY.
 
