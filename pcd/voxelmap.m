@@ -75,11 +75,20 @@ classdef voxelmap < handle
             end
                         
             % Check if the data matrix sizes match.
-            if ~(isempty(l.data) || isempty(r.data) ...
-                || all(size(l.data) == size(r.data)))
+            if ~all(size(l.data) == size(r.data))
                 error('Voxelmaps must be of same size.');
             end
-        end    
+        end
+        
+        % Converts any data matrix to a voxelmap object.
+        function v = any2voxelmap(d)
+            % If any input argument is not a voxelmap, convert it.
+            if ~isa(a, 'voxelmap')
+                a = voxelmap(a, b.xgv, b.ygv, b.zgv);
+            elseif ~isa(b, 'voxelmap')
+                b = voxelmap(b, a.xgv, a.ygv, a.zgv);
+            end
+        end
     end
         
     methods ( Access = public )
@@ -111,6 +120,13 @@ classdef voxelmap < handle
         function c = plus(a, b)
             % +  Add cell data element-wise.
             
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Force the input arguments to be voxelmaps.
+            a = any2voxelmap(a);
+            b = any2voxelmap(b);
+            
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
             
@@ -121,6 +137,13 @@ classdef voxelmap < handle
         % Subtract cell data element-wise.
         function c = minus(a, b)
             % -  Subtract cell data element-wise.
+            
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Force the input argument to be voxelmaps.
+            a = any2voxelmap(a);
+            b = any2voxelmap(b);
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -133,6 +156,13 @@ classdef voxelmap < handle
         function c = times(a, b)
             % .*  Multiply cell data element-wise.
             
+            % Check number of input arguments.
+            narginchk(2, 2)
+                        
+            % Force the input argument to be voxelmaps.
+            a = any2voxelmap(a);
+            b = any2voxelmap(b);
+            
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
             
@@ -143,6 +173,13 @@ classdef voxelmap < handle
         % Divide cell data element-wise from right.
         function c = rdivide(a, b)
             % ./  Divide cell data element-wise from right.
+            
+            % Check number of input arguments.
+            narginchk(2, 2)
+                        
+            % Force the input argument to be voxelmaps.
+            a = any2voxelmap(a);
+            b = any2voxelmap(b);
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
