@@ -1,4 +1,4 @@
-classdef voxelmap < handle
+classdef voxelmap < matlab.mixin.Copyable
     % VOXELMAP Object for storing a 3D voxel map.
     %   M = VOXELMAP(DATA) creates a voxel map object.
     %   
