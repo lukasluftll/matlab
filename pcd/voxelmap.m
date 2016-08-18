@@ -33,8 +33,8 @@ classdef voxelmap < handle
     %   PLUS     - Add cell data element-wise
     %   MINUS    - Subtract cell data element-wise
     %   TIMES    - Multiply cell data element-wise
-    %   RDIVIDE  - Diviside cell data element-wise from right
-    %   PLOT     - Visualize the map using transparency values.
+    %   RDIVIDE  - Divide cell data element-wise from right
+    %   PLOT     - Visualize the map using transparency values
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
     
@@ -109,7 +109,7 @@ classdef voxelmap < handle
         
         % Add cell data element-wise.
         function c = plus(a, b)
-            % PLUS(A, B) Add cell data element-wise.
+            % +  Add cell data element-wise.
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -120,7 +120,7 @@ classdef voxelmap < handle
             
         % Subtract cell data element-wise.
         function c = minus(a, b)
-            % MINUS(A, B) Subtract cell data element-wise.
+            % -  Subtract cell data element-wise.
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -131,7 +131,7 @@ classdef voxelmap < handle
         
         % Multiply cell data element-wise.
         function c = times(a, b)
-            % TIMES(A, B) Multiply cell data element-wise.
+            % .*  Multiply cell data element-wise.
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -142,7 +142,7 @@ classdef voxelmap < handle
         
         % Divide cell data element-wise from right.
         function c = rdivide(a, b)
-            % MRDIVIDE(A, B) Divide cell data element-wise from right.
+            % ./  Divide cell data element-wise from right.
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
