@@ -228,26 +228,28 @@ classdef voxelmap < handle
                 mode = 'scale';
             end
             
+            % Set all infinite values to NaN.
+            plotdata = obj.data;
+            plotdata(~isfinite(plotdata)) = NaN;
+            
             %% Plot map.
             switch lower(mode)
                 case 'scale'
                     % Compute minimum and maximum data elements.
-                    lim = [min(obj.data(:)), max(obj.data(:))];
+                    lim = [min(plotdata(:)), max(plotdata(:))];
                     
                     % Compute the transparency values to plot.
-                    t = (obj.data + lim(1)) / diff(lim);
+                    plotdata = (plotdata + lim(1)) / diff(lim);
                 case 'direct'
-                    t = obj.data;
                 otherwise
                     error(['MODE ', mode, ' not supported.'])
             end
             
             % Crop data to interval [0; 1].
-            t(t < 0) = 0;
-            t(t > 1) = 1;
+            plotdata = constrain(plotdata, [0,1]);
             
             % Plot.
-            alphaplot(t, obj.xgv, obj.ygv, obj.zgv);
+            alphaplot(plotdata, obj.xgv, obj.ygv, obj.zgv);
             axis equal
             grid on
             xlabel('x')
