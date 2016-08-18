@@ -4,7 +4,7 @@ function [p, L] = refray(ls, ref)
 %   scan LS conditioned on the reflectivity map REF.
 %
 %   LS is a laserscan object. The sensor pose of the scan is assumed to be 
-%   specified with respect to the reflectivity map frame.
+%   specified with respect to the reflectivity map coordinate frame.
 %
 %   REF is a voxelmap object that contains the reflectivity of each map 
 %   voxel.
@@ -13,9 +13,8 @@ function [p, L] = refray(ls, ref)
 %   corresponds to the probability of obtaining the m-th measurement.
 %
 %   [P, L] = REFRAY(LS, REF) also returns the M-element column vector L.
-%   L(m) gives the log-likelihood of the m-th ray, which is equal to the 
-%   logarithm of p(m) divided by the length of the ray inside the voxel
-%   where the ray ends. For no-return rays, L(m) is zero.
+%   L(m) is the logarithm of the probability density of the m-th ray, 
+%   evaluated at the ray endpoint. For no-return rays, L(m) is zero.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
