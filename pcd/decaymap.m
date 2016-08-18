@@ -71,11 +71,6 @@ end
 % Determine the size of the voxel grid.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 
-% Preallocate the matrices that store the ray length and the returns per
-% voxel.
-l = zeros(gridsize);
-r = zeros(gridsize);
-
 % Loop over all laser scans.
 for s = 1 : numel(ls)
     % Compute the Cartesian ray direction vectors in the sensor frame.
@@ -115,7 +110,9 @@ for s = 1 : numel(ls)
     end
 
     % Merge the results of all workers.
-    for w = 1 : numel(lw)
+    l = lw{1};
+    r = rw{1};
+    for w = 2 : numel(lw)
         l = l + lw{w};
         r = r + rw{w};
     end
