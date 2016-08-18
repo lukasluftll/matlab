@@ -8,7 +8,6 @@ pcdsph = pcdread('campus_sph.pcd');
 
 % Build a point cloud from the Cartesian coordinates in the world frame.
 pccart = pointCloud([pcdcart.x(:), pcdcart.y(:), pcdcart.z(:)]);
-pccart = pctransform(pccart, ht2affine3d(pcdcart.odometry));
 
 % Convert the spherical coordinates to a Cartesian point cloud in the world
 % frame.
