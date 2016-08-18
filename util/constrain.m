@@ -18,7 +18,7 @@ narginchk(2, 2)
 if numel(lim) ~= 2
     error('LIM must have exactly 2 elements.')
 end
-if diff(lim <= 0)
+if diff(lim) <= 0
     error('LIM must be ordered.')
 end
 
