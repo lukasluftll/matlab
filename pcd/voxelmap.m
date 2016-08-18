@@ -296,8 +296,12 @@ classdef voxelmap < matlab.mixin.Copyable
         % Unary minus.
         function u = uminus(obj)
             % -  Unary minus.
-            %   Negates the values of all cell elements of OBJ.
+            %   Negates the values of all map elements of OBJ.
             
+            % Check number of input arguments.
+            narginchk(1, 1)
+            
+            % Negate data.
             u = voxelmap(-obj.data, obj.xgv, obj.ygv, obj.zgv);
         end
 
@@ -339,7 +343,7 @@ classdef voxelmap < matlab.mixin.Copyable
                     lim = [min(plotdata(:)), max(plotdata(:))];
                     
                     % Compute the transparency values to plot.
-                    plotdata = (plotdata + lim(1)) / diff(lim);
+                    plotdata = (plotdata - lim(1)) / diff(lim);
                 case 'direct'
                 otherwise
                     error(['MODE ', mode, ' not supported.'])
@@ -352,9 +356,7 @@ classdef voxelmap < matlab.mixin.Copyable
             alphaplot(plotdata, obj.xgv, obj.ygv, obj.zgv);
             axis equal
             grid on
-            xlabel('x')
-            ylabel('y')
-            zlabel('z')
+            labelaxes
         end
     end
 end
