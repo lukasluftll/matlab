@@ -3,13 +3,13 @@
 
 %% Set paramters.
 % Step that determines the fraction of PCD files to use.
-step = 100;
+step = 400;
 
 % Resolution of the merged point cloud map.
-pcres = 0.150;
+pcres = 0.100;
 
 % Resolution of the resulting decay map.
-lambdares = 0.200;
+lambdares = 1.000;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -22,7 +22,7 @@ file = dir([folder, '/*.pcd']);
 % Iterate over all PCD files.
 waitbarHandle = waitbar(0, 'Computing map size ...');
 lim = inf(3, 2) .* [+ones(3,1), -ones(3,1)];
-for i = 1 : 100 : numel(file)
+for i = 1 : step : numel(file)
     % Read laser scan data from file.
     ls = lsread([folder, '/', file(i).name], rlim);
     
@@ -61,8 +61,8 @@ zgv = lim(3,1) : lambdares : lim(3,2)+lambdares;
 
 % Create the lidar decay rate map.
 waitbar(0, waitbarHandle, 'Building decay rate map ...');
-r = voxelmap(zeros([numel(xgv), numel(ygv), numel(zgv)] - 1));
-l = voxelmap(r.data);
+r = [];
+l = [];
 for i = i : step : numel(file)
     % Read laser scan data from file.
     ls = lsread([folder, '/', file(i).name], rlim);
@@ -71,16 +71,19 @@ for i = i : step : numel(file)
     [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
     
     % Merge the local decay map information into the global map.
-    r.data = r.data + ri.data;
-    l.data = l.data + li.data;
+    r = r + ri;
+    l = l + li;
     
     % Advance the progress bar.
     waitbar(i/numel(file), waitbarHandle);
 end
 
 % Display the global decay rate map.
-lambda = voxelmap(r.data ./ l.data);
-plot(lambda);
+lambda = r ./ l;
+
+% Free memory.
+r = [];
+l = [];
 
 % Close the progress bar.
 close(waitbarHandle);
