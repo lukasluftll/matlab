@@ -34,6 +34,8 @@ classdef voxelmap < handle
     %   MINUS    - Subtract cell data element-wise
     %   TIMES    - Multiply cell data element-wise
     %   RDIVIDE  - Divide cell data element-wise from right
+    %   LOG      - Natural logarithm
+    %   UMINUS   - Unary minus
     %   PLOT     - Visualize the map using transparency values
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
@@ -199,6 +201,26 @@ classdef voxelmap < handle
             
             % Divide cell data.
             c = voxelmap(a.data ./ b.data, a.xgv, a.ygv, a.zgv);
+        end
+        
+        % Natural logarithm.
+        function l = log(obj)
+            % LOG(OBJ) Natural logarithm.
+            %   L = LOG(OBJ) computes the natural logarithm of every cell.
+            
+            % Check number of input arguments.
+            narginchk(1, 1)
+            
+            % Compute logarithm.
+            l = voxelmap(log(obj.data), obj.xgv, obj.ygv, obj.zgv);
+        end
+        
+        % Unary minus.
+        function u = uminus(obj)
+            % -  Unary minus.
+            %   Negates the values of all cell elements of OBJ.
+            
+            u = voxelmap(-obj.data, obj.xgv, obj.ygv, obj.zgv);
         end
 
         % Plot the map.
