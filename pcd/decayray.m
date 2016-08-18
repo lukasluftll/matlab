@@ -11,11 +11,12 @@ function [p, L] = decayray(ls, lambda)
 %
 %   The measurement probability is computed for each ray individually. 
 %   If the m-th ray is reflected back to the sensor, the measurement 
-%   probability is expressed by L(m). L(m) is not exactly equal to the 
-%   log-likelihood of the ray, but it is shifted by an unknown offset. This
-%   offset is constant for all m. P(m) is unity.
-%   If the m-th ray is a no-return, P(m) indicates the corresponding 
-%   measurement probability. L(m) is zero.
+%   probability is expressed by L(m). L(m) is the logarithm of the 
+%   measurement probability density along the ray, evaluated at the ray 
+%   endpoint. For returned rays, P(m) is unity.
+%   If the m-th ray is a no-return, P(m) directly indicates the 
+%   corresponding measurement probability. For no-return rays, L(m) is 
+%   zero.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
@@ -51,8 +52,8 @@ ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
 
 %% Compute measurement probability for all rays.
 % Preallocate the result matrices.
-L = zeros(ls.count, 1);
 p = ones(ls.count, 1);
+L = zeros(ls.count, 1);
 
 % Compute the line parameter from origin to minimum sensor range.
 tmin = ls.rlim(1) / ls.rlim(2);
