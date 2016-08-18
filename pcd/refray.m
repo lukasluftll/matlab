@@ -21,12 +21,6 @@ function [p, L] = refray(ls, ref)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
-%   Example:
-%      pcd = pcdread('castle.pcd');
-%      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [1,100]);
-%      ref = refmap(ls, 0:5, 0:5, 0:5);
-%      [p, L] = refray(ls, ref)
-%
 %   See also LASERSCAN, VOXELMAP, REFMAP, DECAYRAY.
 
 % Copyright 2016 Alexander Schaefer
