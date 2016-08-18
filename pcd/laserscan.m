@@ -29,7 +29,8 @@ classdef laserscan < handle
     %
     %   LASERSCAN methods:
     %   COUNT      - Number of rays
-    %   LS2CART    - Cartesian coordinates of ray endpoints
+    %   END2CART   - Cartesian coordinates of ray endpoints
+    %   DIR2CART   - Cartesian ray direction vectors
     %   LS2PC      - Transform laser scan to point cloud
     %   RET        - Identify returned rays
     %   PLOT       - Plot laser scan
@@ -201,20 +202,37 @@ classdef laserscan < handle
         end
         
         % Get Cartesian coordinates of ray endpoints.
-        function p = ls2cart(obj)
-            % LS2CART(OBJ) Cartesian coordinates of ray endpoints.
-            %   p = LS2CART(OBJ) returns an Nx3 matrix that contains the
+        function p = end2cart(obj)
+            % END2CART(OBJ) Cartesian coordinates of ray endpoints.
+            %   P = LS2CART(OBJ) returns an Nx3 matrix that contains the
             %   Cartesian coordinates of the ray endpoints with respect to
             %   the reference frame of the laser scan.
             %   N is the number of rays.
             %   The coordinates of no-return rays are set to NaN.
             
             % Compute the ray endpoint coordinates in the sensor frame.
-            [x, y, z] = sph2cart(obj.azimuth, obj.elevation, obj.radius);
+            [x,y,z] = sph2cart(obj.azimuth, obj.elevation, obj.radius);
            
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p = hom2cart(httimes(obj.sp, cart2hom([x, y, z]).').');
+            p = hom2cart(httimes(obj.sp, cart2hom([x,y,z]).').');
+        end
+        
+        % Get Cartesian ray direction vectors.
+        function v = dir2cart(obj)
+            % DIR2CART(OBJ) Cartesian ray direction vectors.
+            %   V = DIRECTION2CART(OBJ) returns an Nx3 matrix that contains
+            %   the normalized Cartesian direction vectors of the rays with
+            %   respect to the reference frame of the laser scan.
+            %   N is the number of rays.
+            
+            % Compute the ray direction vectors in the sensor frame.
+            [x,y,z] = sph2cart(obj.azimuth, obj.elevation, 1);
+            
+            % Transform the ray direction vectors into the reference frame
+            % of the laser scan.
+            rot = rotm2tform(tform2rotm(obj.sp));
+            v = hom2cart(httimes(rot, cart2hom([x,y,z]).').');
         end
         
         % Transform laser scan to point cloud.
@@ -227,7 +245,7 @@ classdef laserscan < handle
             %
             %   The reference frames of the point cloud and of the laser 
             %   scan are the same.   
-            pc = pointCloud(ls2cart(obj));
+            pc = pointCloud(end2cart(obj));
         end
         
         % Identify the return and no-return rays.
