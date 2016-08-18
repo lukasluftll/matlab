@@ -39,17 +39,16 @@ if ~isa(ref, 'voxelmap')
 end
 
 %% Preprocess input arguments.
-% Compute the Cartesian ray direction vectors.
-ray = cart(ls);
+% Compute the normalized Cartesian ray direction vectors.
+ray = dir2cart(ls);
 
-% Compute the indices of the returned rays.
+% Compute the logical indices of the returned rays.
 iret = ret(ls);
 
 % Set the length of no-return rays to maximum sensor range plus the
 % diameter of the largest voxel.
-radiusnr = ls.rlim(2) + ...
-    sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
-ray(~iret,:) = ray(~iret,:) * radiusnr;
+dvox = sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
+ray = ray(iret,:) * ls.radius(iret) + ray(~iret,:) * (ls.rlim(2)+dvox);
 
 %% Compute probability of measurements.
 % Loop over all rays.
