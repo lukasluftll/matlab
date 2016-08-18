@@ -80,8 +80,9 @@ classdef voxelmap < handle
             end
         end
         
-        % Converts any data matrix to a voxelmap object.
-        function v = any2voxelmap(d)
+        % Converts a pair of input arguments to voxelmap objects.
+        % At least one of the arguments must already be a voxelmap object.
+        function [a, b] = any2voxelmap(a, b)
             % If any input argument is not a voxelmap, convert it.
             if ~isa(a, 'voxelmap')
                 a = voxelmap(a, b.xgv, b.ygv, b.zgv);
@@ -124,8 +125,15 @@ classdef voxelmap < handle
             narginchk(2, 2)
             
             % Force the input arguments to be voxelmaps.
-            a = any2voxelmap(a);
-            b = any2voxelmap(b);
+            [a, b] = any2voxelmap(a, b);
+            
+            % If any voxelmap is empty, set its size to match the other
+            % voxelmap.
+            if isempty(a.data)
+                a.data = zeros(size(b.data));
+            elseif isempty(b.data)
+                b.data = zeros(size(a.data));
+            end
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -142,8 +150,15 @@ classdef voxelmap < handle
             narginchk(2, 2)
             
             % Force the input argument to be voxelmaps.
-            a = any2voxelmap(a);
-            b = any2voxelmap(b);
+            [a, b] = any2voxelmap(a, b);
+            
+            % If any voxelmap is empty, set its size to match the other
+            % voxelmap.
+            if isempty(a.data)
+                a.data = zeros(size(b.data));
+            elseif isempty(b.data)
+                b.data = zeros(size(a.data));
+            end
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -160,8 +175,7 @@ classdef voxelmap < handle
             narginchk(2, 2)
                         
             % Force the input argument to be voxelmaps.
-            a = any2voxelmap(a);
-            b = any2voxelmap(b);
+            [a, b] = any2voxelmap(a, b);
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
@@ -178,8 +192,7 @@ classdef voxelmap < handle
             narginchk(2, 2)
                         
             % Force the input argument to be voxelmaps.
-            a = any2voxelmap(a);
-            b = any2voxelmap(b);
+            [a, b] = any2voxelmap(a, b);
             
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
