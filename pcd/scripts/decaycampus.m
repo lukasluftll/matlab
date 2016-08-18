@@ -3,7 +3,7 @@
 
 %% Set paramters.
 % Step that determines the fraction of PCD files to use.
-step = 400;
+step = 1;
 
 % Resolution of the merged point cloud map.
 pcres = 0.100;
@@ -14,13 +14,20 @@ lambdares = 1.000;
 % Sensor reading range.
 rlim = [2, 120];
 
-%% Compute extent decay-rate map.
+%% Create folder for results.
+if ~exist('pcd/results', 'dir')
+    mkdir('pcd', 'results');
+end
+
+%% Compute extent of decay-rate map.
 % Get the PCD file names.
 folder = 'pcd/data/campus/pcd_sph';
 file = dir([folder, '/*.pcd']);
 
-% Iterate over all PCD files.
+% Create progress bar.
 waitbarHandle = waitbar(0, 'Computing map size ...');
+
+% Iterate over all PCD files and get their maximum extent.
 lim = inf(3, 2) .* [+ones(3,1), -ones(3,1)];
 for i = 1 : step : numel(file)
     % Read laser scan data from file.
@@ -38,9 +45,11 @@ for i = 1 : step : numel(file)
     waitbar(i/numel(file), waitbarHandle);
 end 
 
-%% Create point cloud of all scans.
-% Iterate over all PCD files.
+%% Create one point cloud of all scans.
+% Update progress bar label.
 waitbar(0, waitbarHandle, 'Building point cloud map ...');
+
+% Iterate over all PCD files.
 map = pointCloud(zeros(0, 3));
 for i = 1 : step : numel(file)
     % Read laser scan data from file.
@@ -59,34 +68,40 @@ xgv = lim(1,1) : lambdares : lim(1,2)+lambdares;
 ygv = lim(2,1) : lambdares : lim(2,2)+lambdares;
 zgv = lim(3,1) : lambdares : lim(3,2)+lambdares;
 
-% Create the lidar decay rate map.
+% Update progress bar label.
 waitbar(0, waitbarHandle, 'Building decay rate map ...');
-r = [];
-l = [];
-for i = i : step : numel(file)
+
+% Create the lidar decay rate map.
+gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
+r = voxelmap(zeros(gridsize), xgv, ygv, zgv);
+l = r.copy;
+for i = 1 : step : numel(file)
     % Read laser scan data from file.
     ls = lsread([folder, '/', file(i).name], rlim);
     
     % Build the local decay map.
-    [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
+    [lll,ri,li] = decaymap(ls, xgv, ygv, zgv);
     
-    % Merge the local decay map information into the global map.
-    r = r + ri;
-    l = l + li;
+    % Integrate the local decay map information into the global map.
+    r.add(ri);
+    l.add(li);
+    
+    % Compute the global decay rate map.
+    lambda = r ./ l;
+    
+    % Save the decay rate map to file.
+    save('pcd/results/decaycampus.mat', 'lambda');
     
     % Advance the progress bar.
     waitbar(i/numel(file), waitbarHandle);
 end
 
-% Display the global decay rate map.
-lambda = r ./ l;
-
-% Free memory.
-r = [];
-l = [];
-
-% Plot decay map.
-plot(lambda);
+%% Plot decay rate map.
+% Compute the maximum of 95% of the smaller decay rate values.
+lambdaSorted = sort(lambda.data(isfinite(lambda.data)));
+lambdamax = lambdaSorted(ceil(0.95 * numel(lambdaSorted)));
+plot(voxelmap(constrain(lambda.data, [0, lambdamax]), ...
+    lambda.xgv, lambda.ygv, lambda.zgv));
 
 % Close the progress bar.
 close(waitbarHandle);
