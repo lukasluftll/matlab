@@ -23,8 +23,18 @@ classdef voxelmap < handle
     %      data = cat(3, data, zeros(3), 0.5 * ones(3));
     %      m = voxelmap(data)
     %
+    %   VOXELMAP properties:
+    %   DATA     - Cell data
+    %   XGV      - x-axis grid vector
+    %   YGV      - y-axis grid vector
+    %   ZGV      - z-axis grid vector
+    %
     %   VOXELMAP methods:
-    %      plot - Visualize the map using transparency values.
+    %   PLUS     - Add cell data element-wise
+    %   MINUS    - Subtract cell data element-wise
+    %   TIMES    - Multiply cell data element-wise
+    %   RDIVIDE  - Diviside cell data element-wise from right
+    %   PLOT     - Visualize the map using transparency values.
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
     
@@ -54,6 +64,22 @@ classdef voxelmap < handle
             % Assign new map data to object.
             obj.data = data;
         end
+        
+        % Check if the data matrices of the two voxelmaps are amenable to 
+        % element-wise operations.
+        function chkewo(l, r)
+            % Check if the grid vectors match.
+            if ~(all(l.xgv == r.xgv) && all(l.ygv == r.ygv) ...
+                && any(l.zgv == r.zgv))
+                error('Grid vectors of both voxelmaps must match.')
+            end
+                        
+            % Check if the data matrix sizes match.
+            if ~(isempty(l.data) || isempty(r.data) ...
+                || all(size(l.data) == size(r.data)))
+                error('Voxelmaps must be of same size.');
+            end
+        end    
     end
         
     methods ( Access = public )
@@ -79,6 +105,50 @@ classdef voxelmap < handle
             obj.xgv = xgv;
             obj.ygv = ygv;
             obj.zgv = zgv;
+        end
+        
+        % Add cell data element-wise.
+        function c = plus(a, b)
+            % PLUS(A, B) Add cell data element-wise.
+            
+            % Check whether element-wise operations can be performed.
+            chkewo(a, b)
+            
+            % Add cell data.
+            c = voxelmap(a.data + b.data, a.xgv, a.ygv, a.zgv);
+        end
+            
+        % Subtract cell data element-wise.
+        function c = minus(a, b)
+            % MINUS(A, B) Subtract cell data element-wise.
+            
+            % Check whether element-wise operations can be performed.
+            chkewo(a, b)
+            
+            % Subtract cell data.
+            c = voxelmap(a.data - b.data, a.xgv, a.ygv, a.zgv);
+        end
+        
+        % Multiply cell data element-wise.
+        function c = times(a, b)
+            % TIMES(A, B) Multiply cell data element-wise.
+            
+            % Check whether element-wise operations can be performed.
+            chkewo(a, b)
+            
+            % Multiply cell data.
+            c = voxelmap(a.data .* b.data, a.xgv, a.ygv, a.zgv);
+        end
+        
+        % Divide cell data element-wise from right.
+        function c = rdivide(a, b)
+            % MRDIVIDE(A, B) Divide cell data element-wise from right.
+            
+            % Check whether element-wise operations can be performed.
+            chkewo(a, b)
+            
+            % Divide cell data.
+            c = voxelmap(a.data ./ b.data, a.xgv, a.ygv, a.zgv);
         end
 
         % Plot the map.
