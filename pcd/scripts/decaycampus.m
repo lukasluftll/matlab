@@ -1,5 +1,9 @@
 % Build a lidar decay-rate map out of many lidar scans taken on the campus 
-% of University of Freiburg.
+% of University of Freiburg with the robot Viona.
+
+%% Set paramters.
+% Step that determines the fraction of PCD files to use.
+step = 100;
 
 % Resolution of the merged point cloud map.
 pcres = 0.150;
@@ -7,60 +11,66 @@ pcres = 0.150;
 % Resolution of the resulting decay map.
 lambdares = 0.200;
 
+% Sensor reading range.
+rlim = [2, 120];
+
+%% Compute extent decay-rate map.
 % Get the PCD file names.
-folder = '~/ros/datasets/lifenav/2013-10-31-campus/pcd_sph';
+folder = 'pcd/data/campus/pcd_sph';
 file = dir([folder, '/*.pcd']);
 
-% Create the map point cloud.
-map = pointCloud(zeros(0, 3));
-
-% Create a progress bar.
-waitbarHandle = waitbar(0, 'Building map ...');
-
-% Loop over all PCD files.
+% Iterate over all PCD files.
+waitbarHandle = waitbar(0, 'Computing map size ...');
+lim = inf(3, 2) .* [+ones(3,1), -ones(3,1)];
 for i = 1 : 100 : numel(file)
-    % Read the PCD file.
-    pcd = pcdread([folder, '/', file(i).name]);
+    % Read laser scan data from file.
+    ls = lsread([folder, '/', file(i).name], rlim);
     
-    % Compute the Cartesian coordinates of the ray endpoints with reference
-    % to the world frame.
-    sp = trquat2tform(...
-        [pcd.sensor_x(:), pcd.sensor_y(:), pcd.sensor_z(:)], ...
-        [pcd.sensor_qw(:), pcd.sensor_qx(:), pcd.sensor_qy(:), ...
-        pcd.sensor_qz(:)]);
-    rlim = [2,120];
-    ls = laserscan(sp,pcd.azimuth(:),pcd.elevation(:),pcd.radius(:),rlim);
+    % Convert spherical data to Cartesian point cloud and denoise cloud.
+    pc = pcdenoise(removeInvalidPoints(ls2pc(ls)));
     
-    % Merge the point cloud with the map.
+    % Store the point cloud's Cartesian limits.
+    lim = [min([lim(1,1), pc.XLimits(1)]), max([lim(1,2), pc.XLimits(2)]);
+        min([lim(2,1), pc.YLimits(1)]), max([lim(2,2), pc.YLimits(2)]);
+        min([lim(3,1), pc.ZLimits(1)]), max([lim(3,2), pc.ZLimits(2)])];
+    
+    % Advance the progress bar.
+    waitbar(i/numel(file), waitbarHandle);
+end 
+
+%% Create point cloud of all scans.
+% Iterate over all PCD files.
+waitbar(0, waitbarHandle, 'Building point cloud map ...');
+map = pointCloud(zeros(0, 3));
+for i = 1 : step : numel(file)
+    % Read laser scan data from file.
+    ls = lsread([folder, '/', file(i).name], rlim);
+    
+    % Merge this point cloud with the map.
     map = pcmerge(map, ls2pc(ls), pcres);
     
     % Advance the progress bar.
     waitbar(i/numel(file), waitbarHandle);
 end
 
-waitbar(0, waitbarHandle, 'Building decay rate map ...');
-
+%% Create decay rate map.
 % Compute the grid vectors of the decay map.
-xgv = map.XLimits(1) : lambdares : map.XLimits(2);
-ygv = map.YLimits(1) : lambdares : map.YLimits(2);
-zgv = map.ZLimits(1) : lambdares : map.ZLimits(2);
+xgv = lim(1,1) : lambdares : lim(1,2)+lambdares;
+ygv = lim(2,1) : lambdares : lim(2,2)+lambdares;
+zgv = lim(3,1) : lambdares : lim(3,2)+lambdares;
 
 % Create the lidar decay rate map.
+waitbar(0, waitbarHandle, 'Building decay rate map ...');
 r = voxelmap(zeros([numel(xgv), numel(ygv), numel(zgv)] - 1));
 l = voxelmap(r.data);
-for i = i : 100 : numel(file)
-    pcd = pcdread([folder, '/', file(i).name]);
+for i = i : step : numel(file)
+    % Read laser scan data from file.
+    ls = lsread([folder, '/', file(i).name], rlim);
     
-    % Compute the Cartesian coordinates of the ray endpoints with reference
-    % to the world frame.
-    sp = trquat2tform(...
-        [pcd.sensor_x(:), pcd.sensor_y(:), pcd.sensor_z(:)], ...
-        [pcd.sensor_qw(:), pcd.sensor_qx(:), pcd.sensor_qy(:), ...
-        pcd.sensor_qz(:)]);
-    rlim = [2,120];
-    ls = laserscan(sp,pcd.azimuth(:),pcd.elevation(:),pcd.radius(:),rlim);
-    
+    % Build the local decay map.
     [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
+    
+    % Merge the local decay map information into the global map.
     r.data = r.data + ri.data;
     l.data = l.data + li.data;
     
@@ -68,8 +78,9 @@ for i = i : 100 : numel(file)
     waitbar(i/numel(file), waitbarHandle);
 end
 
-% Close the progress bar.
-close(waitbarHandle);
-
+% Display the global decay rate map.
 lambda = voxelmap(r.data ./ l.data);
 plot(lambda);
+
+% Close the progress bar.
+close(waitbarHandle);
