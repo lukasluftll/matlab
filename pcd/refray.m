@@ -44,20 +44,27 @@ if ~isa(ref, 'voxelmap')
 end
 
 %% Preprocess input arguments.
-% Compute the normalized Cartesian ray direction vectors.
+% Compute the normalized Cartesian ray direction vectors with respect to
+% the map frame.
 ray = dir2cart(ls);
 
 % Compute the logical indices of the returned rays.
 iret = ret(ls);
 
-% Set the length of no-return rays to maximum sensor range plus the
-% diameter of the largest voxel.
+% Increase the length of each returned ray by the diameter of the largest 
+% voxel to make sure it completely traverses the voxel that contains its
+% endpoint.
 dvox = sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
-ray = ray(iret,:) * ls.radius(iret) + ray(~iret,:) * (ls.rlim(2)+dvox);
+l(iret) = ls.radius(iret) + dvox;
+
+% Set the length of no-return rays to the maximum sensor range
+% plus the diameter of the largest voxel.
+l(~iret) = ls.rlim(2) + dvox;
+ray = ray .* repmat(l, 1, size(ray, 2));
 
 %% Compute probability of measurements.
 % Loop over all rays.
-p = zeros(ls.count, 1);
+p = ones(ls.count, 1);
 L = zeros(ls.count, 1);
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
@@ -69,28 +76,41 @@ parfor i = 1 : ls.count
     % Compute the measurement probability depending on whether or not the 
     % ray returned.
     if iret(i) % Ray returns.
-        % Compute the probability of the ray being reflected in the last
-        % voxel it traverses.
-        p(i) = ref.data(vi(end)) * prod(1 - ref.data(vi(1:end-1)));
+        % Compute the index of the voxel where the ray is reflected.
+        ti = find(ls.radius(i)/l(i) > t, 1, 'last');
         
-        % Compute the log-likelihood normalized over the ray length.
-        % TODO: Make sure the ray traverses the voxel.
-        L(i) = log(p(i) / (t(end) * norm(ray(i,:))));
+        % Compute the length of the ray apportioned to this voxel.
+        li = (t(ti) - t(ti-1)) * l(i);
+        
+        % Compute the logaritm of the probability density that the ray is 
+        % reflected.
+        L(i) = log(ref.data(vi(ti)) * prod(1 - ref.data(vi(1:ti-1))) / li);
     else % Ray does not return.
-        % Compute the indices of the voxels on the ray directly in front
-        % of the beginning and in front of the end of the measurement 
-        % interval.
-        ilim = knnsearch(t*radiusnr, ls.rlim(:)) - 1;
+        % Compute the indices of the voxels where the sensor measurement 
+        % range begins and ends.
+        ti = [find(rlim(1)/l(i) > t, 1, 'last'); ...
+            find(rlim(2)/l(i) > t, 1, 'last')];
+        
+        % Compute the lengths of the ray apportioned to the voxels where 
+        % the sensor measurement range starts and ends.
+        dti = t(ti) - t(ti-1);
+        
+        % Compute the weights for the reflectivity cells before the ray 
+        % reaches minimum sensor range. The weights are chosen according to 
+        % the ray lengths apportioned to the cells.
+        w = [ones(ti(1)-1, 1); (rlim(1)/l(i) - t(ti(1)-1)) / dti(1)];
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
-        isub = vi(1 : ilim(1));
-        psub = 1 - prod(1-ref.data(isub));
+        psub = 1 - prod(1 - ref.data(1:ti(1)) .* w);
+        
+        % Compute the weights for the reflectivity cells before the ray
+        % reaches maximum sensor range.
+        w = [ones(ti(2)-1, 1); (rlim(2)/l(i) - t(ti(2)-1)) / dti(2)];
 
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
-        isup = vi(1 : ilim(2));
-        psup = prod(1-ref.data(isup));
+        psup = prod(1 - ref.data(1:ti(2)) .* w);
     
         % Sum up the probabilities to get the probability of the ray being
         % reflected before or after the measurement interval.
