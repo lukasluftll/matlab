@@ -78,13 +78,14 @@ r = zeros(gridsize);
 
 % Loop over all laser scans.
 for s = 1 : numel(ls)
-    % Compute the Cartesian ray direction vectors.
-    ray = cart(ls(s));
+    % Compute the Cartesian ray direction vectors in the sensor frame.
+    ray = dir2cart(ls(s));
 
     % Compute the indices of the returned rays.
     iret = ret(ls(s));
 
     % Set the length of no-return rays to maximum sensor range.
+    ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret),1,size(ray,2));
     ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
 
     % Use multiple workers to compute ray length and number of returns per 

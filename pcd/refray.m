@@ -38,6 +38,7 @@ if ~isa(ref, 'voxelmap')
 end
 
 %% Preprocess input arguments.
+% TODO: Iterate over multiple laser scans.
 % Compute the normalized Cartesian ray direction vectors with respect to
 % the map frame.
 ray = dir2cart(ls);
