@@ -85,5 +85,8 @@ lambda = r ./ l;
 r = [];
 l = [];
 
+% Plot decay map.
+plot(lambda);
+
 % Close the progress bar.
 close(waitbarHandle);
