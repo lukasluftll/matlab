@@ -1,4 +1,4 @@
-function alphaplot(data, color, xgv, ygv, zgv, varargin)
+function alphaplot(data, xgv, ygv, zgv, varargin)
 % ALPHAPLOT Visualize 3D array of scalars using semi-transparent voxels.
 %   ALPHAPLOT(DATA) takes the 3-dimensional IxJxK matrix of scalar values 
 %   DATA and creates a voxel plot. The element DATA(i,j,k) is represented 
