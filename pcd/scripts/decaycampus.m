@@ -97,11 +97,7 @@ for i = 1 : step : numel(file)
 end
 
 %% Plot decay rate map.
-% Compute the maximum of 95% of the smaller decay rate values.
-lambdaSorted = sort(lambda.data(isfinite(lambda.data)));
-lambdamax = lambdaSorted(ceil(0.95 * numel(lambdaSorted)));
-plot(voxelmap(constrain(lambda.data, [0, lambdamax]), ...
-    lambda.xgv, lambda.ygv, lambda.zgv));
+plot(log(lambda));
 
 % Close the progress bar.
 close(waitbarHandle);
