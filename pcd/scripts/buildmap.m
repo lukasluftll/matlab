@@ -5,19 +5,23 @@
 dataset = 'campus';
 
 % Sensor model to use to build map: 'decay' | 'ref'.
-model = 'ref';
+model = 'decay';
 
 % Step that determines the fraction of PCD files to use.
-step = 1000;
+step = 1;
 
 % Resolution of the merged point cloud map.
-pcres = 0.100;
+pcres = 0.200;
 
 % Resolution of the resulting lidar map.
-lambdares = 1.000;
+lambdares = 0.200;
 
 % Sensor reading range.
 rlim = [2, 120];
+
+% Save parameters to file.
+save(['pcd/results/', model, 'map_', dataset, '.mat'], ...
+    'dataset', 'model', 'step', 'pcres', 'lambdares', 'rlim');
 
 %% Create folder for results.
 if ~exist('pcd/results', 'dir')
