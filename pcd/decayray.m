@@ -43,13 +43,14 @@ if ~isa(lambda, 'voxelmap')
 end
 
 %% Preprocess input arguments.
-% Compute the Cartesian ray direction vectors.
-ray = cart(ls);
+% Compute the Cartesian ray direction vectors in the sensor frame.
+ray = dir2cart(ls);
 
 % Compute the logical indices of the returned rays.
 iret = ret(ls);
 
 % Set the length of no-return rays to maximum sensor range.
+ray(iret,:) = ray(iret,:) .* repmat(ls.radius(iret), 1, size(ray, 2));
 ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
 
 %% Compute measurement probability for all rays.
@@ -63,7 +64,8 @@ tmin = ls.rlim(1) / ls.rlim(2);
 % Loop over all rays.
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
-    [vi, t] = trav(ls.position, ray(i,:), ...
+    pos = tform2trvec(ls.sp(:,:,i)); %#ok<PFBNS>
+    [vi, t] = trav(pos, ray(i,:), ...
         lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
 
     % Convert the subscript voxel indices to linear indices.

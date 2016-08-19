@@ -39,7 +39,8 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 % REFMAP implements the counting model proposed by Burgard:
 % Wolfram Burgard. Mapping with Known Poses. Lecture Notes on Introduction 
 % to Mobile Robotics. University of Freiburg, Germany, 2005.
-%http://ais.informatik.uni-freiburg.de/teaching/ss05/robotics/slides/10.pdf
+% http://ais.informatik.uni-freiburg.de/teaching/ss05/robotics/...
+% slides/10.pdf
 
 %% Validate input.
 % Check number of input arguments.
@@ -71,13 +72,14 @@ m = zeros(gridsize);
 
 % Loop over all laser scans.
 for s = 1 : numel(ls)
-    % Compute the Cartesian ray direction vectors.
-    ray = cart(ls(s));
+    % Compute the Cartesian ray direction vectors in sensor frame.
+    ray = dir2cart(ls(s));
 
     % Compute the indices of the returned rays.
     iret = ret(ls(s));
 
     % Set the length of no-return rays to maximum sensor range.
+    ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret),1,size(ray,2));
     ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
 
     % Use multiple workers to compute the number of returns and traversals 
@@ -88,29 +90,31 @@ for s = 1 : numel(ls)
         mw = zeros(gridsize);
 
         % Loop over the worker's share of all rays.
-        for w = labindex : numlabs : ls.count
-            % Compute the indices of the voxels through which the ray travels.
-            [vi, t] = trav(ls.position, ray(w,:), xgv, ygv, zgv);
+        for i = labindex : numlabs : ls.count
+            % Compute the indices of the voxels through which the ray 
+            % travels.
+            pos = tform2trvec(ls(s).sp(:,:,i));
+            [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
 
             % Convert the subscript indices to linear indices.
             vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
             % For each voxel, sum up the number of hits and misses.
-            hw(vi(end)) = hw(vi(end)) + (iret(w) && t(end)==1);
+            hw(vi(end)) = hw(vi(end)) + (iret(i) && t(end)==1);
             mw(vi) = mw(vi) + t(2:end)<1;
         end
     end
 
     % Merge the hits and misses matrices calculated by the workers.
-    h = hw{1};
-    m = mw{1};
-    for w = 2 : numel(hw)
-        h = h + hw{w};
-        m = m + mw{w};
+    h = voxelmap(hw{1}, xgv, ygv, zgv);
+    m = voxelmap(mw{1}, xgv, ygv, zgv);
+    for i = 2 : numel(hw)
+        h = h + hw{i};
+        m = m + mw{i};
     end
 end
 
 %% Compute reflectivity map.
-ref = voxelmap(h ./ (h + m), xgv, ygv, zgv);
+ref = h ./ (h + m);
 
 end
