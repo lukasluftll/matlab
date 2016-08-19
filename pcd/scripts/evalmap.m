@@ -46,7 +46,7 @@ for i = 1 : step : numel(file)
     end
     
     % Compute the KL divergence of this lidar measurement.
-    D = [D; sum([Li; log(pi)])]; %#ok<AGROW>
+    D = [D; -sum([Li; log(pi)])]; %#ok<AGROW>
     
     % Save the KL divergence to file.
     save(['pcd/results/kl', model, '_', dataset, '.mat'], 'D');
