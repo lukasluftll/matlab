@@ -1,31 +1,42 @@
-function alphaplot(data, xgv, ygv, zgv, varargin)
+function alphaplot(data, color, xgv, ygv, zgv, varargin)
 % ALPHAPLOT Visualize 3D array of scalars using semi-transparent voxels.
-%   ALPHAPLOT(DATA) takes the 3-dimensional array of scalar values DATA and
-%   creates a voxel plot. The element DATA(x,y,z) is represented by the 
-%   transparency of the cubic axis-aligned voxel with minimum limits 
-%   [x-1, y-1, z-1] and maximum limits [x, y, z].
+%   ALPHAPLOT(DATA) takes the 3-dimensional IxJxK matrix of scalar values 
+%   DATA and creates a voxel plot. The element DATA(i,j,k) is represented 
+%   by the transparency of the cubic axis-aligned voxel with minimum limits 
+%   [i-1,j-1,k-1] and maximum limits [i,j,k].
 %   
-%   The values of DATA must stay within [0; 1]. DATA(x,y,z) == 0 
+%   The values of DATA must stay within [0; 1]. DATA(i,j,k) == 0 
 %   corresponds to a transparent voxel; a value of 1 corresponds to an 
-%   opaque voxel. Values smaller than 1% are not drawn.
+%   opaque voxel. Values smaller than 0.01 are not drawn.
 %
-%   ALPHAPLOT(DATA, XGV, YGV, ZGV) shows no cubic, but cuboid voxels.
-%   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
-%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
-%   the inequality:
+%   ALPHAPLOT(DATA, COLOR) defines the color of each voxel.
+%   COLOR can be specified in different ways:
+%
+%   Single value          - All voxels are plotted in the indexed color 
+%                           COLOR.
+%   3-element row vector  - All voxels are plotted in the true color COLOR.
+%
+%   IxJxK matrix          - Voxel [i,j,k] is plotted in the indexed color
+%                           COLOR(i,j,k).
+%
+%   3xIxJxK matrix        - Voxel [i,j,k] is plotted in the true color
+%                           COLOR(:,i,j,k).
+%
+%   ALPHAPLOT(DATA, COLOR, XGV, YGV, ZGV) shows no cubic, but cuboid 
+%   voxels. XGV, YGV, ZGV are vectors that define the rasterization of the 
+%   grid. A voxel with index [i,j,k] contains all points [x,y,z] that 
+%   satisfy the inequality:
 %
 %         (XGV(i) <= x < XGV(i+1))
 %      && (YGV(j) <= y < YGV(j+1)) 
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
-%   ALPHAPLOT(DATA, XGV, YGV, ZGV, VARARGIN) plots voxels with the 
+%   ALPHAPLOT(DATA, COLOR, XGV, YGV, ZGV, VARARGIN) plots voxels with the 
 %   properties indicated by the name-value pair arguments VARARGIN. 
 %   For possible name-value pairs, see the documentation of PATCH.
 % 
 %   Example:
-%      data = [0.1, 0.2, 0.3; 0, 0, 0; 0, 0, 0];
-%      data = cat(3, data, zeros(3), 0.5 * ones(3));
-%      alphaplot(data)
+%      alphaplot(rand(10, 10, 10))
 %
 %   See also: CUBOID, PATCH, CAT.
 
@@ -77,8 +88,7 @@ data(remove) = [];
 faceAlpha = kron(data(:), ones(6, 1));
 
 %% Plot voxels.
-cuboid(vox, 'FaceColor', 'blue', 'EdgeColor', 'none', varargin{:}, ...
-    'AlphaDataMapping', 'none', 'FaceVertexAlphaData', faceAlpha, ...
-    'FaceAlpha', 'flat');
-
+cuboid(vox, 'EdgeColor', 'none', varargin{:}, 'FaceAlpha', 'flat', ...
+    'AlphaDataMapping', 'none', 'FaceVertexAlphaData', faceAlpha);
+% 'FaceVertexCData', plotdata, 'FaceColor', 'flat'
 end
