@@ -29,15 +29,16 @@ classdef voxelmap < matlab.mixin.Copyable
     %   ZGV      - z-axis grid vector
     %
     %   VOXELMAP methods:
-    %   PLUS     - Add map data element-wise
-    %   ADD      - Increment map data
-    %   MINUS    - Subtract map data element-wise
-    %   SUBTRACT - Decrement map data
-    %   TIMES    - Multiply map data element-wise
-    %   RDIVIDE  - Divide map data element-wise from right
-    %   LOG      - Natural logarithm of map dta
-    %   UMINUS   - Unary minus of map data
-    %   PLOT     - Visualize map using transparency values
+    %   PLUS      - Add map data element-wise
+    %   ADD       - Increment map data
+    %   MINUS     - Subtract map data element-wise
+    %   SUBTRACT  - Decrement map data
+    %   TIMES     - Multiply map data element-wise
+    %   RDIVIDE   - Divide map data element-wise from right
+    %   LOG       - Natural logarithm of map dta
+    %   UMINUS    - Unary minus of map data
+    %   CONSTRAIN - Fit map data to interval
+    %   PLOT      - Visualize map using transparency values
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
     
@@ -303,6 +304,16 @@ classdef voxelmap < matlab.mixin.Copyable
             
             % Negate data.
             u = voxelmap(-obj.data, obj.xgv, obj.ygv, obj.zgv);
+        end
+        
+        % Fit map data to interval.
+        function y = constrain(obj, lim)
+            % CONSTRAIN Fit map data to interval.
+            %   Y = CONSTRAIN(OBJ, LIM) fits all map data values of
+            %   voxelmap object OBJ into the interval defined by the
+            %   ordered 2-element vector LIM.
+            y = copy(obj);
+            y.data = constrain(y.data, lim);
         end
 
         % Plot the map.
