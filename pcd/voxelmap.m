@@ -312,8 +312,11 @@ classdef voxelmap < matlab.mixin.Copyable
             %   Y = CONSTRAIN(OBJ, LIM) fits all map data values of
             %   voxelmap object OBJ into the interval defined by the
             %   ordered 2-element vector LIM.
+            %
+            %   NaN values are set to LIM(1).
             y = copy(obj);
             y.data = constrain(y.data, lim);
+            y.data(isnan(y.data)) = lim(1);
         end
 
         % Plot the map.
