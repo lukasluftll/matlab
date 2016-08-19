@@ -5,23 +5,23 @@
 dataset = 'campus';
 
 % Sensor model to use to build map: 'decay' | 'ref'.
-model = 'decay';
+model = 'ref';
 
 % Step that determines the fraction of PCD files to use.
 step = 1;
 
 % Resolution of the merged point cloud map.
-pcMapRes = 0.200;
+pcres = 0.200;
 
 % Resolution of the resulting lidar map.
-lidarMapRes = 0.200;
+lambdares = 0.200;
 
 % Sensor reading range.
 rlim = [2, 120];
 
 % Save parameters to file.
 save(['pcd/results/', model, 'map_', dataset, '.mat'], ...
-    'dataset', 'model', 'step', 'pcMapRes', 'lidarMapRes', 'rlim');
+    'dataset', 'model', 'step', 'pcres', 'lambdares', 'rlim');
 
 %% Create folder for results.
 if ~exist('pcd/results', 'dir')
@@ -43,7 +43,7 @@ for i = 1 : step : numel(file)
     ls = lsread([folder, '/', file(i).name], rlim);
     
     % Merge this point cloud with the map.
-    pcmap = pcmerge(pcmap, ls2pc(ls), pcMapRes);
+    pcmap = pcmerge(pcmap, ls2pc(ls), pcres);
     
     % Advance the progress bar.
     waitbar(i/numel(file), waitbarHandle);
@@ -62,9 +62,9 @@ lim = [pcmap.XLimits(1), pcmap.XLimits(2);
 
 %% Create lidar map.
 % Compute the grid vectors of the map.
-xgv = lim(1,1) : lidarMapRes : lim(1,2)+lidarMapRes;
-ygv = lim(2,1) : lidarMapRes : lim(2,2)+lidarMapRes;
-zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
+xgv = lim(1,1) : lambdares : lim(1,2)+lambdares;
+ygv = lim(2,1) : lambdares : lim(2,2)+lambdares;
+zgv = lim(3,1) : lambdares : lim(3,2)+lambdares;
 
 % Update progress bar label.
 waitbar(0, waitbarHandle, ['Building ', model, ' map ...']);
