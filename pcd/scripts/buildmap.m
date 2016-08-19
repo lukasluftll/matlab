@@ -1,14 +1,19 @@
-% Build a lidar decay-rate map out of many lidar scans taken on the campus 
-% of University of Freiburg with the robot Viona.
+% Build a map out of many lidar scans.
 
-%% Set paramters.
+%% Set parameters.
+% Dataset name.
+dataset = 'campus';
+
+% Sensor model to use to build map: 'decay' | 'ref'.
+model = 'ref';
+
 % Step that determines the fraction of PCD files to use.
-step = 1;
+step = 1000;
 
 % Resolution of the merged point cloud map.
 pcres = 0.100;
 
-% Resolution of the resulting decay map.
+% Resolution of the resulting lidar map.
 lambdares = 1.000;
 
 % Sensor reading range.
@@ -19,85 +24,79 @@ if ~exist('pcd/results', 'dir')
     mkdir('pcd', 'results');
 end
 
-%% Compute extent of decay-rate map.
+%% Create one point cloud of all scans.
 % Get the PCD file names.
-folder = 'pcd/data/campus/pcd_sph';
+folder = ['pcd/data/', dataset, '/pcd_sph'];
 file = dir([folder, '/*.pcd']);
 
 % Create progress bar.
-waitbarHandle = waitbar(0, 'Computing map size ...');
-
-% Iterate over all PCD files and get their maximum extent.
-lim = inf(3, 2) .* [+ones(3,1), -ones(3,1)];
-for i = 1 : step : numel(file)
-    % Read laser scan data from file.
-    ls = lsread([folder, '/', file(i).name], rlim);
-    
-    % Convert spherical data to Cartesian point cloud and denoise cloud.
-    pc = pcdenoise(removeInvalidPoints(ls2pc(ls)));
-    
-    % Store the point cloud's Cartesian limits.
-    lim = [min([lim(1,1), pc.XLimits(1)]), max([lim(1,2), pc.XLimits(2)]);
-        min([lim(2,1), pc.YLimits(1)]), max([lim(2,2), pc.YLimits(2)]);
-        min([lim(3,1), pc.ZLimits(1)]), max([lim(3,2), pc.ZLimits(2)])];
-    
-    % Advance the progress bar.
-    waitbar(i/numel(file), waitbarHandle);
-end 
-
-%% Create one point cloud of all scans.
-% Update progress bar label.
-waitbar(0, waitbarHandle, 'Building point cloud map ...');
+waitbarHandle = waitbar(0, 'Building point cloud map ...');
 
 % Iterate over all PCD files.
-map = pointCloud(zeros(0, 3));
+pcmap = pointCloud(zeros(0, 3));
 for i = 1 : step : numel(file)
     % Read laser scan data from file.
     ls = lsread([folder, '/', file(i).name], rlim);
     
     % Merge this point cloud with the map.
-    map = pcmerge(map, ls2pc(ls), pcres);
+    pcmap = pcmerge(pcmap, ls2pc(ls), pcres);
     
     % Advance the progress bar.
     waitbar(i/numel(file), waitbarHandle);
 end
 
-%% Create decay rate map.
-% Compute the grid vectors of the decay map.
+% Save the point cloud map to file.
+save(['pcd/results/', model, 'map_', dataset, '.mat'], 'pcmap');
+
+% Denoise the map.
+pcmap = pcdenoise(pcmap);
+
+% Compute the extent of the denoised point cloud.
+lim = [pcmap.XLimits(1), pcmap.XLimits(2);
+    pcmap.YLimits(1), pcmap.YLimits(2);
+    pcmap.ZLimits(1), pcmap.ZLimits(2)];
+
+%% Create lidar map.
+% Compute the grid vectors of the map.
 xgv = lim(1,1) : lambdares : lim(1,2)+lambdares;
 ygv = lim(2,1) : lambdares : lim(2,2)+lambdares;
 zgv = lim(3,1) : lambdares : lim(3,2)+lambdares;
 
 % Update progress bar label.
-waitbar(0, waitbarHandle, 'Building decay rate map ...');
+waitbar(0, waitbarHandle, ['Building ', model, ' map ...']);
 
-% Create the lidar decay rate map.
+% Create the lidar map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
-r = voxelmap(zeros(gridsize), xgv, ygv, zgv);
-l = r.copy;
+a = voxelmap(zeros(gridsize), xgv, ygv, zgv);
+b = a.copy;
 for i = 1 : step : numel(file)
     % Read laser scan data from file.
     ls = lsread([folder, '/', file(i).name], rlim);
     
-    % Build the local decay map.
-    [lll,ri,li] = decaymap(ls, xgv, ygv, zgv);
+    % Build the local lidar map.
+    switch model
+        case 'decay'
+            [~,ai,bi] = decaymap(ls, xgv, ygv, zgv);
+        case 'ref'
+            [~,ai,bi] = refmap(ls, xgv, ygv, zgv);
+        otherwise
+            error(['Map model ', model, ' not supported.'])
+    end
     
-    % Integrate the local decay map information into the global map.
-    r.add(ri);
-    l.add(li);
+    % Integrate the local map information into the global map.
+    a.add(ai);
+    b.add(bi);
     
     % Compute the global decay rate map.
-    lambda = r ./ l;
+    lidarmap = a ./ b;
     
     % Save the decay rate map to file.
-    save('pcd/results/decaycampus.mat', 'lambda');
+    save(['pcd/results/', model, 'map_', dataset, '.mat'], 'lidarmap', ...
+        '-append');
     
     % Advance the progress bar.
     waitbar(i/numel(file), waitbarHandle);
 end
-
-%% Plot decay rate map.
-plot(log(lambda));
 
 % Close the progress bar.
 close(waitbarHandle);
