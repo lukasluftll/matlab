@@ -1,4 +1,4 @@
-function alphaplot(data, xgv, ygv, zgv, varargin)
+function alphaplot(data, color, xgv, ygv, zgv, varargin)
 % ALPHAPLOT Visualize 3D array of scalars using semi-transparent voxels.
 %   ALPHAPLOT(DATA) takes the 3-dimensional IxJxK matrix of scalar values 
 %   DATA and creates a voxel plot. The element DATA(i,j,k) is represented 
@@ -14,6 +14,7 @@ function alphaplot(data, xgv, ygv, zgv, varargin)
 %
 %   Single value          - All voxels are plotted in the indexed color 
 %                           COLOR.
+%
 %   3-element row vector  - All voxels are plotted in the true color COLOR.
 %
 %   IxJxK matrix          - Voxel [i,j,k] is plotted in the indexed color
@@ -56,8 +57,21 @@ if min(data(:)) < 0 || max(data(:)) > 1
     error('X must be element of [0; 1].')
 end
 
-% If no volume limits are given, create them.
+% If no color information is given, set it to black.
 if nargin < 2
+    color = zeros(1, 3);
+end
+
+% Check the size of the color matrix.
+if ~(numel(color) == 1 ...
+        || (ndims(color) == 2 && all(size(color) ~= [1,3])) ...
+        || (ndims(color) == 3 && all(size(color) == size(data))) ...
+        || (ndims(color) == 4 && all(size(color) == [3, size(data)])))
+    error('The size of COLOR is invalid.')
+end
+
+% If no volume limits are given, create them.
+if nargin < 3
     xgv = 0 : size(data, 1);
     ygv = 0 : size(data, 2);
     zgv = 0 : size(data, 3);
@@ -84,11 +98,22 @@ remove = data(:) < 0.01;
 vox(remove,:) = [];
 data(remove) = [];
 
+% Define the color values of the voxel faces.
+switch ndims(color)
+    case 3
+        color(remove) = [];
+        color = kron(color(:), ones(6,1));
+    case 4
+        color(:,remove) = [];
+        color = kron(reshape(color, 3, []).', ones(6,1));
+end
+
 % Define the transparency values of the voxel faces.
-faceAlpha = kron(data(:), ones(6, 1));
+faceAlpha = kron(data(:), ones(6,1));
 
 %% Plot voxels.
-cuboid(vox, 'EdgeColor', 'none', varargin{:}, 'FaceAlpha', 'flat', ...
-    'AlphaDataMapping', 'none', 'FaceVertexAlphaData', faceAlpha);
-% 'FaceVertexCData', plotdata, 'FaceColor', 'flat'
+cuboid(vox, 'EdgeColor', 'none', varargin{:}, ...
+    'FaceVertexCData', color, 'FaceColor', 'flat', ...
+    'FaceAlpha', 'flat', 'AlphaDataMapping', 'none', ...
+    'FaceVertexAlphaData', faceAlpha);
 end
