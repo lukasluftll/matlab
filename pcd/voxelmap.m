@@ -367,8 +367,9 @@ classdef voxelmap < matlab.mixin.Copyable
             plotdata = constrain(plotdata, [0,1]);
             
             % Plot.
-            alphaplot(plotdata, obj.xgv, obj.ygv, obj.zgv);
-            axis equal
+            alphaplot(plotdata, plotdata, obj.xgv, obj.ygv, obj.zgv);
+            colormap('jet')
+            axis image vis3d
             grid on
             labelaxes
         end
