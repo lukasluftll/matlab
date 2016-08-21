@@ -38,6 +38,7 @@ classdef voxelmap < matlab.mixin.Copyable
     %   LOG       - Natural logarithm of map dta
     %   UMINUS    - Unary minus of map data
     %   CONSTRAIN - Fit map data to interval
+    %   HISTOGRAM - Histogram of map data
     %   PLOT      - Visualize map using transparency values
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
@@ -317,6 +318,25 @@ classdef voxelmap < matlab.mixin.Copyable
             y = copy(obj);
             y.data = constrain(y.data, lim);
             y.data(isnan(y.data)) = lim(1);
+        end
+        
+        % Plot histogram of map data.
+        function h = histogram(obj, varargin)
+            % HISTOGRAM Plot histogram of map data.
+            %   HISTOGRAM(OBJ) plots a histogram of all map data contained
+            %   in the voxelmap object OBJ. Apart from its first input
+            %   argument, the function works exactly like the standard
+            %   HISTORGRAM function.
+            %
+            %   Example:
+            %      histogram(voxelmap(rand(10,10,10)))
+            %
+            % See also HISTOGRAM.
+            if nargout > 0
+                h = histogram(obj.data(:), varargin{:});
+            else
+                histogram(obj.data(:), varargin{:});
+            end
         end
 
         % Plot the map.
