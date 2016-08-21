@@ -22,6 +22,14 @@ lidarMapRes = 0.500;
 % Sensor reading range.
 rlim = [2, 120];
 
+%% Validate parameters.
+switch model
+    case 'decay'
+    case 'ref'
+    otherwise
+        error(['Map model ', model, ' not supported.'])
+end
+
 %% Prepare output file.
 % Create folder for results.
 if ~exist('pcd/results', 'dir')
@@ -89,8 +97,6 @@ for i = 1 : step : numel(infile)
             [~,ai,bi] = decaymap(ls, xgv, ygv, zgv);
         case 'ref'
             [~,ai,bi] = refmap(ls, xgv, ygv, zgv);
-        otherwise
-            error(['Map model ', model, ' not supported.'])
     end
     
     % Integrate the local map information into the global map.
