@@ -1,56 +1,62 @@
 % Build a map out of many lidar scans.
 
-%% Set parameters.
+%% Parameters.
 % Dataset name.
 dataset = 'campus';
 
 % Sensor model to use to build map: 'decay' | 'ref'.
 model = 'decay';
 
+% Dataset folder with PCD files.
+folder = ['pcd/data/', dataset, '/pcd_sph'];
+
 % Step that determines the fraction of PCD files to use.
 step = 1;
 
 % Resolution of the merged point cloud map.
-pcMapRes = 0.200;
+pcMapRes = 0.500;
 
 % Resolution of the resulting lidar map.
-lidarMapRes = 0.200;
+lidarMapRes = 0.500;
 
 % Sensor reading range.
 rlim = [2, 120];
 
-% Save parameters to file.
-save(['pcd/results/', model, 'map_', dataset, '.mat'], ...
-    'dataset', 'model', 'step', 'pcMapRes', 'lidarMapRes', 'rlim');
-
-%% Create folder for results.
+%% Prepare output file.
+% Create folder for results.
 if ~exist('pcd/results', 'dir')
     mkdir('pcd', 'results');
 end
 
-%% Create one point cloud of all scans.
+% Define the name of the output MAT file.
+outfile = ['pcd/results/', model, 'map_', dataset, '.mat'];
+
+% Save parameters to file.
+save(outfile, 'dataset', 'model', 'folder', 'step', 'pcMapRes', ...
+    'lidarMapRes', 'rlim');
+
+%% Merge point clouds.
 % Get the PCD file names.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
-file = dir([folder, '/*.pcd']);
+infile = dir([folder, '/*.pcd']);
 
 % Create progress bar.
-waitbarHandle = waitbar(0, 'Building point cloud map ...');
+waitbarHandle = waitbar(0, 'Merging point cloud map ...');
 
 % Iterate over all PCD files.
 pcmap = pointCloud(zeros(0, 3));
-for i = 1 : step : numel(file)
+for i = 1 : step : numel(infile)
     % Read laser scan data from file.
-    ls = lsread([folder, '/', file(i).name], rlim);
+    ls = lsread([folder, '/', infile(i).name], rlim);
     
     % Merge this point cloud with the map.
     pcmap = pcmerge(pcmap, ls2pc(ls), pcMapRes);
     
     % Advance the progress bar.
-    waitbar(i/numel(file), waitbarHandle);
+    waitbar(i/numel(infile), waitbarHandle);
 end
 
 % Save the point cloud map to file.
-save(['pcd/results/', model, 'map_', dataset, '.mat'], 'pcmap');
+save(outfile, 'pcmap', '-append');
 
 % Denoise the map.
 pcmap = pcdenoise(pcmap);
@@ -67,15 +73,15 @@ ygv = lim(2,1) : lidarMapRes : lim(2,2)+lidarMapRes;
 zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
 
 % Update progress bar label.
-waitbar(0, waitbarHandle, ['Building ', model, ' map ...']);
+waitbar(0, waitbarHandle, ['Computing ', model, ' map ...']);
 
 % Create the lidar map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
-a = voxelmap(zeros(gridsize), xgv, ygv, zgv);
-b = a.copy;
-for i = 1 : step : numel(file)
+numerator = voxelmap(zeros(gridsize), xgv, ygv, zgv);
+denominator = numerator.copy;
+for i = 1 : step : numel(infile)
     % Read laser scan data from file.
-    ls = lsread([folder, '/', file(i).name], rlim);
+    ls = lsread([folder, '/', infile(i).name], rlim);
     
     % Build the local lidar map.
     switch model
@@ -88,18 +94,15 @@ for i = 1 : step : numel(file)
     end
     
     % Integrate the local map information into the global map.
-    a.add(ai);
-    b.add(bi);
+    numerator.add(ai);
+    denominator.add(bi);
+    lidarmap = numerator ./ denominator;
     
-    % Compute the global decay rate map.
-    lidarmap = a ./ b;
-    
-    % Save the decay rate map to file.
-    save(['pcd/results/', model, 'map_', dataset, '.mat'], 'lidarmap', ...
-        '-append');
+    % Save the global map to file.
+    save(outfile, 'numerator', 'denominator', 'lidarmap', '-append');
     
     % Advance the progress bar.
-    waitbar(i/numel(file), waitbarHandle);
+    waitbar(i/numel(infile), waitbarHandle);
 end
 
 % Close the progress bar.
