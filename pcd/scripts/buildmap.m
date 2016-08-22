@@ -51,28 +51,28 @@ infile = dir([folder, '/*.pcd']);
 waitbarHandle = waitbar(0, 'Merging point cloud map ...');
 
 % Iterate over all PCD files.
-pcmap = pointCloud(zeros(0, 3));
-for i = 1 : step : numel(infile)
+pcMap = pointCloud(zeros(0, 3));
+for i = 1 : 10*step : numel(infile)
     % Read laser scan data from file.
     ls = lsread([folder, '/', infile(i).name], rlim);
     
     % Merge this point cloud with the map.
-    pcmap = pcmerge(pcmap, ls2pc(ls), pcMapRes);
+    pcMap = pcmerge(pcMap, ls2pc(ls), pcMapRes);
     
     % Advance the progress bar.
     waitbar(i/numel(infile), waitbarHandle);
 end
 
 % Save the point cloud map to file.
-save(outfile, 'pcmap', '-append', '-v7.3');
+save(outfile, 'pcMap', '-append');
 
 % Denoise the map.
-pcmap = pcdenoise(pcmap);
+pcMap = pcdenoise(pcMap);
 
 % Compute the extent of the denoised point cloud.
-lim = [pcmap.XLimits(1), pcmap.XLimits(2);
-    pcmap.YLimits(1), pcmap.YLimits(2);
-    pcmap.ZLimits(1), pcmap.ZLimits(2)];
+lim = [pcMap.XLimits(1), pcMap.XLimits(2);
+    pcMap.YLimits(1), pcMap.YLimits(2);
+    pcMap.ZLimits(1), pcMap.ZLimits(2)];
 
 %% Create lidar map.
 % Compute the grid vectors of the map.
@@ -102,11 +102,10 @@ for i = 1 : step : numel(infile)
     % Integrate the local map information into the global map.
     numerator.add(ai);
     denominator.add(bi);
-    lidarmap = numerator ./ denominator;
+    lidarMap = numerator ./ denominator;
     
     % Save the global map to file.
-    save(outfile, 'numerator', 'denominator', 'lidarmap', '-append', ...
-        '-v7.3');
+    save(outfile, 'numerator', 'denominator', 'lidarMap', '-append');
     
     % Advance the progress bar.
     waitbar(i/numel(infile), waitbarHandle);
