@@ -28,6 +28,9 @@ end
 %% Read PCD file.
 pcd = pcdread(file);
 
+% Map all infinite radius values to NaN.
+pcd.radius(~isfinite(pcd.radius)) = NaN;
+
 %% Construct laserscan object.
 % Build a 3D matrix that contains the homogeneous coordinate
 % transformations indicating the pose of the sensor for each ray of the
