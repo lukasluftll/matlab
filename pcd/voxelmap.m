@@ -190,6 +190,17 @@ classdef voxelmap < matlab.mixin.Copyable
             % Add the data to the voxelmap object.
             obj.data = obj.data + d.data;
         end
+        
+        function b = sum(a)
+            if ~all(isa(a, 'voxelmap'))
+                error('A must be an array of voxelmaps.')
+            end
+            
+            b = a(1);
+            for i = 2 : numel(a)
+                b.add(a(i));
+            end
+        end
             
         % Subtract cell data element-wise.
         function c = minus(a, b)
