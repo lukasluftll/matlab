@@ -43,7 +43,7 @@ end
 
 % Compute the KL divergence for each scan.
 D = NaN(numel(pcdFile), 1);
-for i = 1 : evalStep : numel(pcdFile)
+parfor i = 1 : evalStep : numel(pcdFile) %#ok<PFRNG>
     % Read laser scan data from file.
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
@@ -53,12 +53,12 @@ for i = 1 : evalStep : numel(pcdFile)
     % Compute the KL divergence of this lidar measurement.
     D(i) = -sum([Li; log(pi)]);
     
-    % Save the KL divergence to file.
-    save(outfile, 'D', '-append');
-    
     % Advance the progress bar.
-    waitbar(i/numel(pcdFile), waitbarHandle);
+    %waitbar(i/numel(pcdFile), waitbarHandle);
 end
+
+% Save the KL divergence to file.
+save(outfile, 'D', '-append');
 
 % Close the progress bar.
 close(waitbarHandle);
