@@ -11,7 +11,7 @@ model = 'decay';
 folder = ['pcd/data/', dataset, '/pcd_sph'];
 
 % Step that determines the fraction of PCD files to use.
-step = 1;
+step = 1000;
 
 % Resolution of the merged point cloud map.
 pcMapRes = 0.1;
@@ -82,33 +82,39 @@ xgv = lim(1,1) : lidarMapRes : lim(1,2)+lidarMapRes;
 ygv = lim(2,1) : lidarMapRes : lim(2,2)+lidarMapRes;
 zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
 
-% Update progress bar label.
+% Update the label of the progress bar.
 waitbar(0, waitbarHandle, ['Computing ', model, ' map ...']);
 
-% Create the lidar map.
+% Use multiple workers to create the lidar map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
-numerator = voxelmap(zeros(gridsize), xgv, ygv, zgv);
-denominator = numerator.copy;
-for i = 1 : step : numel(infile)
-    % Read laser scan data from file.
-    ls = lsread([folder, '/', infile(i).name], rlim);
+iInfile = 1 : step : numel(infile);
+spmd
+    % For each worker, preallocate the result matrices.
+    num = voxelmap(zeros(gridsize), xgv, ygv, zgv);
+    denom = num.copy;
     
-    % Build the local lidar map.
-    [~,ai,bi] = mapFun(ls, xgv, ygv, zgv);
-    
-    % Integrate the local map information into the global map.
-    numerator.add(ai);
-    denominator.add(bi);
-    lidarMap = numerator ./ denominator;
-    
-    % Save the global map to file.
-    scansInLidarMap = i;
-    save(outfile, 'numerator', 'denominator', 'lidarMap', ...
-        'scansInLidarMap', '-append');
-    
-    % Advance the progress bar.
-    waitbar(i/numel(infile), waitbarHandle);
+    % Iterate over the worker's share of all laser scans.
+    for i = iInfile(labindex : numlabs : end)
+        % Read laser scan data from file.
+        ls = lsread([folder, '/', infile(i).name], rlim);
+
+        % Build the local lidar map.
+        [~,ai,bi] = mapFun(ls, xgv, ygv, zgv);
+
+        % Integrate the local map information into the global map.
+        num.add(ai);
+        denom.add(bi);
+
+        % Advance the progress bar.
+        if labindex == 1
+            %waitbar(i/numel(infile), waitbarHandle);
+        end
+    end
 end
 
+%% Save the resulting lidar map.
+lidarMap = sum([num{:}]) ./ sum([denom{:}]);
+save(outfile, 'lidarMap', '-append');
+        
 % Close the progress bar.
 close(waitbarHandle);
