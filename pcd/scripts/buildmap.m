@@ -52,7 +52,7 @@ waitbarHandle = waitbar(0, 'Merging point cloud map ...');
 
 % Iterate over all PCD files.
 pcMap = pointCloud(zeros(0, 3));
-for i = 1 : 10*step : numel(infile)
+for i = 1 : step : numel(infile)
     % Read laser scan data from file.
     ls = lsread([folder, '/', infile(i).name], rlim);
     
