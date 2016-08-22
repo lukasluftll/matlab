@@ -31,6 +31,7 @@ classdef voxelmap < matlab.mixin.Copyable
     %   VOXELMAP methods:
     %   PLUS      - Add map data element-wise
     %   ADD       - Increment map data
+    %   SUM       - Sum up map data element-wise
     %   MINUS     - Subtract map data element-wise
     %   SUBTRACT  - Decrement map data
     %   TIMES     - Multiply map data element-wise
@@ -191,14 +192,25 @@ classdef voxelmap < matlab.mixin.Copyable
             obj.data = obj.data + d.data;
         end
         
-        function b = sum(a)
-            if ~all(isa(a, 'voxelmap'))
-                error('A must be an array of voxelmaps.')
+        % Sum of multiple voxelmaps.
+        function s = sum(x)
+            % SUM Sum of map data of multiple voxelmaps.
+            %   S = SUM(X) returns a voxelmap object whose map data
+            %   contains the element-wise sum of the map data matrices in 
+            %   the voxelmap array X.
+            
+            % Check number of input arguments.
+            narginchk(1, 1)
+            
+            % Check whether element-wise operations can be performed.
+            for i = 2 : numel(x)
+                chkewo(x(1), x(i))
             end
             
-            b = a(1);
-            for i = 2 : numel(a)
-                b.add(a(i));
+            % Compute the sum of the map data.
+            s = x(1);
+            for i = 2 : numel(x)
+                s.add(x(i));
             end
         end
             
