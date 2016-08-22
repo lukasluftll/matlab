@@ -1,58 +1,63 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
 %% Set parameters.
-% Dataset name.
-dataset = 'campus';
-
-% Sensor model: 'decay' | 'ref'.
-model = 'decay';
+% MAT file created by buildmap script.
+infile = 'pcd/results/decaymap_campus.mat';
 
 % Step that determines the fraction of PCD files to use.
-step = 1000;
+evalStep = 1;
 
-% Sensor reading range.
-rlim = [2, 120];
+% Minimum and maximum admissible reflection rate.
+refLim = [0.001, 0.999];
 
 % Minimum and maximum admissible decay rate.
-lambdaLim = [2e-3, 1e+1];
+lambdaLim = [0.002, 10];
 
-%% Create folder for results.
+%% Prepare output file.
+% Load the input file.
+load(infile);
+
+% Create folder for results.
 if ~exist('pcd/results', 'dir')
     mkdir('pcd', 'results');
 end
 
+% Define the name of the output MAT file.
+[path, name, extension] = fileparts(infile);
+outfile = [path, '/', name, '_eval', extension];
+
+% Save parameters to file.
+save(outfile, 'infile', 'evalStep', 'refLim', 'lambdaLim', '-v7.3');
+
 %% Compute KL divergence.
 % Get the PCD file names.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
-file = dir([folder, '/*.pcd']);
+pcdFile = dir([folder, '/*.pcd']);
 
 % Create a progress bar.
 waitbarHandle = waitbar(0, 'Computing KL divergence ...');
 
 % Compute the KL divergence for each scan.
-D = [];
-for i = 1 : step : numel(file)
+D = NaN(numel(pcdFile), 1);
+for i = 1 : evalStep : numel(pcdFile)
     % Read laser scan data from file.
-    ls = lsread([folder, '/', file(i).name], rlim);
+    ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
     % Use the appropriate sensor model.
     switch model
         case 'decay'
-            [pi,Li] = decayray(ls, constrain(lidarmap, lambdaLim));
+            [pi,Li] = decayray(ls, constrain(lidarMap, lambdaLim));
         case 'ref'
-            [pi,Li] = refray(ls, lidarmap);
-        otherwise
-            error(['Map model ', model, ' not supported.'])
+            [pi,Li] = refray(ls, lidarMap);
     end
     
     % Compute the KL divergence of this lidar measurement.
-    D = [D; -sum([Li; log(pi)])]; %#ok<AGROW>
+    D(i) = -sum([Li; log(pi)]);
     
     % Save the KL divergence to file.
-    save(['pcd/results/kl', model, '_', dataset, '.mat'], 'D');
+    save(outfile, 'D', '-append');
     
     % Advance the progress bar.
-    waitbar(i/numel(file), waitbarHandle);
+    waitbar(i/numel(pcdFile), waitbarHandle);
 end
 
 % Close the progress bar.
