@@ -40,8 +40,7 @@ function [lambda, r, l] = decaymap(ls, xgv, ygv, zgv)
 %   approximation of the decay rate.
 %
 %   Example:
-%      pcd = pcdread('castle.pcd');
-%      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius);
+%      ls = lsread('pcd/data/campus/pcd_sph/campus-00100.pcd');
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20)
 %
 %   See also LASERSCAN, VOXELMAP, DECAYRAY, REFMAP.
@@ -83,43 +82,28 @@ for s = 1 : numel(ls)
     ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret),1,size(ray,2));
     ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
 
-    % Use multiple workers to compute ray length and number of returns per 
-    % voxel.
-    spmd
-        % Create return matrices for this worker.
-        lw = zeros(gridsize);
-        rw = zeros(gridsize);
+    % Compute ray length and number of returns per voxel.
+    l = zeros(gridsize);
+    r = zeros(gridsize);
+    for i = 1 : ls(s).count   
+        % Compute the indices of the voxels through which the ray 
+        % travels.
+        pos = tform2trvec(ls(s).sp(:,:,i));
+        [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
 
-        % For all rays of the worker's share compute the ray length per 
-        % voxel.
-        for i = labindex : numlabs : ls(s).count   
-            % Compute the indices of the voxels through which the ray 
-            % travels.
-            pos = tform2trvec(ls(s).sp(:,:,i));
-            [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
+        % Convert the subscript indices to linear indices.
+        vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
-            % Convert the subscript indices to linear indices.
-            vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
+        % Sum up the lengths the rays travel in each voxel.
+        l(vi) = l(vi) + diff(t) * norm(ray(i,:));
 
-            % Sum up the lengths the rays travel in each voxel.
-            lw(vi) = lw(vi) + diff(t) * norm(ray(i,:));
-
-            % In case of reflection, increment the number of returns.
-            rw(vi(end)) = rw(vi(end)) + (iret(i) && t(end)==1);
-        end
-    end
-
-    % Merge the results of all workers.
-    r = voxelmap(rw{1}, xgv, ygv, zgv);
-    l = voxelmap(lw{1}, xgv, ygv, zgv);
-    for w = 2 : numel(lw)
-        r = r + rw{w};
-        l = l + lw{w};
+        % In case of reflection, increment the number of returns.
+        r(vi(end)) = r(vi(end)) + (iret(i) && t(end)==1);
     end
 end
 
 %% Compute the decay rate.
-lambda = r ./ l;
+lambda = voxelmap(r./l, xgv, ygv, zgv);
 lambda.data(l == 0) = NaN;
 
 end
