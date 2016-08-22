@@ -14,7 +14,7 @@ folder = ['pcd/data/', dataset, '/pcd_sph'];
 step = 1;
 
 % Resolution of the merged point cloud map.
-pcMapRes = 0.5;
+pcMapRes = 0.1;
 
 % Resolution of the resulting lidar map.
 lidarMapRes = 0.5;
@@ -108,7 +108,9 @@ for i = 1 : step : numel(infile)
     lidarMap = numerator ./ denominator;
     
     % Save the global map to file.
-    save(outfile, 'numerator', 'denominator', 'lidarMap', '-append');
+    scansInLidarMap = i;
+    save(outfile, 'numerator', 'denominator', 'lidarMap', ...
+        'scansInLidarMap', '-append');
     
     % Advance the progress bar.
     waitbar(i/numel(infile), waitbarHandle);
