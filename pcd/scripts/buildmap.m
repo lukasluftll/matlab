@@ -88,7 +88,7 @@ waitbar(0, waitbarHandle, ['Computing ', model, ' map ...']);
 % Iterate over all laser scans, compute local maps and merge them into a 
 % global map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
-parfor i = 1 : step : numel(infile)
+parfor i = 1 : step : numel(infile) %#ok<PFRNG>
     % Read laser scan data from file.
     ls = lsread([folder, '/', infile(i).name], rlim);
 
