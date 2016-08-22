@@ -99,7 +99,9 @@ spmd
         ls = lsread([folder, '/', infile(i).name], rlim);
 
         % Build the local lidar map.
+        warning off
         [~,ai,bi] = mapFun(ls, xgv, ygv, zgv);
+        warning on
 
         % Integrate the local map information into the global map.
         num.add(ai);
