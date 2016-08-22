@@ -83,6 +83,14 @@ zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
 % Update progress bar label.
 waitbar(0, waitbarHandle, ['Computing ', model, ' map ...']);
 
+% Define mapping function.
+switch model
+    case 'decay'
+        mapFun = @decaymap;
+    case 'ref'
+        mapFun = @refmap;
+end
+
 % Create the lidar map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 numerator = voxelmap(zeros(gridsize), xgv, ygv, zgv);
@@ -92,12 +100,7 @@ for i = 1 : step : numel(infile)
     ls = lsread([folder, '/', infile(i).name], rlim);
     
     % Build the local lidar map.
-    switch model
-        case 'decay'
-            [~,ai,bi] = decaymap(ls, xgv, ygv, zgv);
-        case 'ref'
-            [~,ai,bi] = refmap(ls, xgv, ygv, zgv);
-    end
+    [~,ai,bi] = mapFun(ls, xgv, ygv, zgv);
     
     % Integrate the local map information into the global map.
     numerator.add(ai);
