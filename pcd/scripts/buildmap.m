@@ -22,10 +22,12 @@ lidarMapRes = 0.5;
 % Sensor reading range.
 rlim = [2, 120];
 
-%% Validate parameters.
+%% Select mapping algorithm.
 switch model
     case 'decay'
+        mapFun = @decaymap;
     case 'ref'
+        mapFun = @refmap;
     otherwise
         error(['Map model ', model, ' not supported.'])
 end
@@ -82,14 +84,6 @@ zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
 
 % Update progress bar label.
 waitbar(0, waitbarHandle, ['Computing ', model, ' map ...']);
-
-% Define mapping function.
-switch model
-    case 'decay'
-        mapFun = @decaymap;
-    case 'ref'
-        mapFun = @refmap;
-end
 
 % Create the lidar map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
