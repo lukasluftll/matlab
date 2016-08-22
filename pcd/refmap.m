@@ -28,8 +28,7 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 %   without being reflected.
 %
 %   Example:
-%      pcd = pcdread('castle.pcd');
-%      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [1, 100]);
+%      ls = lsread('pcd/data/campus/pcd_sph/campus-00100.pcd');
 %      ref = refmap(ls, -100:5:100, -100:5:100, -20:5:20)
 %
 %   See also LASERSCAN, VOXELMAP, REFRAY, DECAYMAP.
@@ -82,39 +81,25 @@ for s = 1 : numel(ls)
     ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret),1,size(ray,2));
     ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
 
-    % Use multiple workers to compute the number of returns and traversals 
-    % per voxel for each ray.
-    spmd
-        % Create return matrices.
-        hw = zeros(gridsize);
-        mw = zeros(gridsize);
+    % Compute the number of returns and traversals per voxel for each ray.
+    h = zeros(gridsize);
+    m = zeros(gridsize);
+    for i = 1 : ls(s).count
+        % Compute the indices of the voxels through which the ray 
+        % travels.
+        pos = tform2trvec(ls(s).sp(:,:,i));
+        [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
 
-        % Loop over the worker's share of all rays.
-        for i = labindex : numlabs : ls.count
-            % Compute the indices of the voxels through which the ray 
-            % travels.
-            pos = tform2trvec(ls(s).sp(:,:,i));
-            [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
+        % Convert the subscript indices to linear indices.
+        vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
-            % Convert the subscript indices to linear indices.
-            vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
-
-            % For each voxel, sum up the number of hits and misses.
-            hw(vi(end)) = hw(vi(end)) + (iret(i) && t(end)==1);
-            mw(vi) = mw(vi) + t(2:end)<1;
-        end
-    end
-
-    % Merge the hits and misses matrices calculated by the workers.
-    h = voxelmap(hw{1}, xgv, ygv, zgv);
-    m = voxelmap(mw{1}, xgv, ygv, zgv);
-    for i = 2 : numel(hw)
-        h = h + hw{i};
-        m = m + mw{i};
+        % For each voxel, sum up the number of hits and misses.
+        h(vi(end)) = h(vi(end)) + (iret(i) && t(end)==1);
+        m(vi) = m(vi) + t(2:end)<1;
     end
 end
 
 %% Compute reflectivity map.
-ref = h ./ (h + m);
+ref = voxelmap(h ./ (h+m), xgv, ygv, zgv);
 
 end
