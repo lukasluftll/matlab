@@ -7,11 +7,8 @@ infile = 'pcd/results/decaymap_campus.mat';
 % Step that determines the fraction of PCD files to use.
 evalStep = 1;
 
-% Minimum and maximum admissible reflection rate.
-refLim = [0.001, 0.999];
-
-% Minimum and maximum admissible decay rate.
-lambdaLim = [0.002, 10];
+% Minimum and maximum admissible map values.
+mapLim = [0.002, 10];
 
 %% Prepare output file.
 % Load the input file.
@@ -27,7 +24,7 @@ end
 outfile = [path, '/', name, '_eval', extension];
 
 % Save parameters to file.
-save(outfile, 'infile', 'evalStep', 'refLim', 'lambdaLim', '-v7.3');
+save(outfile, 'infile', 'evalStep', 'mapLim', '-v7.3');
 
 %% Compute KL divergence.
 % Get the PCD file names.
@@ -36,19 +33,22 @@ pcdFile = dir([folder, '/*.pcd']);
 % Create a progress bar.
 waitbarHandle = waitbar(0, 'Computing KL divergence ...');
 
+% Use appropriate sensor model.
+switch model
+    case 'decay'
+        evalFun = @decayray;
+    case 'ref'
+        evalFun = @refray;
+end
+
 % Compute the KL divergence for each scan.
 D = NaN(numel(pcdFile), 1);
 for i = 1 : evalStep : numel(pcdFile)
     % Read laser scan data from file.
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
-    % Use the appropriate sensor model.
-    switch model
-        case 'decay'
-            [pi,Li] = decayray(ls, constrain(lidarMap, lambdaLim));
-        case 'ref'
-            [pi,Li] = refray(ls, lidarMap);
-    end
+    % Compute the measurement likelihood.
+    [pi,Li] = evalFun(ls, constrain(lidarMap, mapLim));
     
     % Compute the KL divergence of this lidar measurement.
     D(i) = -sum([Li; log(pi)]);
