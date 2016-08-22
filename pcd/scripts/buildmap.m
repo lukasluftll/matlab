@@ -11,7 +11,7 @@ model = 'decay';
 folder = ['pcd/data/', dataset, '/pcd_sph'];
 
 % Step that determines the fraction of PCD files to use.
-step = 1000;
+step = 1;
 
 % Resolution of the merged point cloud map.
 pcMapRes = 0.1;
@@ -84,38 +84,29 @@ zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
 
 % Update the label of the progress bar.
 waitbar(0, waitbarHandle, ['Computing ', model, ' map ...']);
-
-% Use multiple workers to create the lidar map.
+  
+% Iterate over all laser scans, compute local maps and merge them into a 
+% global map.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
-iInfile = 1 : step : numel(infile);
-spmd
-    % For each worker, preallocate the result matrices.
-    num = voxelmap(zeros(gridsize), xgv, ygv, zgv);
-    denom = num.copy;
-    
-    % Iterate over the worker's share of all laser scans.
-    for i = iInfile(labindex : numlabs : end)
-        % Read laser scan data from file.
-        ls = lsread([folder, '/', infile(i).name], rlim);
+parfor i = 1 : step : numel(infile)
+    % Read laser scan data from file.
+    ls = lsread([folder, '/', infile(i).name], rlim);
 
-        % Build the local lidar map.
-        warning off
-        [~,ai,bi] = mapFun(ls, xgv, ygv, zgv);
-        warning on
+    % Build the local lidar map.
+    [~,ai,bi] = mapFun(ls, xgv, ygv, zgv);
 
-        % Integrate the local map information into the global map.
-        num.add(ai);
-        denom.add(bi);
+    % Integrate the local map information into the global map.
+    num.add(ai);
+    denom.add(bi);
 
-        % Advance the progress bar.
-        if labindex == 1
-            %waitbar(i/numel(infile), waitbarHandle);
-        end
+    % Advance the progress bar.
+    if labindex == 1
+        %waitbar(i/numel(infile), waitbarHandle);
     end
 end
 
 %% Save the resulting lidar map.
-lidarMap = sum([num{:}]) ./ sum([denom{:}]);
+lidarMap = num ./ denom;
 save(outfile, 'lidarMap', '-append');
         
 % Close the progress bar.
