@@ -184,7 +184,8 @@ classdef laserscan < handle
             % If the sensor range is not given, set it to the minimum and
             % maximum RADIUS.
             if nargin < 5
-                rlim = [min(radius(:)), max(radius(:))];
+                radiusFinite = radius(isfinite(radius));
+                rlim = [min(radiusFinite), max(radiusFinite)];
             end
             
             % Store the input.
