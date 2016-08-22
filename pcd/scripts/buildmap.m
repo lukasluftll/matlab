@@ -41,7 +41,7 @@ outfile = ['pcd/results/', model, 'map_', dataset, '.mat'];
 
 % Save parameters to file.
 save(outfile, 'dataset', 'model', 'folder', 'step', 'pcMapRes', ...
-    'lidarMapRes', 'rlim', 'v7.3');
+    'lidarMapRes', 'rlim', '-v7.3');
 
 %% Merge point clouds.
 % Get the PCD file names.
@@ -64,7 +64,7 @@ for i = 1 : step : numel(infile)
 end
 
 % Save the point cloud map to file.
-save(outfile, 'pcmap', '-append', 'v7.3');
+save(outfile, 'pcmap', '-append', '-v7.3');
 
 % Denoise the map.
 pcmap = pcdenoise(pcmap);
