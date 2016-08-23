@@ -84,8 +84,9 @@ if isempty(msg)
             if ie(end) == numel(lastline)
                 delStr = repmat('\b', 1, width+5);
             else
-                % If another message, for example a warning, was printed
-                % after the progress bar, move it to the next line.
+                % If another single-line message, for example a warning, 
+                % was printed after the progress bar, move it to the next 
+                % line.
                 extraMsg = lastline(ie+1:end);
                 fprintf([repmat('\b', size(extraMsg)), '\n', extraMsg]);
             end
