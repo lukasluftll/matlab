@@ -2,9 +2,10 @@
 
 %% Set parameters.
 % MAT file created by buildmap script.
-infile = 'pcd/results/decaymap_campus.mat';
+resultFolder = 'pcd/result';
+lidarMapFile = [resultFolder, '/decaymap_campus.mat'];
 
-% Step that determines the fraction of PCD files to use.
+% Set the step that determines the fraction of PCD files to use.
 evalStep = 1;
 
 % Minimum and maximum admissible map values.
@@ -12,26 +13,21 @@ mapLim = [0.002, 10];
 
 %% Prepare output file.
 % Load the input file.
-load(infile);
-
-% Create folder for results.
-if ~exist('pcd/results', 'dir')
-    mkdir('pcd', 'results');
-end
+load(lidarMapFile);
 
 % Define the name of the output MAT file.
-[path, name, extension] = fileparts(infile);
-outfile = [path, '/', name, '_eval', extension];
+[path, name, extension] = fileparts(lidarMapFile);
+evalFile = [path, '/', name, '_eval', extension];
 
 % Save parameters to file.
-save(outfile, 'infile', 'evalStep', 'mapLim', '-v7.3');
+save(evalFile, 'lidarMapFile', 'evalStep', 'mapLim', '-v7.3');
 
 %% Compute KL divergence.
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 
 % Create a progress bar.
-waitbarHandle = waitbar(0, 'Computing KL divergence ...');
+progressbar('Computing KL divergence ...');
 
 % Use appropriate sensor model.
 switch model
@@ -43,7 +39,8 @@ end
 
 % Compute the KL divergence for each scan.
 D = NaN(numel(pcdFile), 1);
-parfor i = 1 : evalStep : numel(pcdFile) %#ok<PFRNG>
+nPcdFile = numel(pcdFile);
+parfor i = 1 : evalStep : nPcdFile
     % Read laser scan data from file.
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
@@ -54,11 +51,8 @@ parfor i = 1 : evalStep : numel(pcdFile) %#ok<PFRNG>
     D(i) = -sum([Li; log(pi)]);
     
     % Advance the progress bar.
-    %waitbar(i/numel(pcdFile), waitbarHandle);
+    progressbar(i/nPcdFile);
 end
 
 % Save the KL divergence to file.
-save(outfile, 'D', '-append');
-
-% Close the progress bar.
-close(waitbarHandle);
+save(evalFile, 'D', '-append');
