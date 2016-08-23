@@ -85,6 +85,9 @@ pos.odometry = [];
 line = fgetl(fid);
 if ischar(line)
     odometry = textscan(line, '%s %f %f %f %f %f %f %f');
+    if any(cellfun('isempty', odometry) | ~cellfun('isreal', odometry))
+        error('Invalid odometry data.')
+    end
     if strcmpi(odometry{1}, 'Odometry:')
         pos.odometry = quat2tform([odometry{5:8}]);
         pos.odometry(1:3,4) = [odometry{2:4}]';
@@ -98,6 +101,9 @@ pos.gps = [];
 line = fgetl(fid);
 if ischar(line)
     gps = textscan(line, '%s %f64 %f %f %f');
+    if any(cellfun('isempty', gps) | ~cellfun('isreal', gps))
+        error('Invalid GPS data.')
+    end
     if strcmpi(gps{1}, 'GPS:')
         pos.gps.time = gps{2};
         pos.gps.longitude = gps{3};
