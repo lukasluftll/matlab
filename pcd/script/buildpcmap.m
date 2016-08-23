@@ -19,10 +19,10 @@ if ~exist(resultFolder, 'dir')
 end
 
 % Define the name of the output MAT file.
-outFile = [resultFolder, '/pcmap_', dataset, '.mat'];
+pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 
 % Save parameters to file.
-save(outFile, 'dataset', 'folder', 'pcMapRes', '-v7.3');
+save(pcMapFile, 'dataset', 'folder', 'pcMapRes', '-v7.3');
 
 %% Merge point clouds.
 % Get the PCD file names.
@@ -45,4 +45,4 @@ for i = 1 : numel(pcdFile)
 end
 
 % Save the point cloud map to file.
-save(outFile, 'pcMap', '-append');
+save(pcMapFile, 'pcMap', '-append');
