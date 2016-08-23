@@ -10,14 +10,18 @@ function progressbar(x)
 %
 %   PROGRESSBAR(1) closes the progress bar.
 %
+%   Note:
+%      PROGRESSBAR internally uses the DIARY function. Do not use 
+%      PROGRESSBAR if you need to log the command line output with DIARY.
+%
 %   Example:
 %      progressbar('Generating output ...')
 %      for i = 0.01 : 0.01 : 1
-%          progressbar(i)
 %          pause(0.1)
+%          progressbar(i)
 %      end
 %
-%   See also WAITBAR.
+%   See also WAITBAR, DIARY.
 
 % Copyright Alexander Schaefer
 %
@@ -40,12 +44,12 @@ if isnumeric(x) && (x<0 || x>1)
 end
 
 %% Preprocessing.
-% Set message and progress variables.
+% Set variables containing the message and the progress.
 prg = 0;
 prg(isnumeric(x)) = x(isnumeric(x));
 msg(ischar(x),:) = x(ischar(x),:);
 
-% Activate command line log.
+% Activate the command line log.
 diaryfile = 'pgbdiary.tmp';
 diary(diaryfile)
 
@@ -55,8 +59,12 @@ width = 70;
 %% Show message or clear last progress bar.
 % If there is no message to print, delete the last progress bar. Otherwise,
 % display the message.
+delStr = [];
 if isempty(msg)
     % Try to open the command line log.
+    % The command line log tells this function whether the last line on the
+    % command line is a progress bar or another message, for example a
+    % warning.
     fid = fopen(diaryfile);
     if fid ~= -1
         % Read the last line from the command line log.
@@ -67,26 +75,31 @@ if isempty(msg)
         end
         fclose(fid);
         
-        % If the last line is a progress bar, delete it in the command
-        % window.
+        % If the last line is a progress bar, create a string to delete it 
+        % in the command window. The string is printed later together with
+        % the new progress bar to prevent flickering.
         pattern = ['\[[\# ]{', num2str(width-2), '}\] [\d\s]{3}\%'];
+        
         if ~isempty(regexpi(lastline, pattern))
-            fprintf(repmat('\b', 1, width+5));
+            delStr = repmat('\b', 1, width+5);
         end
     end
 else
-    display(msg)
+    fprintf([msg, '\n'])
 end
 
 %% Print progress bar.
 nHash = round(prg * (width-2));
 hashStr = repmat('#', 1, nHash);
 spaceStr = repmat(' ', 1, width-2-nHash);
-fprintf(['[', hashStr, spaceStr, '] %3u%%'], round(100*prg));
+fprintf([delStr, '[', hashStr, spaceStr, '] %3u%%'], round(100*prg))
 
-% If the progress bar is finished, append a newline character.
+%% Close the progress bar.
+% If the progress bar is finished, close the command line log.
 if prg >= 1
     fprintf('\n')
+    diary('off')
+    delete(diaryfile);
 end
 
 end
