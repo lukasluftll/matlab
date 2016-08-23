@@ -41,6 +41,7 @@ end
 D = NaN(numel(pcdFile), 1);
 nPcdFile = numel(pcdFile);
 iEvalFile = 1 : evalStep : nPcdFile;
+parprogress(numel(iEvalFile));
 parfor i = iEvalFile
     % Read laser scan data from file.
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
@@ -52,11 +53,9 @@ parfor i = iEvalFile
     D(i) = -sum([Li; log(pi)]);
     
     % Display the progress of the first worker.
-    task = getCurrentTask;
-    if task.ID == 1
-        progressbar(i/nPcdFile);
-    end
+    parprogress;
 end
+parprogress(0);
 
 % Save the KL divergence to file.
 save(evalFile, 'D', '-append');

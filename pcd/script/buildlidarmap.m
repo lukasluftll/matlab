@@ -54,9 +54,6 @@ pcdFile = dir([folder, '/*.pcd']);
 xgv = lim(1,1) : lidarMapRes : lim(1,2)+lidarMapRes;
 ygv = lim(2,1) : lidarMapRes : lim(2,2)+lidarMapRes;
 zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
-
-% Create the progress bar.
-progressbar(['Computing ', model, ' map ...']);
   
 % Iterate over all laser scans, compute local maps and merge them into a 
 % global map.
@@ -64,6 +61,7 @@ gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 num = zeros(gridsize);
 denom = zeros(gridsize);
 nPcdFile = numel(pcdFile);
+parprogress(nPcdFile);
 parfor i = 1 : nPcdFile
     % Read laser scan data from file.
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
@@ -77,12 +75,10 @@ parfor i = 1 : nPcdFile
     num = num + numi;
     denom = denom + denomi;
     
-    % Display the progress of the first worker.
-    task = getCurrentTask;
-    if task.ID == 1
-        progressbar(i/nPcdFile);
-    end
+    % Display progress.
+    parprogress;
 end
+parprogress(0);
 
 %% Save the resulting lidar map.
 lidarMap = voxelmap(num./denom, xgv, ygv, zgv);
