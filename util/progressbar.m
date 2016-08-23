@@ -88,12 +88,13 @@ if isempty(msg)
                 % was printed after the progress bar, move it to the next 
                 % line.
                 extraMsg = lastline(ie+1:end);
-                fprintf([repmat('\b', size(extraMsg)), '\n', extraMsg]);
+                fprintf([repmat('\b', size(extraMsg)), '\n', ...
+                    strtrim(extraMsg), '\n']);
             end
         end
     end
 else
-    fprintf([msg, '\n'])
+    fprintf([strtrim(msg), '\n'])
 end
 
 %% Print progress bar.
