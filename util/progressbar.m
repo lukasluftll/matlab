@@ -79,9 +79,16 @@ if isempty(msg)
         % in the command window. The string is printed later together with
         % the new progress bar to prevent flickering.
         pattern = ['\[[\# ]{', num2str(width-2), '}\] [\d\s]{3}\%'];
-        
-        if ~isempty(regexpi(lastline, pattern))
-            delStr = repmat('\b', 1, width+5);
+        ie = regexpi(lastline, pattern, 'end');
+        if ~isempty(ie)
+            if ie(end) == numel(lastline)
+                delStr = repmat('\b', 1, width+5);
+            else
+                % If another message, for example a warning, was printed
+                % after the progress bar, move it to the next line.
+                extraMsg = lastline(ie+1:end);
+                fprintf([repmat('\b', size(extraMsg)), '\n', extraMsg]);
+            end
         end
     end
 else
