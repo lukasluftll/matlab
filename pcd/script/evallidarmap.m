@@ -26,9 +26,6 @@ save(evalFile, 'lidarMapFile', 'evalStep', 'mapLim', '-v7.3');
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 
-% Create a progress bar.
-progressbar('Computing KL divergence ...');
-
 % Use appropriate sensor model.
 switch model
     case 'decay'
