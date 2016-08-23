@@ -10,7 +10,7 @@ function progressbar(x)
 %
 %   Example:
 %      progressbar('Generating output ...')
-%      for i = 0 : 0.01 : 1
+%      for i = 0.01 : 0.01 : 1
 %          progressbar(i)
 %          pause(0.1)
 %      end
@@ -66,9 +66,9 @@ if isempty(msg)
         
         % Check if the last line is a progress bar.
         pattern = ['\[[\# ]{', num2str(width-2), '}\] [\d\s]{3}\%'];
-        if regexpi(lastline, pattern) == 1
+        if ~isempty(regexpi(lastline, pattern))
             % Delete the last line.
-            fprintf(repmat('\b', 1, width+7));
+            fprintf(repmat('\b', 1, width+6));
         end
     end
 end
@@ -76,13 +76,13 @@ end
 %% Print message and progress bar.
 % Print the message.
 if ~isempty(msg)
-    display(msg)
+    fprintf([msg, '\n'])
 end
 
 % Print the progress bar.
-ndot = round(prg * (width-2));
-dotStr = repmat('#', 1, ndot);
-spaceStr = repmat(' ', 1, width-2-ndot);
-fprintf(['[', dotStr, spaceStr, '] %3u%%\n'], round(100*prg));
+nHash = round(prg * (width-2));
+hashStr = repmat('#', 1, nHash);
+spaceStr = repmat(' ', 1, width-2-nHash);
+fprintf(['[', hashStr, spaceStr, '] %3u%%\n'], round(100*prg));
 
 end
