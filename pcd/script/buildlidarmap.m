@@ -27,7 +27,7 @@ switch model
 end
 
 %% Prepare output file.
-% Load the file with the merged point cloud.
+% Load the file that contains the merged point cloud.
 load(pcFile);
 
 % Define the name of the output MAT file.

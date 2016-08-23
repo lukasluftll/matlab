@@ -12,7 +12,7 @@ evalStep = 1;
 mapLim = [0.002, 10];
 
 %% Prepare output file.
-% Load the input file.
+% Load the file that contains the lidar map.
 load(lidarMapFile);
 
 % Define the name of the output MAT file.
@@ -40,7 +40,8 @@ end
 % Compute the KL divergence for each scan.
 D = NaN(numel(pcdFile), 1);
 nPcdFile = numel(pcdFile);
-parfor i = 1 : evalStep : nPcdFile
+iEvalFile = 1 : evalStep : nPcdFile;
+parfor i = iEvalFile
     % Read laser scan data from file.
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
@@ -50,8 +51,11 @@ parfor i = 1 : evalStep : nPcdFile
     % Compute the KL divergence of this lidar measurement.
     D(i) = -sum([Li; log(pi)]);
     
-    % Advance the progress bar.
-    progressbar(i/nPcdFile);
+    % Display the progress of the first worker.
+    task = getCurrentTask;
+    if task.ID == 1
+        progressbar(i/nPcdFile);
+    end
 end
 
 % Save the KL divergence to file.
