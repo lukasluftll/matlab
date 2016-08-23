@@ -2,7 +2,7 @@
 
 %% Parameters.
 % Dataset name.
-dataset = 'campus';
+dataset = 'schauinsland';
 
 % Dataset folder with PCD files.
 folder = ['pcd/data/', dataset, '/pcd_sph'];
@@ -40,9 +40,9 @@ for i = 1 : numel(pcdFile)
     % Merge the point cloud made from the laser scan with the map.
     pcMap = pcmerge(pcMap, ls2pc(ls), pcMapRes);
     
+    % Save the point cloud map to file.
+    save(pcMapFile, 'pcMap', '-append');
+    
     % Advance the progress bar.
     progressbar(i/numel(pcdFile));
 end
-
-% Save the point cloud map to file.
-save(pcMapFile, 'pcMap', '-append');
