@@ -85,7 +85,8 @@ pos.odometry = [];
 line = fgetl(fid);
 if ischar(line)
     odometry = textscan(line, '%s %f %f %f %f %f %f %f');
-    if any(cellfun('isempty', odometry) | ~cellfun('isreal', odometry))
+    if any(cellfun('isempty', odometry)) ...
+            || ~all(cellfun('isreal', odometry(2:end)))
         error('Invalid odometry data.')
     end
     if strcmpi(odometry{1}, 'Odometry:')
