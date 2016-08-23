@@ -104,11 +104,14 @@ spaceStr = repmat(' ', 1, width-2-nHash);
 fprintf([delStr, '[', hashStr, spaceStr, '] %3u%%'], round(100*prg))
 
 %% Close the progress bar.
-% If the progress bar is finished, close the command line log.
+% If the progress bar is finished, close and delete the command line log.
 if prg >= 1
     fprintf('\n')
     diary('off')
-    delete(diaryfile);
+    try
+        delete(diaryfile);
+    catch
+    end
 end
 
 end
