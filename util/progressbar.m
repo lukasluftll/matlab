@@ -68,6 +68,7 @@ if isempty(msg)
     fid = fopen(diaryfile);
     if fid ~= -1
         % Read the last line from the command line log.
+        lastline = [];
         readline = fgets(fid);
         while ischar(readline)
             lastline = readline;
