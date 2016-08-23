@@ -31,10 +31,10 @@ end
 load(pcFile);
 
 % Define the name of the output MAT file.
-lidarFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
+lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 % Save parameters to file.
-save(lidarFile, 'dataset', 'folder', 'pcMapRes', 'model', 'lidarMapRes', ...
+save(lidarMapFile, 'dataset', 'folder', 'pcMapRes', 'model', 'lidarMapRes', ...
     'rlim', '-v7.3');
 
 %% Compute map extent.
@@ -78,10 +78,10 @@ parfor i = 1 : nPcdFile
     % Display the progress of the first worker.
     task = getCurrentTask;
     if task.ID == 1
-        progressbar(i/numel(nPcdFile));
+        progressbar(i/nPcdFile);
     end
 end
 
 %% Save the resulting lidar map.
 lidarMap = voxelmap(num./denom, xgv, ygv, zgv);
-save(lidarFile, 'lidarMap', '-append');
+save(lidarMapFile, 'lidarMap', '-append');
