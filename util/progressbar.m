@@ -50,7 +50,7 @@ prg(isnumeric(x)) = x(isnumeric(x));
 msg(ischar(x),:) = x(ischar(x),:);
 
 % Activate the command line log.
-diaryfile = [tempdir, '/pgbdiary.tmp'];
+diaryfile = [tempdir, 'pgbdiary.tmp'];
 diary(diaryfile)
 
 % Set the width of the progress bar.
