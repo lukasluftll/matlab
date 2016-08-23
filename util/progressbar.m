@@ -1,16 +1,12 @@
 function progressbar(x)
 % PROGRESSBAR Display progress bar in command window.
-%   PROGRESSBAR(X) creates, updates, or closes a progress bar displayed in
-%   the command window.
+%   PROGRESSBAR(X) displays a progress bar in the command window.
 %   
-%   If PROGRESSBAR(X) is called for the first time, X must be a message
-%   string that tells the user what he is waiting for.
+%   PROGRESSBAR(X) with X being a string prints a message and displays a
+%   progress bar showing zero percent task completion.
 %
-%   To update the progress bar, X is a number in interval [0;1] that 
-%   represents the progress of the computation.
-%
-%   To close the progress bar, X is either not provided or another message 
-%   string.
+%   PROGRESSBAR(X) with X being a number in [0;1] updates the last progress
+%   bar to show 100*X percent task completion.
 %
 %   Example:
 %      progressbar('Generating output ...')
@@ -18,7 +14,6 @@ function progressbar(x)
 %          progressbar(i)
 %          pause(0.1)
 %      end
-%      progressbar
 %
 %   See also WAITBAR.
 
@@ -30,71 +25,64 @@ function progressbar(x)
 
 %% Validate input.
 % Check number of input arguments.
-nargin(0, 1)
-
-% Depending on whether the progress bar has been initialized, check
-% validity of input argument.
-if isempty(init) % Not yet initialized.
-    if ~ischar(x)
-        error('X must be a string when calling PROGRESSBAR first.')
-    end
-else % Already initialized.
-    if isnumeric(x)
-        if x < 0 || x > 1
-            error('X must be element of [0;1].')
-        end
-    elseif ~ischar(x)
-        
-            
+narginchk(1, 1)
 
 % Check type of input argument.
-if nargin > 0
-    if (isnumeric(x) && (x<0 || x>1)) || ~ischar(x)
-        error('X must be a number in [0;1] or a string.')
+if ~(isnumeric(x) || ischar(x))
+    error('X must be a number in [0;1] or a message string.')
+end
+
+% For numeric input, verify the value.
+if isnumeric(x) && (x<0 || x>1)
+    error('X must be in [0;1].')
+end
+
+%% Preprocessing.
+% Set message and progress variables.
+prg = 0;
+prg(isnumeric(x)) = x(isnumeric(x));
+msg(ischar(x),:) = x(ischar(x),:);
+
+% Activate command line log.
+diaryfile = 'pgbdiary.tmp';
+diary(diaryfile)
+
+% Set the width of the progress bar.
+width = 70;
+
+%% Clear last progress bar.
+% Clear the last progress bar if there is no message to print.
+if isempty(msg)
+    % Try to open the command line log.
+    fid = fopen(diaryfile);
+    if fid ~= -1
+        % Read the last line from the command line window.
+        readline = fgets(fid);
+        while ischar(readline)
+            lastline = readline;
+            readline = fgets(fid); 
+        end
+        fclose(fid);
+        
+        % Check if the last line is a progress bar.
+        pattern = ['\[[\# ]{', num2str(width-2), '}\] [\d\s]{3}\%'];
+        if regexpi(lastline, pattern) == 1
+            % Delete the last line.
+            fprintf(repmat('\b', 1, width+7));
+        end
     end
 end
 
-%% Set parameters.
-% Persistently stores whether progressbar has been initialized.
-persistent init;
+%% Print message and progress bar.
+% Print the message.
+if ~isempty(msg)
+    display(msg)
+end
 
-% Width of progress bar.
-width = 75;
+% Print the progress bar.
+ndot = round(prg * (width-2));
+dotStr = repmat('#', 1, ndot);
+spaceStr = repmat(' ', 1, width-2-ndot);
+fprintf(['[', dotStr, spaceStr, '] %3u%%\n'], round(100*prg));
 
-
-if isempty(strCR) && ~ischar(x),
-    % Progress bar must be initialized with a string
-    error('The text progress must be initialized with a string');
-elseif isempty(strCR) && ischar(x),
-    % Progress bar - initialization
-    fprintf('%s',x);
-    strCR = -1;
-elseif ~isempty(strCR) && ischar(x),
-    % Progress bar  - termination
-    strCR = [];  
-    fprintf([x '\n']);
-elseif isnumeric(x)
-    % Progress bar - normal progress
-    x = floor(x);
-    percentageOut = [num2str(x) '%%'];
-    percentageOut = [percentageOut repmat(' ',1,strPercentageLength-length(percentageOut)-1)];
-    nDots = floor(x/100*strDotsMaximum);
-    dotOut = ['[' repmat('.',1,nDots) repmat(' ',1,strDotsMaximum-nDots) ']'];
-    strOut = [percentageOut dotOut];
-    
-    % Print it on the screen
-    if strCR == -1,
-        % Don't do carriage return during first run
-        fprintf(strOut);
-    else
-        % Do it during all the other runs
-        fprintf([strCR strOut]);
-    end
-    
-    % Update carriage return
-    strCR = repmat('\b',1,length(strOut)-1);
-    
-else
-    % Any other unexpected input
-    error('Unsupported argument type');
 end
