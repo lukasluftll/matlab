@@ -69,8 +69,10 @@ parfor i = 1 : nPcdFile
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
 
     % Build the local lidar map.
+    warning('off') %#ok<WNOFF>
     [~,numi,denomi] = mapFun(ls, xgv, ygv, zgv);
-
+    warning('on') %#ok<WNON>
+    
     % Integrate the local map information into the global map.
     num = num + numi;
     denom = denom + denomi;
