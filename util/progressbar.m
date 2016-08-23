@@ -8,6 +8,8 @@ function progressbar(x)
 %   PROGRESSBAR(X) with X being a number in [0;1] updates the last progress
 %   bar to show 100*X percent task completion.
 %
+%   PROGRESSBAR(1) closes the progress bar.
+%
 %   Example:
 %      progressbar('Generating output ...')
 %      for i = 0.01 : 0.01 : 1
@@ -50,13 +52,14 @@ diary(diaryfile)
 % Set the width of the progress bar.
 width = 70;
 
-%% Clear last progress bar.
-% Clear the last progress bar if there is no message to print.
+%% Show message or clear last progress bar.
+% If there is no message to print, delete the last progress bar. Otherwise,
+% display the message.
 if isempty(msg)
     % Try to open the command line log.
     fid = fopen(diaryfile);
     if fid ~= -1
-        % Read the last line from the command line window.
+        % Read the last line from the command line log.
         readline = fgets(fid);
         while ischar(readline)
             lastline = readline;
@@ -64,25 +67,26 @@ if isempty(msg)
         end
         fclose(fid);
         
-        % Check if the last line is a progress bar.
+        % If the last line is a progress bar, delete it in the command
+        % window.
         pattern = ['\[[\# ]{', num2str(width-2), '}\] [\d\s]{3}\%'];
         if ~isempty(regexpi(lastline, pattern))
-            % Delete the last line.
-            fprintf(repmat('\b', 1, width+6));
+            fprintf(repmat('\b', 1, width+5));
         end
     end
+else
+    display(msg)
 end
 
-%% Print message and progress bar.
-% Print the message.
-if ~isempty(msg)
-    fprintf([msg, '\n'])
-end
-
-% Print the progress bar.
+%% Print progress bar.
 nHash = round(prg * (width-2));
 hashStr = repmat('#', 1, nHash);
 spaceStr = repmat(' ', 1, width-2-nHash);
-fprintf(['[', hashStr, spaceStr, '] %3u%%\n'], round(100*prg));
+fprintf(['[', hashStr, spaceStr, '] %3u%%'], round(100*prg));
+
+% If the progress bar is finished, append a newline character.
+if prg >= 1
+    fprintf('\n')
+end
 
 end
