@@ -68,14 +68,16 @@ end
 file = dir([folder, '/*.pcd']);
 
 % Use multiple workers to create local maps.
-disp('Merging local maps ...')
-parprogress(numel(file));
+progressbar('Merging local maps ...')
 spmd
     % Create the map point cloud for this worker.
     mapw = pointCloud(zeros(0, 3));
-
+    
+    % Compute the number of files per worker.
+    fpw = max([1, round(numel(file)/numlabs)]);
+    
     % Merge all of this worker's point clouds.
-    for i = labindex : numlabs : numel(file)
+    for i = 1 + (labindex-1)*fpw : min([numel(file), labindex*fpw])
         % Read the PCD file.
         pcd = pcdread([folder, '/', file(i).name]);
 
@@ -109,19 +111,20 @@ spmd
 
         % Merge the point cloud with the local map of the worker.
         mapw = pcmerge(mapw, pc, res);
-        parprogress;
+        
+        % Advance the progress bar.
+        if labindex == 1
+            progressbar(i / fpw)
+        end
     end
 end
-parprogress(0);
 
 % Merge the local maps of the workers to form a global map.
-disp('Merging global map ...')
-parprogress(numel(mapw));
+progressbar('Merging global map ...')
 map = mapw{1};
 for i = 2 : numel(mapw)
     pcmerge(map, mapw{i}, res);
-    parprogress;
+    progressbar(i / numel(mapw))
 end
-parprogress(0);
 
 end
