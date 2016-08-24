@@ -28,21 +28,8 @@ save(pcMapFile, 'dataset', 'folder', 'pcMapRes', '-v7.3');
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 
-% Preallocate resulting map.
-pcMap = pointCloud(zeros(0, 3));
-
-% Iterate over all PCD files.
-progressbar('Merging point cloud map ...')
-for i = 1 : numel(pcdFile)
-    % Read laser scan data from file.
-    ls = lsread([folder, '/', pcdFile(i).name]);
+% Build the map.
+pcMap = pcmap(folder, pcMapRes);
     
-    % Merge the point cloud made from the laser scan with the map.
-    pcMap = pcmerge(pcMap, ls2pc(ls), pcMapRes);
-    
-    % Save the point cloud map to file.
-    save(pcMapFile, 'pcMap', '-append');
-    
-    % Advance the progress bar.
-    progressbar(i/numel(pcdFile));
-end
+% Save the point cloud map to file.
+save(pcMapFile, 'pcMap', '-append')
