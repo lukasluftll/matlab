@@ -101,7 +101,7 @@ parfor i = 1 : ls.count
         
         % Compute the weights for the reflectivity cells before the ray
         % reaches maximum sensor range.
-        w = [ones(1,ivlim(2)-1), ...
+        w = [ones(1, ivlim(2)-1), ...
             (min([ls.rlim(2)/l(i), t(end)]) - t(ivlim(2))) / dtlim(2)];
 
         % Calculate the probability that the ray surpasses the maximum 
