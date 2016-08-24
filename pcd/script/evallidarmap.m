@@ -1,12 +1,12 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
 %% Set parameters.
-% MAT file created by buildmap script.
+% MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/decaymap_campus.mat'];
+lidarMapFile = [resultFolder, '/refmap_campus.mat'];
 
-% Set the step that determines the fraction of PCD files to use.
-evalStep = 1;
+% Set the parameter that defines how many files make one scan.
+pcdPerLs = 4;
 
 % Minimum and maximum admissible map values.
 mapLim = [0.002, 10];
@@ -20,7 +20,7 @@ load(lidarMapFile);
 evalFile = [path, '/', name, '_eval', extension];
 
 % Save parameters to file.
-save(evalFile, 'lidarMapFile', 'evalStep', 'mapLim', '-v7.3');
+save(evalFile, 'lidarMapFile', 'pcdPerLs', 'mapLim', '-v7.3');
 
 %% Compute KL divergence.
 % Get the PCD file names.
@@ -35,21 +35,25 @@ switch model
 end
 
 % Compute the KL divergence for each scan.
-D = NaN(numel(pcdFile), 1);
-nPcdFile = numel(pcdFile);
-iEvalFile = 1 : evalStep : nPcdFile;
-parprogress(numel(iEvalFile));
-parfor i = iEvalFile
-    % Read laser scan data from file.
-    ls = lsread([folder, '/', pcdFile(i).name], rlim);
+iScan = 1 : pcdPerLs : numel(pcdFile);
+D = NaN(size(iScan));
+parprogress(numel(iScan));
+parfor i = 1 : numel(iScan)
+    % Read laser scan data from files.
+    ls = laserscan.empty(pcdPerLs, 0);
+    for j = 1 : pcdPerLs
+        filePath = [folder, '/', pcdFile(iScan(i)+j-1).name];
+        ls(j) = lsread(filePath, rlim);
+    end
+    ls = lsconcat(ls);
     
     % Compute the measurement likelihood.
     [pi,Li] = evalFun(ls, constrain(lidarMap, mapLim));
     
-    % Compute the KL divergence of this lidar measurement.
+    % Compute the KL divergence of the whole scan.
     D(i) = -sum([Li; log(pi)]);
     
-    % Display the progress of the first worker.
+    % Update the progress bar.
     parprogress;
 end
 parprogress(0);
