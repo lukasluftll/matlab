@@ -59,7 +59,7 @@ ray = ray .* repmat(l, 1, 3);
 % Loop over all rays.
 p = ones(ls.count, 1);
 L = zeros(ls.count, 1);
-for i = 1 : ls.count%%%
+parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
     [iv,t] = trav(tform2trvec(ls.sp(:,:,i)), ray(i,:), ...
         ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
@@ -70,15 +70,14 @@ for i = 1 : ls.count%%%
     % Compute the measurement probability depending on whether or not the 
     % ray returned.
     if iret(i) % Ray returns.
-        % Compute the index of those of the traversed voxels where the ray 
-        % is reflected.
-        ivr = find(ls.radius(i)/l(i) > t, 1, 'last');
+        % Compute the index of the voxel where the ray is reflected.
+        ivr = find(t*l(i) < ls.radius(i), 1, 'last');
         
         % Compute the length of the ray apportioned to this voxel.
-        li = diff(t([ivr-1,ivr])) * l(i);
+        lr = diff(t([ivr,ivr+1])) * l(i);
         
         % Compute the density of the probability that the ray is reflected.
-        L(i) = log(ref.data(iv(ivr)) * prod(1 - ref.data(iv(1:ivr-1)))/li);
+        L(i) = log(ref.data(iv(ivr)) * prod(1-ref.data(iv(1:ivr-1))) / lr);
     else % Ray does not return.
         % Compute the indices of the voxels where the sensor measurement 
         % range begins and ends. If a ray leaves the map, set the sensor
@@ -107,7 +106,7 @@ for i = 1 : ls.count%%%
 
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
-        psup = prod(1 - ref.data(1:ivlim(2)) .* w);
+        psup = prod(1 - ref.data(1:ivlim(2)).*w);
     
         % Sum up the probabilities to get the probability of the ray being
         % reflected before or after the measurement interval.
