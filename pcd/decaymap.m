@@ -4,11 +4,11 @@ function [lambda, r, l] = decaymap(ls, xgv, ygv, zgv)
 %   the mean ray decay rate LAMBDA for each voxel in the grid volume 
 %   defined by the grid vectors XGV, YGV, ZGV.
 %
-%   LS is vector of laserscan objects. The sensor poses of the scans are
+%   LS is a vector of laserscan objects. The sensor poses of the scans are
 %   assumed to be specified with respect to the decay rate map frame.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
-%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
+%   A voxel with index [i,j,k] contains all points [x,y,z] that satisfy
 %   the inequality:
 %
 %      (XGV(i) <= x < XGV(i+1))
@@ -76,26 +76,25 @@ for s = 1 : numel(ls)
     ray = dir2cart(ls(s));
 
     % Compute the indices of the returned rays.
-    iret = ret(ls(s));
+    iret = ls(s).ret;
 
     % Set the length of no-return rays to maximum sensor range.
-    ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret),1,size(ray,2));
-    ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
+    radius = ls(s).radius;
+    radius(~iret) = ls(s).rlim(2);
+    ray = ray .* repmat(radius, 1, 3);
 
     % Compute ray length and number of returns per voxel.
     l = zeros(gridsize);
     r = zeros(gridsize);
     for i = 1 : ls(s).count   
-        % Compute the indices of the voxels through which the ray 
-        % travels.
-        pos = tform2trvec(ls(s).sp(:,:,i));
-        [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
+        % Compute the indices of the voxels through which the ray travels.
+        [vi, t] = trav(tform2trvec(ls(s).sp(:,:,i)),ray(i,:),xgv,ygv,zgv);
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
         % Sum up the lengths the rays travel in each voxel.
-        l(vi) = l(vi) + diff(t) * norm(ray(i,:));
+        l(vi) = l(vi) + diff(t) * radius(i);
 
         % In case of reflection, increment the number of returns.
         r(vi(end)) = r(vi(end)) + (iret(i) && t(end)==1);
