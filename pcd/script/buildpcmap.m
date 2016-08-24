@@ -4,7 +4,7 @@
 % Dataset name.
 dataset = 'campus';
 
-% Dataset folder with PCD files.
+% Dataset folder containing the PCD files.
 folder = ['pcd/data/', dataset, '/pcd_sph'];
 
 % Resolution of the merged point cloud map.

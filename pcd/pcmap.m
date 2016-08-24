@@ -26,7 +26,7 @@ function map = pcmap(folder, res, mode)
 %   PCMAP shows its progress in the command window.
 %
 %   Example:
-%      pc = pcmap('pcd/data', 0.1, 'direct')
+%      pc = pcmap('pcd/data', 0.1)
 %
 %   See also POINTCLOUD, PCREAD, PCDREAD.
 
@@ -60,24 +60,24 @@ switch mode
     case 'direct'
     case 'odometry'
     otherwise
-        error('MODE must be ''direct'' or ''odometry''.')
+        error('Invalid MODE.')
 end    
 
 %% Merge point clouds.
 % Get the PCD file names.
 file = dir([folder, '/*.pcd']);
 
-% Use multiple workers to create local maps.
+% Use multiple workers to create local maps of consecutive point clouds.
 progressbar('Merging local maps ...')
 spmd
-    % Create the map point cloud for this worker.
+    % Initialize the local map point cloud for this worker.
     mapw = pointCloud(zeros(0, 3));
     
     % Compute the number of files per worker.
     fpw = max([1, round(numel(file)/numlabs)]);
     
     % Merge all of this worker's point clouds.
-    for i = 1 + (labindex-1)*fpw : min([numel(file), labindex*fpw])
+    for i = 1+(labindex-1)*fpw : min([numel(file), labindex*fpw])
         % Read the PCD file.
         pcd = pcdread([folder, '/', file(i).name]);
 
@@ -103,9 +103,13 @@ spmd
         switch mode
             case 'direct'
             case 'odometry'
+                % Check if odometry data is available.
                 if ~isfield(pcd, 'odometry')
-                    error(['No odometry available for file ',file(i).name,'.'])
+                    error(['No odometry available for file ', ...
+                        file(i).name, '.'])
                 end
+                
+                % Transform the point cloud into the global frame.
                 pc = pctransform(pc, ht2affine3d(pcd.odometry));    
         end
 
