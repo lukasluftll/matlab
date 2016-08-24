@@ -8,7 +8,7 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 %   assumed to be specified with respect to the reflectivity map frame.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
-%   A voxel with index [i, j, k] contains all points [x, y, z] that satisfy
+%   A voxel with index [i,j,k] contains all points [x,y,z] that satisfy
 %   the inequality:
 %
 %      (XGV(i) <= x < XGV(i+1))
@@ -16,8 +16,8 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
 %   REF is a voxelmap object that contains the reflectivity of each voxel.
-%   The reflectivity is a value in [0; 1]. It indicates the fraction of 
-%   rays that are reflected by the voxel compared to all rays that reached 
+%   The reflectivity is a value in [0;1]. It indicates the fraction of 
+%   rays that are reflected by the voxel compared to all rays that reach 
 %   the voxel. If the voxel has not been visited by any ray, its 
 %   reflectivity is NaN.
 %
@@ -25,7 +25,7 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 %   objects H and M. 
 %   H contains the number of ray remissions for each voxel. 
 %   M contains for each voxel the number of rays that traversed the voxel
-%   without being reflected.
+%   without reflection.
 %
 %   Example:
 %      ls = lsread('pcd/data/campus/pcd_sph/campus-00100.pcd');
@@ -39,7 +39,7 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 % Wolfram Burgard. Mapping with Known Poses. Lecture Notes on Introduction 
 % to Mobile Robotics. University of Freiburg, Germany, 2005.
 % http://ais.informatik.uni-freiburg.de/teaching/ss05/robotics/...
-% slides/10.pdf
+% slides/10.pdf.
 
 %% Validate input.
 % Check number of input arguments.
@@ -75,20 +75,18 @@ for s = 1 : numel(ls)
     ray = dir2cart(ls(s));
 
     % Compute the indices of the returned rays.
-    iret = ret(ls(s));
+    iret = ls(s).ret;
 
     % Set the length of no-return rays to maximum sensor range.
-    ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret),1,size(ray,2));
-    ray(~iret,:) = ray(~iret,:) * ls(s).rlim(2);
+    ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret), 1, 3);
+    ray(~iret,:) = ray(~iret,:) .* ls(s).rlim(2);
 
     % Compute the number of returns and traversals per voxel for each ray.
     h = zeros(gridsize);
     m = zeros(gridsize);
     for i = 1 : ls(s).count
-        % Compute the indices of the voxels through which the ray 
-        % travels.
-        pos = tform2trvec(ls(s).sp(:,:,i));
-        [vi, t] = trav(pos, ray(i,:), xgv, ygv, zgv);
+        % Compute the indices of the voxels through which the ray travels.
+        [vi, t] = trav(tform2trvec(ls(s).sp(:,:,i)),ray(i,:),xgv,ygv,zgv);
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));

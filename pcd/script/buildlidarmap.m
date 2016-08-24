@@ -1,7 +1,7 @@
 % Build a map out of many lidar scans.
 
 %% Parameters.
-% Define the folder where to keep the results.
+% Define the folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
 
 % Name of the file that contains the merged point cloud.
@@ -34,11 +34,11 @@ load(pcFile);
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 % Save parameters to file.
-save(lidarMapFile, 'dataset', 'folder', 'pcMapRes', 'model', 'lidarMapRes', ...
-    'rlim', '-v7.3');
+save(lidarMapFile, 'dataset', 'folder', 'pcMapRes', 'model', ...
+    'lidarMapRes', 'rlim', '-v7.3');
 
 %% Compute map extent.
-% Denoise the map.
+% Denoise the merged point cloud map.
 pcMap = pcdenoise(pcMap);
 
 % Compute the extent of the denoised point cloud.
@@ -75,7 +75,7 @@ parfor i = 1 : nPcdFile
     num = num + numi;
     denom = denom + denomi;
     
-    % Display progress.
+    % Update progress bar.
     parprogress;
 end
 parprogress(0);
