@@ -174,6 +174,24 @@ classdef laserscan < handle
             % Assign new limits to object.
             obj.rlim = rlim;
         end
+        
+        % Check laser scan ray indices.
+        function idxchk(obj, i)
+            if islogical(i)
+                if numel(i) > obj.count
+                    error('I contains too many elements.')
+                end
+            elseif isnumeric(i)
+                if any(rem(i, 1) ~= 0)
+                    error('I must contain positive interger values only.')
+                end
+                if any(i < 1 | i > obj.count)
+                    error('I contains invalid indices.')
+                end
+            else
+                error('I must be a logical or numeric vector.')
+            end
+        end
     end
     
     methods ( Access = public )
@@ -227,6 +245,9 @@ classdef laserscan < handle
                 i = 1 : obj.count;
             end
             
+            % Check validity of indices.
+            obj.idxchk(i)
+            
             %% Compute coordinates.
             % Compute the ray endpoint coordinates in the sensor frame.
             [x,y,z] = sph2cart(obj.azimuth(i(:)), obj.elevation(i(:)), ...
@@ -258,6 +279,9 @@ classdef laserscan < handle
             if nargin < 2
                 i = 1 : obj.count;
             end
+            
+            % Check validity of indices.
+            obj.idxchk(i)
             
             %% Compute direction vectors.
             % Compute the ray direction vectors in the sensor frame.
