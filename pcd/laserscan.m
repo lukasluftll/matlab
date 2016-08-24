@@ -33,6 +33,7 @@ classdef laserscan < handle
     %   DIR2CART   - Cartesian ray direction vectors
     %   LS2PC      - Transform laser scan to point cloud
     %   RET        - Identify returned rays
+    %   LSCONCAT   - Concatenate laser scans
     %   PLOT       - Plot laser scan
     %
     %   See also TRAV, SLAB.
@@ -277,6 +278,42 @@ classdef laserscan < handle
             %   to no-return rays.
             r = obj.radius >= obj.rlim(1) & obj.radius <= obj.rlim(2);
         end
+        
+        % Concatenate laser scans.
+        function y = lsconcat(x)
+            % LSCONCAT Concatenate laser scans.
+            %   Y = LSCONCAT(X) concatenates all laserscan objects 
+            %   contained in the laserscan vector X to build a laserscan
+            %   object Y.
+            %
+            %   The sensor range of Y is the common subset of the ranges of
+            %   all laserscan objects in X.
+            
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(1, 1)
+            
+            % Check type of input argument.
+            if ~isa(x, 'laserscan')
+                error('X must be a laserscan object.')
+            end
+            
+            %% Concatenate data.
+            % Concatenate sensor poses.
+            ysp = x(1).sp; 
+            for i = 2 : numel(x)
+                ysp = cat(3, ysp, x(i).sp);
+            end
+            
+            % Create matrix that contains sensor ranges.
+            xrlim = reshape([x.rlim], 2, []);
+            
+            % Build new laserscan object.
+            y = laserscan(ysp, reshape([x.azimuth], [], 1), ...
+                reshape([x.elevation], [], 1), ...
+                reshape([x.radius], [], 1), ...
+                [max(xrlim(1,:)), min(xrlim(2,:))]);
+        end            
        
         % Plot the laser scan.
         function plot(obj)
