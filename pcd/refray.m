@@ -71,39 +71,39 @@ parfor i = 1 : ls.count
     % ray returned.
     if iret(i) % Ray returns.
         % Compute the index of the voxel where the ray is reflected.
-        ti = find(ls.radius(i)/l(i) > t, 1, 'last');
+        vir = find(ls.radius(i)/l(i) > t, 1, 'last');
         
         % Compute the length of the ray apportioned to this voxel.
-        li = (t(ti) - t(ti-1)) * l(i);
+        li = (t(vir) - t(vir-1)) * l(i);
         
         % Compute the density of the probability that the ray is reflected.
-        L(i) = log(ref.data(vi(ti)) * prod(1 - ref.data(vi(1:ti-1))) / li);
+        L(i) = log(ref.data(vi(vir)) * prod(1 - ref.data(vi(1:vir-1)))/li);
     else % Ray does not return.
         % Compute the indices of the voxels where the sensor measurement 
         % range begins and ends.
-        ti = [find(ls.rlim(1)/l(i) > t, 1, 'last'); ...
+        vilim = [find(ls.rlim(1)/l(i) > t, 1, 'last'); ...
             find(ls.rlim(2)/l(i) > t, 1, 'last')];
         
         % Compute the lengths of the ray apportioned to the voxels where 
         % the sensor measurement range starts and ends.
-        dti = t(ti) - t(ti-1);
+        dtlim = t(vilim) - t(vilim-1);
         
         % Compute the weights for the reflectivity cells before the ray 
         % reaches minimum sensor range. The weights are chosen according to 
         % the ray lengths apportioned to the cells.
-        w = [ones(ti(1)-1, 1); (ls.rlim(1)/l(i) - t(ti(1)-1)) / dti(1)];
+        w = [ones(vilim(1)-1,1); (ls.rlim(1)/l(i)-t(vilim(1)-1))/dtlim(1)];
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
-        psub = 1 - prod(1 - ref.data(1:ti(1)) .* w);
+        psub = 1 - prod(1 - ref.data(1:vilim(1)) .* w);
         
         % Compute the weights for the reflectivity cells before the ray
         % reaches maximum sensor range.
-        w = [ones(ti(2)-1, 1); (ls.rlim(2)/l(i) - t(ti(2)-1)) / dti(2)];
+        w = [ones(vilim(2)-1, 1); (ls.rlim(2)/l(i) - t(vilim(2)-1)) / dtlim(2)];
 
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
-        psup = prod(1 - ref.data(1:ti(2)) .* w);
+        psup = prod(1 - ref.data(1:vilim(2)) .* w);
     
         % Sum up the probabilities to get the probability of the ray being
         % reflected before or after the measurement interval.
