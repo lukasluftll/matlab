@@ -203,16 +203,33 @@ classdef laserscan < handle
         end
         
         % Get Cartesian coordinates of ray endpoints.
-        function p = end2cart(obj)
+        function p = end2cart(obj, i)
             % END2CART(OBJ) Cartesian coordinates of ray endpoints.
             %   P = LS2CART(OBJ) returns an Nx3 matrix that contains the
             %   Cartesian coordinates of the ray endpoints with respect to
             %   the reference frame of the laser scan.
             %   N is the number of rays.
+            %
+            %   P = LS2CART(OBJ, I) returns the Cartesian coordinates of
+            %   the endpoints of selected rays. I is an M-element vector
+            %   that contains the indices of the rays of interest.
+            %   P is a Mx3 matrix that contains the Cartesian endpoints of
+            %   these rays.
+            %
             %   The coordinates of no-return rays are set to NaN.
             
+            %% Validate input.
+            narginchk(1, 2)
+            
+            % If no rays are selected, select all.
+            if nargin < 1
+                i = 1 : obj.count;
+            end
+            
+            %% Compute coordinates.
             % Compute the ray endpoint coordinates in the sensor frame.
-            [x,y,z] = sph2cart(obj.azimuth, obj.elevation, obj.radius);
+            [x,y,z] = sph2cart(obj.azimuth(i(:)), obj.elevation(i(:)), ...
+                obj.radius(i(:)));
            
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
