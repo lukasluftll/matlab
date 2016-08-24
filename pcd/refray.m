@@ -1,7 +1,7 @@
 function [p, L] = refray(ls, ref)
-% REFRAY Compute probability of Lidar scan from reflectivity map.
+% REFRAY Compute probability of laser scan from reflectivity map.
 %   [P, L] = REFRAY(LS, REF) computes the probability of obtaining the 
-%   lidar scan LS conditioned on the reflectivity map REF.
+%   laser scan LS conditioned on the reflectivity map REF.
 %
 %   LS is a laserscan object containing N rays. The sensor pose of the scan
 %   is assumed to be specified with respect to the reflectivity map 
@@ -38,7 +38,6 @@ if ~isa(ref, 'voxelmap')
 end
 
 %% Preprocess input arguments.
-% TODO: Iterate over multiple laser scans.
 % Compute the normalized Cartesian ray direction vectors with respect to
 % the map frame.
 ray = dir2cart(ls);
@@ -46,16 +45,15 @@ ray = dir2cart(ls);
 % Compute the logical indices of the returned rays.
 iret = ret(ls);
 
+% Set the length of no-return rays to maximum sensor range.
+l = ls.radius;
+l(~iret) = ls.rlim(2);
+
 % Increase the length of each returned ray by the diameter of the largest 
 % voxel to make sure it completely traverses the voxel that contains its
 % endpoint.
-dvox = sqrt(3) * max([diff(ref.xgv), diff(ref.ygv), diff(ref.zgv)]);
-l(iret) = ls.radius(iret) + dvox;
-
-% Set the length of no-return rays to the maximum sensor range
-% plus the diameter of the largest voxel.
-l(~iret) = ls.rlim(2) + dvox;
-ray = ray .* repmat(l, 1, size(ray, 2));
+l = l + sqrt(3)*max([diff(ref.xgv(:));diff(ref.ygv(:));diff(ref.zgv(:))]);
+ray = ray .* repmat(l, 1, 3);
 
 %% Compute probability of measurements.
 % Loop over all rays.
@@ -63,7 +61,8 @@ p = ones(ls.count, 1);
 L = zeros(ls.count, 1);
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
-    [vi,t] = trav(ls.position,ray(i,:),ref.xgv,ref.ygv,ref.zgv);%#ok<PFBNS>
+    [vi,t] = trav(tform2trvec(ls.sp(:,:,i)), ray(i,:), ...
+        ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
     
     % Convert the subscript voxel indices to linear indices.
     vi = sub2ind(size(ref.data), vi(:,1), vi(:,2), vi(:,3));
@@ -82,8 +81,8 @@ parfor i = 1 : ls.count
     else % Ray does not return.
         % Compute the indices of the voxels where the sensor measurement 
         % range begins and ends.
-        ti = [find(rlim(1)/l(i) > t, 1, 'last'); ...
-            find(rlim(2)/l(i) > t, 1, 'last')];
+        ti = [find(ls.rlim(1)/l(i) > t, 1, 'last'); ...
+            find(ls.rlim(2)/l(i) > t, 1, 'last')];
         
         % Compute the lengths of the ray apportioned to the voxels where 
         % the sensor measurement range starts and ends.
@@ -92,7 +91,7 @@ parfor i = 1 : ls.count
         % Compute the weights for the reflectivity cells before the ray 
         % reaches minimum sensor range. The weights are chosen according to 
         % the ray lengths apportioned to the cells.
-        w = [ones(ti(1)-1, 1); (rlim(1)/l(i) - t(ti(1)-1)) / dti(1)];
+        w = [ones(ti(1)-1, 1); (ls.rlim(1)/l(i) - t(ti(1)-1)) / dti(1)];
         
         % Calculate the probability that the ray is reflected before 
         % reaching the minimum sensor range.
@@ -100,7 +99,7 @@ parfor i = 1 : ls.count
         
         % Compute the weights for the reflectivity cells before the ray
         % reaches maximum sensor range.
-        w = [ones(ti(2)-1, 1); (rlim(2)/l(i) - t(ti(2)-1)) / dti(2)];
+        w = [ones(ti(2)-1, 1); (ls.rlim(2)/l(i) - t(ti(2)-1)) / dti(2)];
 
         % Calculate the probability that the ray surpasses the maximum 
         % sensor range.
