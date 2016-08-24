@@ -234,23 +234,38 @@ classdef laserscan < handle
            
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p = hom2cart(httimes(obj.sp(:,:,i), cart2hom([x,y,z]).').');
+            p = hom2cart(httimes(obj.sp(:,:,i(:)), cart2hom([x,y,z]).').');
         end
         
         % Get Cartesian ray direction vectors.
-        function v = dir2cart(obj)
+        function v = dir2cart(obj, i)
             % DIR2CART(OBJ) Cartesian ray direction vectors.
             %   V = DIRECTION2CART(OBJ) returns an Nx3 matrix that contains
             %   the normalized Cartesian direction vectors of the rays with
             %   respect to the reference frame of the laser scan.
             %   N is the number of rays.
+            %
+            %   DIR2CART(OBJ, I) returns the normalized Cartesian direction 
+            %   vectors of selected rays. I is an M-element vector that
+            %   contains the indices of the rays of interest.
+            %   P is a Mx3 matrix that contains the direction vectors of
+            %   these rays.
             
+            %% Validate input.
+            narginchk(1, 2)
+            
+            % If no rays are selected, select all.
+            if nargin < 2
+                i = 1 : obj.count;
+            end
+            
+            %% Compute direction vectors.
             % Compute the ray direction vectors in the sensor frame.
-            [x,y,z] = sph2cart(obj.azimuth, obj.elevation, 1);
+            [x,y,z] = sph2cart(obj.azimuth(i(:)), obj.elevation(i(:)), 1);
             
             % Transform the ray direction vectors into the reference frame
             % of the laser scan.
-            rot = rotm2tform(tform2rotm(obj.sp));
+            rot = rotm2tform(tform2rotm(obj.sp(:,:,i(:))));
             v = hom2cart(httimes(rot, cart2hom([x,y,z]).').');
         end
         
