@@ -23,6 +23,8 @@ function map = pcmap(folder, res, mode)
 %                        provided by the odometry property of the 
 %                        accompanying DAT files.
 %
+%   PCMAP shows its progress in the command window.
+%
 %   Example:
 %      pc = pcmap('pcd/data', 0.1, 'direct')
 %
@@ -65,34 +67,61 @@ end
 % Get the PCD file names.
 file = dir([folder, '/*.pcd']);
 
-% Create the map point cloud.
-map = pointCloud(zeros(0, 3));
+% Use multiple workers to create local maps.
+disp('Merging local maps ...')
+parprogress(numel(file));
+spmd
+    % Create the map point cloud for this worker.
+    mapw = pointCloud(zeros(0, 3));
 
-% Create a progress bar and set up automatic destruction after use.
-waitbarHandle = waitbar(0, 'Building map ...');
-cleanupObj = onCleanup(@() close(waitbarHandle));
+    % Merge all of this worker's point clouds.
+    for i = labindex : numlabs : numel(file)
+        % Read the PCD file.
+        pcd = pcdread([folder, '/', file(i).name]);
 
-% Loop over all PCD files.
-for i = 1 : numel(file)
-    % Read the PCD file.
-    pcd = pcdread([folder, '/', file(i).name]);
-    pc = pointCloud([pcd.x(:), pcd.y(:), pcd.z(:)]);
-    
-    % Transform the point cloud, if necessary.
-    switch mode
-        case 'direct'
-        case 'odometry'
-            if ~isfield(pcd, 'odometry')
-                error(['No odometry available for file ',file(i).name,'.'])
-            end
-            pc = pctransform(pc, ht2affine3d(pcd.odometry));    
+        % Build a point cloud from the data in the PCD file depending on
+        % whether the points are specified in Cartesian or spherical
+        % coordinates.
+        if all(isfield(pcd, {'x', 'y', 'z'})) % Cartesian PCD.
+            pc = pointCloud([pcd.x(:), pcd.y(:), pcd.z(:)]);
+        elseif all(isfield(pcd, {'sensor_x', 'sensor_y', 'sensor_z', ...
+                'sensor_qw', 'sensor_qx', 'sensor_qy', 'sensor_qz', ...
+                'azimuth', 'elevation', 'radius'})) % Spherical PCD.
+            sp = trquat2tform([pcd.sensor_x(:), pcd.sensor_y(:), ...
+                pcd.sensor_z(:)], ...
+                [pcd.sensor_qw(:), pcd.sensor_qx(:), pcd.sensor_qy(:), ...
+                pcd.sensor_qz(:)]);
+            pc = ls2pc(laserscan(sp, pcd.azimuth(:), pcd.elevation(:), ...
+                pcd.radius(:)));
+        else
+            error(['File ', file(i).name, ' has invalid format.'])
+        end
+
+        % Transform the point cloud, if necessary.
+        switch mode
+            case 'direct'
+            case 'odometry'
+                if ~isfield(pcd, 'odometry')
+                    error(['No odometry available for file ',file(i).name,'.'])
+                end
+                pc = pctransform(pc, ht2affine3d(pcd.odometry));    
+        end
+
+        % Merge the point cloud with the local map of the worker.
+        mapw = pcmerge(mapw, pc, res);
+        parprogress;
     end
-
-    % Merge the point cloud with the map.
-    map = pcmerge(map, pc, res);
-    
-    % Advance the progress bar.
-    waitbar(i/numel(file), waitbarHandle);
 end
+parprogress(0);
+
+% Merge the local maps of the workers to form a global map.
+disp('Merging global map ...')
+parprogress(numel(mapw));
+map = mapw{1};
+for i = 2 : numel(mapw)
+    pcmerge(map, mapw{i}, res);
+    parprogress;
+end
+parprogress(0);
 
 end
