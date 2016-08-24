@@ -38,9 +38,6 @@ save(lidarMapFile, 'dataset', 'folder', 'pcMapRes', 'model', ...
     'lidarMapRes', 'rlim', '-v7.3');
 
 %% Compute map extent.
-% Denoise the merged point cloud map.
-pcMap = pcdenoise(pcMap);
-
 % Compute the extent of the denoised point cloud.
 lim = [pcMap.XLimits(1), pcMap.XLimits(2);
     pcMap.YLimits(1), pcMap.YLimits(2);
