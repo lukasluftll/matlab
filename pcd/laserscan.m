@@ -234,7 +234,7 @@ classdef laserscan < handle
            
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p = hom2cart(httimes(obj.sp, cart2hom([x,y,z]).').');
+            p = hom2cart(httimes(obj.sp(:,:,i), cart2hom([x,y,z]).').');
         end
         
         % Get Cartesian ray direction vectors.
