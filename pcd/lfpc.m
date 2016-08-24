@@ -1,9 +1,11 @@
 function L = lfpc(pc, lf)
 % LFPC Compute log-likelihood of point cloud given likelihood field.
-%   L = LFPC(PC, LF) computes the likelihood of obtaining the Lidar scan
-%   PC given a likelihood field LF.
+%   L = LFPC(PC, LF) computes the likelihood of obtaining the point cloud
+%   PC from the lidar sensor given a likelihood field LF.
 %
-%   PC is a point cloud object; LF is a voxelmap object.
+%   PC is a point cloud object.
+%
+%   LF is a voxelmap object.
 %
 %   L is the log-likelihood of obtaining PC.
 %
