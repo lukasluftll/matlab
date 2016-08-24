@@ -21,8 +21,7 @@ function [p, L] = decayray(ls, lambda)
 %   endpoint. For returned rays, P(m) is unity.
 %
 %   Example:
-%      pcd = pcdread('castle.pcd');
-%      ls = laserscan(pcd.azimuth, pcd.elevation, pcd.radius, [1, 100]);
+%      ls = lsread('data/pcd/campus/pcd_sph/campus-00001.pcd', [2,120]);
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
 %      [p, L] = decayray(ls, lambda)
 %
@@ -43,15 +42,16 @@ if ~isa(lambda, 'voxelmap')
 end
 
 %% Preprocess input arguments.
-% Compute the Cartesian ray direction vectors in the sensor frame.
+% Compute the Cartesian ray direction with respect to the map frame.
 ray = dir2cart(ls);
 
 % Compute the logical indices of the returned rays.
-iret = ret(ls);
+iret = ls.ret;
 
 % Set the length of no-return rays to maximum sensor range.
-ray(iret,:) = ray(iret,:) .* repmat(ls.radius(iret), 1, size(ray, 2));
-ray(~iret,:) = ray(~iret,:) * ls.rlim(2);
+radius = ls(s).radius;
+radius(~iret) = ls(s).rlim(2);
+ray = ray .* repmat(radius, 1, 3);
 
 %% Compute measurement probability for all rays.
 % Preallocate the result matrices.
@@ -64,19 +64,18 @@ tmin = ls.rlim(1) / ls.rlim(2);
 % Loop over all rays.
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
-    pos = tform2trvec(ls.sp(:,:,i)); %#ok<PFBNS>
-    [vi, t] = trav(pos, ray(i,:), ...
+    [vi, t] = trav(tform2trvec(ls.sp(:,:,i)), ray(i,:), ...
         lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
 
     % Convert the subscript voxel indices to linear indices.
     vi = sub2ind(size(lambda.data), vi(:,1), vi(:,2), vi(:,3));
 
     % Compute the length of the ray apportioned to each voxel.
-    d = diff(t) * norm(ray(i,:));
+    d = diff(t) * radius(i);
     
-    % Compute log-likelihood or probability of ray measurement.
+    % Compute log-likelihood or probability of the ray measurement.
     if iret(i) % Ray returned.
-        % Compute log-likelihood of returned rays.
+        % Compute the log-likelihood of the returned ray.
         L(i) = log(lambda.data(vi(end))) - sum(lambda.data(vi) .* d);
     else % No-return ray.
         % Compute the probability of obtaining a no-return measurement
