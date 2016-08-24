@@ -222,7 +222,7 @@ classdef laserscan < handle
             narginchk(1, 2)
             
             % If no rays are selected, select all.
-            if nargin < 1
+            if nargin < 2
                 i = 1 : obj.count;
             end
             
@@ -299,11 +299,12 @@ classdef laserscan < handle
             lsr = laserscan(obj.sp(:,:,ir), obj.azimuth(ir), ...
                 obj.elevation(ir), obj.radius(ir), obj.rlim);            
             lsnr = laserscan(obj.sp(:,:,inr), obj.azimuth(inr), ...
-                obj.elevation(inr), obj.radius(obj.rlim(2)), obj.rlim);
+                obj.elevation(inr), repmat(obj.rlim(2), sum(inr), 1), ...
+                obj.rlim);
             
             % Compute plotted ray endpoints.
-            er = ls2cart(lsr);
-            enr = ls2cart(lsnr);
+            er = end2cart(lsr);
+            enr = end2cart(lsnr);
             
             % Get sensor origin for each ray.
             sr = tform2trvec(lsr.sp);
