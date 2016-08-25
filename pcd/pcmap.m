@@ -55,8 +55,7 @@ if nargin < 3
 end
 
 % Check the MODE input argument.
-mode = lower(mode);
-switch mode
+switch lower(mode)
     case 'direct'
     case 'odometry'
     otherwise
@@ -101,11 +100,12 @@ spmd
         end
 
         % Transform the point cloud, if necessary.
-        switch mode
+        switch lower(mode)
             case 'direct'
             case 'odometry'
                 if ~isfield(pcd, 'odometry')
-                    error(['No odometry available for file ',file(i).name,'.'])
+                    error(['No odometry available for file ', ...
+                        file(i).name, '.'])
                 end
                 pc = pctransform(pc, ht2affine3d(pcd.odometry));    
         end
@@ -119,8 +119,8 @@ parprogress(0);
 
 % Merge the local maps of the workers to form a global map.
 disp('Merging global map ...')
-parprogress(numel(mapw));
 map = mapw{1};
+parprogress(numel(mapw)-1);
 for i = 2 : numel(mapw)
     pcmerge(map, mapw{i}, res);
     parprogress;
