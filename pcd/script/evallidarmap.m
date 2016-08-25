@@ -3,7 +3,7 @@
 %% Set parameters.
 % MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/refmap_campus.mat'];
+lidarMapFile = [resultFolder, '/refmap_demo.mat'];
 
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 4;
@@ -53,6 +53,7 @@ parfor i = 1 : numel(iScan)
     end
     
     % Compute the KL divergence of the whole scan.
+    %%% TODO: Handle NaN values correctly.
     Dgh(i) = -sum([Li(~isnan(Li)); log(pi(~isnan(pi)))]);
     
     % Update the progress bar.

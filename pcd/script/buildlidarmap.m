@@ -5,7 +5,7 @@
 resultFolder = 'pcd/result';
 
 % Name of the file that contains the merged point cloud.
-pcFile = [resultFolder, '/pcmap_campus.mat'];
+pcFile = [resultFolder, '/pcmap_demo.mat'];
 
 % Sensor model to use to build map: 'decay' | 'ref' | 'lf'.
 model = 'ref';
@@ -31,8 +31,36 @@ disp(['Computing ', model, 'map for ', dataset, ' ...'])
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 %% Compute map extent.
-lim = [pcMap.XLimits; pcMap.YLimits; pcMap.ZLimits];
-lim = lim + repmat([-1,+1], 3, 1) * lidarMapRes;
+% Get the PCD file names.
+pcdFile = dir([folder, '/*.pcd']);
+nPcdFile = numel(pcdFile);
+
+% Iterate over all scans and compute an axis-aligned bounding box of all
+% sensor poses.
+maplim = repmat([Inf, -Inf], 3, 1);
+for i = 1 : nPcdFile
+    ls = lsread([folder, '/', pcdFile(i).name], rlim);
+    lsmin = min(tform2trvec(ls.sp)).';
+    lsmax = max(tform2trvec(ls.sp)).';
+    maplim = [min([maplim(:,1), lsmin], [], 2), ...
+        max([maplim(:,2), lsmax], [], 2)];
+end
+
+% Compute the bounding box of a scan that consists of maximum range
+% readings only.
+nScan4Rev = numel(pcdFile);
+lsmr = laserscan.empty(0, nScan4Rev);
+for i = 1 : nScan4Rev
+    lsmr(i) = lsread([folder, '/', pcdFile(i).name], rlim);
+end
+%%% TODO: Check point clouds of laser scans.
+lsmr = lsconcat(lsmr); 
+lsmr.radius = repmat(lsmr.rlim(2), size(lsmr.radius));
+pcmr = ls2pc(lsmr);
+
+% Add the extent of the maximum range point cloud to the bounding box of
+% all sensor poses to ensure the map covers all rays.
+maplim = maplim + [pcmr.XLimits; pcmr.YLimits; pcmr.ZLimits];
 
 %% Create lidar map.
 % Define the mapping function to use.
@@ -47,13 +75,10 @@ switch lower(model)
         error('Mapping function not supported.')
 end
     
-% Get the PCD file names.
-pcdFile = dir([folder, '/*.pcd']);
-
 % Compute the grid vectors of the map.
-xgv = lim(1,1) : lidarMapRes : lim(1,2);
-ygv = lim(2,1) : lidarMapRes : lim(2,2);
-zgv = lim(3,1) : lidarMapRes : lim(3,2);
+xgv = maplim(1,1) : lidarMapRes : maplim(1,2);
+ygv = maplim(2,1) : lidarMapRes : maplim(2,2);
+zgv = maplim(3,1) : lidarMapRes : maplim(3,2);
 
 % For the decay and the reflectivity model, loop over all scans and compute
 % the numerator and denominator of each map cell's value.
@@ -63,7 +88,6 @@ if strcmpi(model, 'decay') || strcmpi(model, 'ref')
     gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
     num = zeros(gridsize);
     denom = zeros(gridsize);
-    nPcdFile = numel(pcdFile);
     parprogress(nPcdFile);
     parfor i = 1 : nPcdFile
         % Read laser scan data from file.
