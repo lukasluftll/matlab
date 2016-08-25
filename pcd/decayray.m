@@ -20,9 +20,9 @@ function [p, L] = decayray(ls, lambda)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
-%   If the endpoint of a returned ray lies outside the map or if the map
-%   does not cover the maximum sensor range for a no-return ray, the
-%   corresponding values of p and L are set to NaN.
+%   If the map does not cover the endpoint of a returned ray or the point 
+%   corresponding to maximum sensor range for a no-return ray, the
+%   respective elements of p and L are set to NaN.
 %
 %   Example:
 %      ls = lsread('pcd/data/sph.pcd');
