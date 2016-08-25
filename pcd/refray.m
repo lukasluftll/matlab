@@ -21,9 +21,11 @@ function [p, L] = refray(ls, ref)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
-%   If the map does not cover the endpoint of a returned ray or the point 
-%   corresponding to maximum sensor range for a no-return ray, the
-%   respective elements of p and L are set to NaN.
+%   p(i) and L(i) are set to NaN if any of the following applies to ray i:
+%   - The starting point lies outside the map.
+%   - Ray i is a returned ray and its endpoint ray lies outside the map.
+%   - Ray i is a no-return ray and the point on the ray corresponding to 
+%     maximum sensor range lies outside the map.
 %
 %   Example:
 %      ls = lsread('pcd/data/sph.pcd', [2,120]);
@@ -66,12 +68,18 @@ ray = ray .* repmat(l, 1, 3);
 
 %% Compute probability of measurements.
 % Loop over all rays.
-p = ones(ls.count, 1);
-L = zeros(ls.count, 1);
+p = NaN(ls.count, 1);
+L = NaN(ls.count, 1);
 parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
     [iv,t] = trav(tform2trvec(ls.sp(:,:,i)), ray(i,:), ...
         ref.xgv, ref.ygv, ref.zgv); %#ok<PFBNS>
+    
+    % If the starting point of the ray lies outside the map, return NaN
+    % probability.
+    if t(1) > 0
+        continue
+    end
     
     % Convert the subscript voxel indices to linear indices.
     iv = sub2ind(size(ref.data), iv(:,1), iv(:,2), iv(:,3));
@@ -85,8 +93,6 @@ parfor i = 1 : ls.count
         % If the ray endpoint lies outside the map, set its probability to
         % NaN.
         if ivr >= numel(t)
-            p(i) = NaN;
-            L(i) = NaN;
             continue
         end
         
@@ -95,6 +101,7 @@ parfor i = 1 : ls.count
         
         % Compute the density of the probability that the ray is reflected.
         L(i) = log(ref.data(iv(ivr)) * prod(1-ref.data(iv(1:ivr-1))) / lr);
+        p(i) = 1;
     else % Ray does not return.
         % Compute the indices of the voxels where the sensor measurement 
         % range begins and ends.
@@ -104,8 +111,6 @@ parfor i = 1 : ls.count
         % If the point corresponding to maximum sensor range lies outside
         % the map, set the probability to NaN.
         if ivlim(2) >= numel(t)
-            p(i) = NaN;
-            L(i) = NaN;
             continue
         end
         
@@ -134,6 +139,7 @@ parfor i = 1 : ls.count
         % Sum up the probabilities to get the probability of the ray being
         % reflected before or after the measurement interval.
         p(i) = psub + psup;
+        L(i) = 0;
     end
 end
 

@@ -20,9 +20,11 @@ function [p, L] = decayray(ls, lambda)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
-%   If the map does not cover the endpoint of a returned ray or the point 
-%   corresponding to maximum sensor range for a no-return ray, the
-%   respective elements of p and L are set to NaN.
+%   p(i) and L(i) are set to NaN if any of the following applies to ray i:
+%   - The starting point lies outside the map.
+%   - Ray i is a returned ray and its endpoint ray lies outside the map.
+%   - Ray i is a no-return ray and the point on the ray corresponding to 
+%     maximum sensor range lies outside the map.
 %
 %   Example:
 %      ls = lsread('pcd/data/sph.pcd');
@@ -71,10 +73,9 @@ parfor i = 1 : ls.count
     [vi, t] = trav(tform2trvec(ls.sp(:,:,i)), ray(i,:), ...
         lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
     
-    % If the map does not cover the endpoint of a returned ray or the 
-    % point corresponding to maximum sensor range for a no-return ray, set 
-    % the probability to NaN.
-    if t(end) < 1
+    % If the map does not cover the ray starting point and endpoint, set 
+    % the probability of that ray to NaN.
+    if t(1) > 0 || t(end) < 1
         p(i) = NaN;
         L(i) = NaN;
         continue
