@@ -21,6 +21,10 @@ function [p, L] = refray(ls, ref)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
+%   If the endpoint of a returned ray lies outside the map or if the map
+%   does not cover the maximum sensor range for a no-return ray, the
+%   corresponding values of p and L are set to NaN.
+%
 %   Example:
 %      ls = lsread('pcd/data/sph.pcd', [2,120]);
 %      ref = refmap(ls, -100:5:100, -100:5:100, -20:5:20);
@@ -78,11 +82,12 @@ parfor i = 1 : ls.count
         % Compute the index of the voxel where the ray is reflected.
         ivr = find(t*l(i) < ls.radius(i), 1, 'last');
         
-        % If the ray endpoint lies outside the map, issue a warning.
+        % If the ray endpoint lies outside the map, set its probability to
+        % NaN.
         if ivr >= numel(t)
-            warning(['L(', num2str(i), ') is inaccurate: ', ...
-                'ray endpoint lies outside map.'])
-            ivr = numel(t)-1;
+            p(i) = NaN;
+            L(i) = NaN;
+            continue
         end
         
         % Compute the length of the ray apportioned to this voxel.
@@ -92,11 +97,17 @@ parfor i = 1 : ls.count
         L(i) = log(ref.data(iv(ivr)) * prod(1-ref.data(iv(1:ivr-1))) / lr);
     else % Ray does not return.
         % Compute the indices of the voxels where the sensor measurement 
-        % range begins and ends. If a ray leaves the map, set the sensor
-        % measurement end voxel to the last voxel that the ray traverses. 
-        % This is equivalent to assuming zero reflectivity outside the map.
+        % range begins and ends.
         ivlim = [find(t*l(i) < ls.rlim(1), 1, 'last'), ...
-            min([find(t*l(i) < ls.rlim(2), 1, 'last'), numel(t)-1])];
+            find(t*l(i) < ls.rlim(2), 1, 'last')];
+        
+        % If the point corresponding to maximum sensor range lies outside
+        % the map, set the probability to NaN.
+        if ivlim(2) >= numel(t)
+            p(i) = NaN;
+            L(i) = NaN;
+            continue
+        end
         
         % Compute the lengths of the ray apportioned to the voxels where 
         % the sensor measurement range starts and ends.

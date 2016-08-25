@@ -15,12 +15,13 @@ mapLim = [0.002, 10];
 % Load the file that contains the lidar map.
 load(lidarMapFile);
 
+% Print caption.
+hline(75)
+display(['Evaluating ', model, 'map of ', dataset, ' dataset ...'])
+
 % Define the name of the output MAT file.
 [path, name, extension] = fileparts(lidarMapFile);
 evalFile = [path, '/', name, '_eval', extension];
-
-% Save parameters to file.
-save(evalFile, 'lidarMapFile', 'pcdPerLs', 'mapLim', '-v7.3');
 
 %% Compute KL divergence.
 % Get the PCD file names.
@@ -37,7 +38,6 @@ end
 % Compute the KL divergence for each scan.
 iScan = 1 : pcdPerLs : numel(pcdFile);
 Dgh = NaN(size(iScan));
-disp('Computing KL divergence.')
 parprogress(numel(iScan));
 parfor i = 1 : numel(iScan)
     % Read laser scan data from files.
@@ -52,7 +52,7 @@ parfor i = 1 : numel(iScan)
     [pi,Li] = evalFun(ls, constrain(lidarMap, mapLim));
     
     % Compute the KL divergence of the whole scan.
-    Dgh(i) = -sum([Li; log(pi)]);
+    Dgh(i) = -sum([Li(~isnan(Li)); log(pi(~isnan(pi)))]);
     
     % Update the progress bar.
     parprogress;
@@ -60,4 +60,5 @@ end
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalFile, 'Dgh', '-append');
+save(evalFile, 'lidarMapFile', 'pcdPerLs', 'mapLim', 'Dgh', '-v7.3');
+display(['Result written to ', evalFile, '.'])

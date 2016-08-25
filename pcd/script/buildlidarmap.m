@@ -25,7 +25,7 @@ load(pcFile);
 
 % Print caption.
 hline(75)
-disp(['Computing ', model, ' map for ', dataset, ' ...'])
+disp(['Computing ', model, 'map for ', dataset, ' ...'])
 
 % Define the name of the output MAT file.
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
