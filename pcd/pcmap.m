@@ -122,7 +122,7 @@ disp('Merging global map ...')
 map = mapw{1};
 parprogress(numel(mapw)-1);
 for i = 2 : numel(mapw)
-    pcmerge(map, mapw{i}, res);
+    map = pcmerge(map, mapw{i}, res);
     parprogress;
 end
 parprogress(0);
