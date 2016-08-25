@@ -73,6 +73,13 @@ parfor i = 1 : ls.count
         % Compute the index of the voxel where the ray is reflected.
         ivr = find(t*l(i) < ls.radius(i), 1, 'last');
         
+        % If the ray endpoint lies outside the map, issue a warning.
+        if ivr >= numel(t)
+            warning(['L(', num2str(i), ') is inaccurate: ', ...
+                'ray endpoint lies outside map.'])
+            ivr = numel(t)-1;
+        end
+        
         % Compute the length of the ray apportioned to this voxel.
         lr = diff(t([ivr,ivr+1])) * l(i);
         
