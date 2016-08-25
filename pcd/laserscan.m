@@ -139,7 +139,7 @@ classdef laserscan < handle
             % Check if RADIUS contains the size as the current radius data.
             if ~isempty(obj.radius) && numel(radius)~=numel(obj.radius)
                 error(['RADIUS must contain ', ...
-                    num2str(numel(obj.radius)), 'elements.'])
+                    num2str(numel(obj.radius)), ' elements.'])
             end
             
             % Set all infinite values to NaN.
@@ -245,6 +245,12 @@ classdef laserscan < handle
                 i = 1 : obj.count;
             end
             
+            % If the laser scan or the index vector is empty, return.
+            p = zeros(0, 3);
+            if obj.count < 1 || isempty(i) || all(~i)    
+                return
+            end
+            
             % Check validity of indices.
             obj.idxchk(i)
             
@@ -278,6 +284,12 @@ classdef laserscan < handle
             % If no rays are selected, select all.
             if nargin < 2
                 i = 1 : obj.count;
+            end
+            
+            % If the laser scan or the index vector is empty, return.
+            v = zeros(0, 3);
+            if obj.count < 1 || isempty(i) || all(~i)    
+                return
             end
             
             % Check validity of indices.
@@ -383,8 +395,8 @@ classdef laserscan < handle
             enr = end2cart(lsnr);
             
             % Get sensor origin for each ray.
-            sr = tform2trvec(lsr.sp);
-            snr = tform2trvec(lsnr.sp);
+            sr = ht2tv(lsr.sp);
+            snr = ht2tv(lsnr.sp);
             
             % Plot returned rays.
             retplot = plot3([sr(:,1).'; er(:,1).'], ...
