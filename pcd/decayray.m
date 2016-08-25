@@ -25,7 +25,7 @@ function [p, L] = decayray(ls, lambda)
 %   corresponding values of p and L are set to NaN.
 %
 %   Example:
-%      ls = lsread('data/sph.pcd');
+%      ls = lsread('pcd/data/sph.pcd');
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
 %      [p, L] = decayray(ls, lambda)
 %
@@ -77,6 +77,7 @@ parfor i = 1 : ls.count
     if t(end) < 1
         p(i) = NaN;
         L(i) = NaN;
+        continue
     end
     
     % Convert the subscript voxel indices to linear indices.
