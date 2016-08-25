@@ -49,8 +49,8 @@ ray = dir2cart(ls);
 iret = ls.ret;
 
 % Set the length of no-return rays to maximum sensor range.
-radius = ls(s).radius;
-radius(~iret) = ls(s).rlim(2);
+radius = ls.radius;
+radius(~iret) = ls.rlim(2);
 ray = ray .* repmat(radius, 1, 3);
 
 %% Compute measurement probability for all rays.
