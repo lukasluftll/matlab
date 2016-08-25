@@ -11,6 +11,9 @@ folder = ['pcd/data/', dataset, '/pcd_sph'];
 pcMapRes = 0.1;
 
 %% Prepare output file.
+% Print caption.
+disp(['Merging ', dataset, ' point cloud ...'])
+
 % Create folder for results.
 resultFolder = 'pcd/result';
 [resultFolderPath, resultFolderName] = fileparts(resultFolder);
@@ -21,9 +24,6 @@ end
 % Define the name of the output MAT file.
 pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 
-% Save parameters to file.
-save(pcMapFile, 'dataset', 'folder', 'pcMapRes', '-v7.3');
-
 %% Merge point clouds.
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
@@ -32,4 +32,4 @@ pcdFile = dir([folder, '/*.pcd']);
 pcMap = pcmap(folder, pcMapRes);
     
 % Save the point cloud map to file.
-save(pcMapFile, 'pcMap', '-append')
+save(pcMapFile, 'dataset', 'folder', 'pcMapRes', 'pcMap', '-v7.3')
