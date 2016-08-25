@@ -27,9 +27,10 @@ function [p, L] = lfray(ls, lf, por)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
-%   If the endpoint of a returned ray lies outside the map or if the map
-%   does not cover the maximum sensor range for a no-return ray, the
-%   corresponding values of p and L are set to NaN.
+%   If the points on a returned ray corresponding to minimum and maximum 
+%   sensor range lie outside the map, the probabilities cannot be 
+%   normalized. The values of p and L corresponding to that ray are set to 
+%   NaN.
 %
 %   Example:
 %      ls = lsread('data/sph.pcd', [2,120]);
@@ -80,9 +81,10 @@ parfor i = 1 : ls.count
         start = tform2trvec(ls.sp(:,:,i)) + ray*ls.rlim(1);  %#ok<*PFBNS>
         [iv,t] = trav(start, ray*diff(ls.rlim), ls.xgv, ls.ygv, ls.zgv);
         
-        % If the map does not cover the endpoint of the ray, set its 
-        % probability to NaN.
-        if t(end) < 1
+        % If the map does not cover the point on the ray corresponding to 
+        % minimum or maximum sensor range, set the probability of the ray 
+        % to NaN.
+        if t(1) ~= 0 || t(end) < 1
             p(i) = NaN;
             L(i) = NaN;
             continue
