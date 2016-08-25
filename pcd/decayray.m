@@ -21,7 +21,7 @@ function [p, L] = decayray(ls, lambda)
 %   endpoint. For returned rays, P(m) is unity.
 %
 %   Example:
-%      ls = lsread('data/pcd/campus/pcd_sph/campus-00001.pcd', [2,120]);
+%      ls = lsread('data/sph.pcd');
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
 %      [p, L] = decayray(ls, lambda)
 %
