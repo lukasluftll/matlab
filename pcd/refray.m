@@ -87,6 +87,8 @@ parfor i = 1 : ls.count
     % return NaN probability.
     if t(1) > 0 || (iret(i) && ivret >= numel(t)) ...
             || (~iret(i) && ivend >= numel(t))
+        p(i) = NaN;
+        L(i) = NaN;
         continue
     end
     
