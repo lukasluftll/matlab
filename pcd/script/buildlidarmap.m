@@ -8,7 +8,7 @@ resultFolder = 'pcd/result';
 pcFile = [resultFolder, '/pcmap_campus.mat'];
 
 % Sensor model to use to build map: 'decay' | 'ref'.
-model = 'decay';
+model = 'ref';
 
 % Resolution of the resulting lidar map.
 lidarMapRes = 0.5;
@@ -39,18 +39,17 @@ save(lidarMapFile, 'dataset', 'folder', 'pcMapRes', 'model', ...
 
 %% Compute map extent.
 % Compute the extent of the denoised point cloud.
-lim = [pcMap.XLimits(1), pcMap.XLimits(2);
-    pcMap.YLimits(1), pcMap.YLimits(2);
-    pcMap.ZLimits(1), pcMap.ZLimits(2)];
+lim = [pcMap.XLimits; pcMap.YLimits; pcMap.ZLimits];
+lim = lim + repmat([-1,+1],3,1)*lidarMapRes;
 
 %% Create lidar map.
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 
 % Compute the grid vectors of the map.
-xgv = lim(1,1) : lidarMapRes : lim(1,2)+lidarMapRes;
-ygv = lim(2,1) : lidarMapRes : lim(2,2)+lidarMapRes;
-zgv = lim(3,1) : lidarMapRes : lim(3,2)+lidarMapRes;
+xgv = lim(1,1) : lidarMapRes : lim(1,2);
+ygv = lim(2,1) : lidarMapRes : lim(2,2);
+zgv = lim(3,1) : lidarMapRes : lim(3,2);
   
 % Iterate over all laser scans, compute local maps and merge them into a 
 % global map.
