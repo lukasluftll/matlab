@@ -20,6 +20,10 @@ function [p, L] = decayray(ls, lambda)
 %   measurement probability density along the ray, evaluated at the ray 
 %   endpoint. For returned rays, P(m) is unity.
 %
+%   If the endpoint of a returned ray lies outside the map or if the map
+%   does not cover the maximum sensor range for a no-return ray, the
+%   corresponding values of p and L are set to NaN.
+%
 %   Example:
 %      ls = lsread('data/sph.pcd');
 %      lambda = decaymap(ls, -100:5:100, -100:5:100, -20:5:20);
@@ -66,7 +70,15 @@ parfor i = 1 : ls.count
     % Compute the indices of the grid cells that the ray traverses.
     [vi, t] = trav(tform2trvec(ls.sp(:,:,i)), ray(i,:), ...
         lambda.xgv, lambda.ygv, lambda.zgv); %#ok<PFBNS>
-
+    
+    % If the map does not cover the endpoint of a returned ray or the 
+    % point corresponding to maximum sensor range for a no-return ray, set 
+    % the probability to NaN.
+    if t(end) < 1
+        p(i) = NaN;
+        L(i) = NaN;
+    end
+    
     % Convert the subscript voxel indices to linear indices.
     vi = sub2ind(size(lambda.data), vi(:,1), vi(:,2), vi(:,3));
 
