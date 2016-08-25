@@ -27,14 +27,6 @@ evalFile = [path, '/', name, '_eval', extension];
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 
-% Use appropriate sensor model.
-switch model
-    case 'decay'
-        evalFun = @decayray;
-    case 'ref'
-        evalFun = @refray;
-end
-
 % Compute the KL divergence for each scan.
 iScan = 1 : pcdPerLs : numel(pcdFile);
 Dgh = NaN(size(iScan));
@@ -49,7 +41,16 @@ parfor i = 1 : numel(iScan)
     ls = lsconcat(ls);
     
     % Compute the measurement likelihood.
-    [pi,Li] = evalFun(ls, constrain(lidarMap, mapLim));
+    switch lower(model)
+        case 'decay'
+            [pi, Li] = decayray(ls, constrain(lidarMap, mapLim));
+        case 'ref'
+            [pi, Li] = refray(ls, constrain(lidarMap, mapLim));
+        case 'lf'
+            [pi, Li] = lfray(ls, lidarMap, 1 - sum(ls.ret)/ls.count);
+        otherwise
+            error(['Model ', model, ' not supported.'])
+    end
     
     % Compute the KL divergence of the whole scan.
     Dgh(i) = -sum([Li(~isnan(Li)); log(pi(~isnan(pi)))]);
