@@ -24,6 +24,7 @@ sigma = 1;
 load(pcFile);
 
 % Print caption.
+hline(75)
 disp(['Computing ', model, ' map for ', dataset, ' ...'])
 
 % Define the name of the output MAT file.
@@ -92,3 +93,4 @@ end
 %% Save map.
 save(lidarMapFile, 'dataset', 'folder', 'pcMapRes', 'model', ...
     'lidarMapRes', 'rlim', 'sigma', 'lidarMap', '-v7.3');
+display(['Result written to ', lidarMapFile, '.'])

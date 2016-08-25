@@ -12,7 +12,8 @@ pcMapRes = 0.1;
 
 %% Prepare output file.
 % Print caption.
-disp(['Merging ', dataset, ' point cloud ...'])
+hline(75)
+display(['Merging ', dataset, ' point cloud ...'])
 
 % Create folder for results.
 resultFolder = 'pcd/result';
@@ -33,3 +34,4 @@ pcMap = pcmap(folder, pcMapRes);
     
 % Save the point cloud map to file.
 save(pcMapFile, 'dataset', 'folder', 'pcMapRes', 'pcMap', '-v7.3')
+display(['Result written to ', pcMapFile, '.'])
