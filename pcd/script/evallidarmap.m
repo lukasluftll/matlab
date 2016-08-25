@@ -36,13 +36,14 @@ end
 
 % Compute the KL divergence for each scan.
 iScan = 1 : pcdPerLs : numel(pcdFile);
-D = NaN(size(iScan));
+Dgh = NaN(size(iScan));
+disp('Computing KL divergence.')
 parprogress(numel(iScan));
 parfor i = 1 : numel(iScan)
     % Read laser scan data from files.
     ls = laserscan.empty(pcdPerLs, 0);
     for j = 1 : pcdPerLs
-        filePath = [folder, '/', pcdFile(iScan(i)+j-1).name];
+        filePath = [folder, '/', pcdFile(iScan(i)+j-1).name]; %#ok<PFBNS>
         ls(j) = lsread(filePath, rlim);
     end
     ls = lsconcat(ls);
@@ -51,7 +52,7 @@ parfor i = 1 : numel(iScan)
     [pi,Li] = evalFun(ls, constrain(lidarMap, mapLim));
     
     % Compute the KL divergence of the whole scan.
-    D(i) = -sum([Li; log(pi)]);
+    Dgh(i) = -sum([Li; log(pi)]);
     
     % Update the progress bar.
     parprogress;
@@ -59,4 +60,4 @@ end
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalFile, 'D', '-append');
+save(evalFile, 'Dgh', '-append');
