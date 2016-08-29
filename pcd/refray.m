@@ -49,7 +49,7 @@ if ~isa(ref, 'voxelmap')
 end
 
 % Check the validity of the reflectivity map.
-if any(ref.data < 0) || any(ref.data > 1)
+if any(ref.data(:) < 0) || any(ref.data(:) > 1)
     error('REF must contain values in [0;1].')
 end
 
