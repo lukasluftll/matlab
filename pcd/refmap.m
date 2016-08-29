@@ -87,6 +87,13 @@ for s = 1 : numel(ls)
     for i = 1 : ls(s).count
         % Compute the indices of the voxels through which the ray travels.
         [vi, t] = trav(tform2trvec(ls(s).sp(:,:,i)),ray(i,:),xgv,ygv,zgv);
+        
+        % If the ray does not intersect with the map volume, issue warning.
+        if isempty(vi)
+            warning(['Ray #', num2str(i), ...
+                ' does not intersect with map volume.'])
+            continue
+        end
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
