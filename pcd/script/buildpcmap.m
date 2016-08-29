@@ -28,9 +28,6 @@ pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 %% Merge point clouds.
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
-
-% Build the map and denoise it.
-pcMap = pcdenoise(pcmap(folder, pcMapRes));
     
 % Save the point cloud map to file.
 save(pcMapFile, 'dataset', 'folder', 'pcMapRes', 'pcMap', '-v7.3')
