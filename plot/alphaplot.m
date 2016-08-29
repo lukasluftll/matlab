@@ -5,25 +5,18 @@ function alphaplot(data, color, xgv, ygv, zgv, varargin)
 %   by the transparency of the cubic axis-aligned voxel with minimum limits 
 %   [i-1,j-1,k-1] and maximum limits [i,j,k].
 %   
-%   The values of DATA must stay within [0; 1]. DATA(i,j,k) == 0 
-%   corresponds to a transparent voxel; a value of 1 corresponds to an 
-%   opaque voxel. Values smaller than 0.01 are not drawn.
+%   The values of DATA must stay within [0; 1]. A value of 0 corresponds to
+%   a transparent voxel; a value of 1 corresponds to an opaque voxel. 
+%   Values smaller than 0.01 are not drawn.
 %
 %   ALPHAPLOT(DATA, COLOR) defines the color of each voxel.
 %   COLOR can be specified in different ways:
 %
-%   Single value          - All voxels are plotted in the indexed color 
-%                           COLOR.
+%   Single scalar  - All voxels are plotted in the indexed color COLOR.
 %
-%   3-element row vector  - All voxels are plotted in the true color COLOR.
+%   IxJxK matrix   - Voxel [i,j,k] is plotted in color COLOR(i,j,k).
 %
-%   IxJxK matrix          - Voxel [i,j,k] is plotted in the indexed color
-%                           COLOR(i,j,k).
-%
-%   3xIxJxK matrix        - Voxel [i,j,k] is plotted in the true color
-%                           COLOR(:,i,j,k).
-%
-%   ALPHAPLOT(DATA, COLOR, XGV, YGV, ZGV) shows no cubic, but cuboid 
+%   ALPHAPLOT(DATA, COLOR, XGV, YGV, ZGV) does not show cubic, but cuboid 
 %   voxels. XGV, YGV, ZGV are vectors that define the rasterization of the 
 %   grid. A voxel with index [i,j,k] contains all points [x,y,z] that 
 %   satisfy the inequality:
@@ -37,7 +30,7 @@ function alphaplot(data, color, xgv, ygv, zgv, varargin)
 %   For possible name-value pairs, see the documentation of PATCH.
 % 
 %   Example:
-%      alphaplot(rand(10, 10, 10))
+%      alphaplot(rand(10,10,10))
 %
 %   See also: CUBOID, PATCH.
 
@@ -47,19 +40,36 @@ function alphaplot(data, color, xgv, ygv, zgv, varargin)
 % Check if the user specified the correct number of input arguments.
 narginchk(1, inf)
 
-% Check the dimensionality of the input data.
+% Check the data matrix is at most 3D.
 if ndims(data) > 3
-    error('DATA must have at most 3 dimensions.')
+    error('DATA must not have more than 3 dimensions.')
 end
 
-% Make sure the values of DATA are finite and stay in [0; 1].
+% Check the values of the data matrix.
 if min(data(:)) < 0 || max(data(:)) > 1
-    error('X must be element of [0; 1].')
+    error('DATA must stay in range [0;1].')
 end
 
-% If no color information is given, set it to black.
+% Compute the size of the data matrix.
+datasize = [size(data,1), size(data,2), size(data,3)];
+
+% If no color information is given, set it.
 if nargin < 2
-    color = zeros(1, 3);
+    color = 0;
+end
+
+% If COLOR is a scalar, expand it to match the size of DATA.
+if numel(color) == 1
+    color = repmat(color, size(data));
+end
+
+% Check the size of COLOR.
+if ndims(color) > 3
+    error('COLOR must not have more than 3 dimensions.')
+end
+colorsize = [size(color,1), size(color,2), size(color,3)];
+if ~(all(colorsize == datasize))
+    error('COLOR does not match the size of DATA.')
 end
 
 % If no volume limits are given, create them.
@@ -72,20 +82,10 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
-% Check whether size of DATA matches grid vectors.
-datasize = [size(data,1), size(data,2), size(data,3)];
+% Check whether the grid vectors match the size of data.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 if ~all(datasize == gridsize)
-    error('Size of DATA does not match grid vectors.')
-end
-
-% Check the size of the color matrix.
-colorsize = [size(color,1), size(color,2), size(color,3), size(color,4)];
-if ~(numel(color) == 1 ...
-        || (ismatrix(color) && all(size(color) ~= [1,3])) ...
-        || (colorsize(4) == 1 && all(colorsize == datasize)) ...
-        || (colorsize(4) > 1 && sizeall(colorsize == [datasize, 3])))
-    error('The size of COLOR is invalid.')
+    error('Grid vectors do not match size of DATA.')
 end
 
 %% Plot voxels.
@@ -97,20 +97,13 @@ vox = [xmin(:), ymin(:), zmin(:)];
 vox = [vox, vox + 0.99 * [xdiff(:), ydiff(:), zdiff(:)]];
 
 % Remove voxels with very high transparency.
-remove = data(:) < 0.01;
-vox(remove,:) = [];
-data(remove) = [];
+rem = data(:) < 0.01;
+vox(rem,:) = [];
+data(rem) = [];
+color(rem) = [];
 
 % Define the color values of the voxel faces.
-if any(colorsize(1,2) ~= [1,3])
-    if colorsize(4) == 1
-        color(remove) = [];
-        color = kron(color(:), ones(6,1));
-    else
-        color(:,remove) = [];
-        color = kron(reshape(color, 3, []).', ones(6,1));
-    end
-end
+color = kron(color(:), ones(6,1));
 
 % Define the transparency values of the voxel faces.
 faceAlpha = kron(data(:), ones(6,1));
