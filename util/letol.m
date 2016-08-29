@@ -16,13 +16,16 @@ function x = letol(a, b, tol)
 
 % Copyright 2016 Alexander Schaefer
 
+%% Validate input.
+% Check number of input arguments.
+narginchk(2, 3)
+
+%% Compare input.
 switch nargin
     case 2
         x = a < b | ismembertol(a, b);
     case 3
         x = a < b | ismembertol(a, b, tol);
-    otherwise
-        narginchk(2, 3)
 end
 
 end
