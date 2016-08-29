@@ -3,10 +3,10 @@
 %% Set parameters.
 % MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/refmap_demo.mat'];
+lidarMapFile = [resultFolder, '/decaymap_demo.mat'];
 
 % Set the parameter that defines how many files make one scan.
-pcdPerLs = 4;
+pcdPerLs = 1;
 
 % Minimum and maximum admissible map values.
 mapLim = [0.002, 10];
@@ -31,6 +31,7 @@ pcdFile = dir([folder, '/*.pcd']);
 iScan = 1 : pcdPerLs : numel(pcdFile);
 Dgh = NaN(size(iScan));
 parprogress(numel(iScan));
+warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parfor i = 1 : numel(iScan)
     % Read laser scan data from files.
     ls = laserscan.empty(pcdPerLs, 0);
@@ -49,16 +50,16 @@ parfor i = 1 : numel(iScan)
         case 'lf'
             [pi, Li] = lfray(ls, lidarMap, 1 - sum(ls.ret)/ls.count);
         otherwise
-            error(['Model ', model, ' not supported.'])
+            error(['Sensor model ', model, ' not supported.'])
     end
     
     % Compute the KL divergence of the whole scan.
-    %%% TODO: Handle NaN values correctly.
     Dgh(i) = -sum([Li(~isnan(Li)); log(pi(~isnan(pi)))]);
     
     % Update the progress bar.
     parprogress;
 end
+warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parprogress(0);
 
 % Save the KL divergence to file.
