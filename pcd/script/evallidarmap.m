@@ -3,13 +3,14 @@
 %% Set parameters.
 % MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/decaymap_demo.mat'];
+lidarMapFile = [resultFolder, '/refmap_demo.mat'];
 
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
 
 % Minimum and maximum admissible map values.
-mapLim = [0.002, 10];
+decayLim = [0.002, 10];
+refLim = [0.001, 0.999];
 
 %% Prepare output file.
 % Load the file that contains the lidar map.
@@ -44,9 +45,9 @@ parfor i = 1 : numel(iScan)
     % Compute the measurement likelihood.
     switch lower(model)
         case 'decay'
-            [pi, Li] = decayray(ls, constrain(lidarMap, mapLim));
+            [pi, Li] = decayray(ls, constrain(lidarMap, decayLim));
         case 'ref'
-            [pi, Li] = refray(ls, constrain(lidarMap, mapLim));
+            [pi, Li] = refray(ls, constrain(lidarMap, refLim));
         case 'lf'
             [pi, Li] = lfray(ls, lidarMap, 1 - sum(ls.ret)/ls.count);
         otherwise
@@ -63,5 +64,6 @@ warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalFile, 'lidarMapFile', 'pcdPerLs', 'mapLim', 'Dgh', '-v7.3');
+save(evalFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', 'Dgh', ...
+    '-v7.3');
 display(['Result written to ', evalFile, '.'])
