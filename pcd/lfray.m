@@ -1,6 +1,6 @@
 function [p, L] = lfray(ls, lf, pnr)
 % LFRAY Compute probability of laser scan given likelihood field.
-%   [P, L] = LFRAY(LS, LF, POR) computes the probability of obtaining the 
+%   [P, L] = LFRAY(LS, LF, PNR) computes the probability of obtaining the 
 %   laser scan LS conditioned on the likelihood field map LF.
 %
 %   LS is a laserscan object that contains N rays. The sensor pose of the
@@ -9,8 +9,8 @@ function [p, L] = lfray(ls, lf, pnr)
 %
 %   LF is a voxelmap object that contains the likelihood field. The
 %   likelihood field is a measure for the probability that a map voxel
-%   belongs to an object. It may or may not be normalized, as LFRAY
-%   normalizes the return probability over each ray.
+%   belongs to an object. It may or may not be normalized; LFRAY normalizes 
+%   the return probability over each ray.
 %
 %   PNR defines the unconditioned probability of obtaining a no-return ray.
 %   Usually, it is defined as the ratio of the number of no-return rays to 
@@ -32,7 +32,7 @@ function [p, L] = lfray(ls, lf, pnr)
 %   normalized. The respective values of p and L are set to NaN.
 %
 %   Example:
-%      ls = lsread('data/sph.pcd', [2,120]);
+%      ls = lsread('pcd/data/sph.pcd', [2,120]);
 %      lf = lfmap(ls2pc(ls), 1, -100:5:100, -100:5:100, -20:5:20);
 %      [p, L] = lfray(ls, lf, 0.2)
 %
@@ -50,11 +50,6 @@ if ~isa(ls, 'laserscan')
 end
 if ~isa(lf, 'voxelmap')
     error('LF must be a voxelmap object.')
-end
-
-% If not given, set probability of no-return rays to zero.
-if nargin < 3
-    pnr = 0;
 end
 
 % Check whether value of probability of no-return rays is valid.
