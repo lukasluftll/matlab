@@ -57,7 +57,7 @@ spmd
             find(zgv <= p(i,3), 1, 'last') * (p(i,3) < zgv(end))];
 
         % If the index could not be found, set it to 0.
-        iw(i, [true,true,true] & numel(iwtmp)==3) = iwtmp;
+        iw(i, true(1,3) & numel(iwtmp)==3) = iwtmp;
     end
 end
 
