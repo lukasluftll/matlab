@@ -34,7 +34,7 @@ function [p, L] = lfray(ls, lf, pnr)
 %   Example:
 %      ls = lsread('pcd/data/sph.pcd', [2,120]);
 %      lf = lfmap(ls2pc(ls), 1, -100:5:100, -100:5:100, -20:5:20);
-%      [p, L] = lfray(ls, lf, 0.2)
+%      [p, L] = lfray(ls, constrain(lf, [0.001,Inf]), 0.2)
 %
 % See also LASERSCAN, VOXELMAP, LFMAP, LFPC, DECAYRAY.
 
@@ -84,11 +84,11 @@ parfor i = 1 : ls.count
         iv = sub2ind(size(lf.data), iv(:,1), iv(:,2), iv(:,3));
         
         % Compute the probability of a return before normalization.
-        pret = sum(lf.data(iv) .* diff(t) * ls.radius(i));
+        pr = sum(lf.data(iv) .* diff(t) * ls.radius(i));
 
         % Compute the normalized log-likelihood of obtaining the returned 
         % ray.
-        L(i) = log(lf.data(iv(end)) * (1-pnr) / pret);
+        L(i) = log(lf.data(iv(end)) * (1-pnr) / pr);
     else % No-return ray.
         p(i) = pnr;
     end
