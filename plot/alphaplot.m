@@ -39,7 +39,7 @@ function alphaplot(data, color, xgv, ygv, zgv, varargin)
 %   Example:
 %      alphaplot(rand(10, 10, 10))
 %
-%   See also: CUBOID, PATCH, CAT.
+%   See also: CUBOID, PATCH.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -47,9 +47,9 @@ function alphaplot(data, color, xgv, ygv, zgv, varargin)
 % Check if the user specified the correct number of input arguments.
 narginchk(1, inf)
 
-% Check if the data matrix has 3 dimensions.
-if ndims(data) ~= 3
-    error('DATA must have exactly 3 dimensions.')
+% Check the dimensionality of the input data.
+if ndims(data) > 3
+    error('DATA must have at most 3 dimensions.')
 end
 
 % Make sure the values of DATA are finite and stay in [0; 1].
@@ -62,14 +62,6 @@ if nargin < 2
     color = zeros(1, 3);
 end
 
-% Check the size of the color matrix.
-if ~(numel(color) == 1 ...
-        || (ndims(color) == 2 && all(size(color) ~= [1,3])) ...
-        || (ndims(color) == 3 && all(size(color) == size(data))) ...
-        || (ndims(color) == 4 && all(size(color) == [3, size(data)])))
-    error('The size of COLOR is invalid.')
-end
-
 % If no volume limits are given, create them.
 if nargin < 3
     xgv = 0 : size(data, 1);
@@ -80,9 +72,20 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
-% Check whether DATA has the correct size.
-if any(size(data) ~= [numel(xgv)-1, numel(ygv)-1, numel(zgv)-1])
+% Check whether size of DATA matches grid vectors.
+datasize = [size(data,1), size(data,2), size(data,3)];
+gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
+if ~all(datasize == gridsize)
     error('Size of DATA does not match grid vectors.')
+end
+
+% Check the size of the color matrix.
+colorsize = [size(color,1), size(color,2), size(color,3), size(color,4)];
+if ~(numel(color) == 1 ...
+        || (ismatrix(color) && all(size(color) ~= [1,3])) ...
+        || (colorsize(4) == 1 && all(colorsize == datasize)) ...
+        || (colorsize(4) > 1 && sizeall(colorsize == [datasize, 3])))
+    error('The size of COLOR is invalid.')
 end
 
 %% Plot voxels.
@@ -99,13 +102,14 @@ vox(remove,:) = [];
 data(remove) = [];
 
 % Define the color values of the voxel faces.
-switch ndims(color)
-    case 3
+if any(colorsize(1,2) ~= [1,3])
+    if colorsize(4) == 1
         color(remove) = [];
         color = kron(color(:), ones(6,1));
-    case 4
+    else
         color(:,remove) = [];
         color = kron(reshape(color, 3, []).', ones(6,1));
+    end
 end
 
 % Define the transparency values of the voxel faces.
