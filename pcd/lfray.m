@@ -68,14 +68,13 @@ parfor i = 1 : ls.count
     if iret(i) % Returned ray.
         % Compute the indices of the grid cells that the ray traverses
         % inside the valid sensor range.
-        ray = dir2cart(ls, i);
+        ray = dir2cart(ls, i); %#ok<*PFBNS>
         start = tform2trvec(ls.sp(:,:,i)) + ray*ls.rlim(1);
-        [iv,t] = trav(start, ray*diff(ls.rlim), lf.xgv, lf.ygv, lf.zgv);
+        [iv,t] = trav(start, ray*diff(ls.rlim), lf.xgv, lf.ygv, lf.zgv); 
         
-        % If the map does not cover the point on the ray corresponding to 
-        % minimum or maximum sensor range, set the probability of the ray 
-        % to NaN.
-        if t(1) > 0 || t(end) < 1
+        % If the map does not cover the segment of the ray from minimum to
+        % maximum sensor range, set the probability of the ray to NaN.
+        if isempty(t) || t(1) > 0 || t(end) < 1
             p(i) = NaN;
             L(i) = NaN;
             continue
@@ -84,12 +83,12 @@ parfor i = 1 : ls.count
         % Convert the subscript voxel indices to linear indices.
         iv = sub2ind(size(lf.data), iv(:,1), iv(:,2), iv(:,3));
         
-        % Compute the factor to normalize the probabilities of returned
-        % rays.
-        k = (1-pnr) / sum(lf.data(iv).*diff(t)*ls.radius(i));
+        % Compute the probability of a return before normalization.
+        pret = sum(lf.data(iv) .* diff(t) * ls.radius(i));
 
-        % Compute the normalized likelihood of obtaining the returned ray.
-        L(i) = log(k * lf.data(iv(end)));
+        % Compute the normalized log-likelihood of obtaining the returned 
+        % ray.
+        L(i) = log(lf.data(iv(end)) * (1-pnr) / pret);
     else % No-return ray.
         p(i) = pnr;
     end
