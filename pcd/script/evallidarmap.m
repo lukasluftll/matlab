@@ -3,7 +3,7 @@
 %% Set parameters.
 % MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/refmap_demo.mat'];
+lidarMapFile = [resultFolder, '/lfmap_demo.mat'];
 
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
@@ -49,7 +49,7 @@ parfor i = 1 : numel(iScan)
         case 'ref'
             [pi, Li] = refray(ls, constrain(lidarMap, refLim));
         case 'lf'
-            [pi, Li] = lfray(ls, lidarMap, 1 - sum(ls.ret)/ls.count);
+            [pi, Li] = lfray(ls, lidarMap, pNan);
         otherwise
             error(['Sensor model ', model, ' not supported.'])
     end
