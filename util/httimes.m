@@ -55,34 +55,17 @@ if ndims(b) > 3 || size(b, 1) ~= 4 || (ndims(b)==3 && size(b, 2)~=4)
 end
 
 %% Perform multiplication.
-% Use GPU, if available.
-if parallel.gpu.GPUDevice.isAvailable
-    % Move input data to GPU.
-    a = gpuArray(a);
-    b = gpuArray(b);
-    
-    if ndims(b) == 3   % Matrix-matrix multiply.
-        c = pagefun(@mtimes, a, b);
-    else   % Matrix-vector multiply.
-        b = reshape(b, 4, 1, []);
-        c = reshape(pagefun(@mtimes, a, b), 4, []);
+if ndims(b) == 3   % Matrix-matrix multiply.
+    c = zeros(size(a));
+    for i = 1 : size(a, 3)
+        c(:,:,i) = a(:,:,i) * b(:,:,i);
     end
-    
-    % Move result back to CPU.
-    c = gather(c);
-else
-    if ndims(b) == 3   % Matrix-matrix multiply.
-        c = zeros(size(a));
-        parfor i = 1 : size(a, 3)
-            c(:,:,i) = a(:,:,i) * b(:,:,i);
-        end
-    else   % Matrix-vector multiply.
-        c = zeros(size(b));
-        parfor i = 1 : size(b, 2)
-            c(:,i) = a(:,:,i) * b(:,i);
-        end
-        c = reshape(c, 4, []);
+else   % Matrix-vector multiply.
+    c = zeros(size(b));
+    for i = 1 : size(b, 2)
+        c(:,i) = a(:,:,i) * b(:,i);
     end
+    c = reshape(c, 4, []);
 end
 
 end
