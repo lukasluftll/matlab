@@ -83,7 +83,7 @@ vol = [xgv(1), ygv(1), zgv(1), xgv(end), ygv(end), zgv(end)];
 % If the ray does not traverse the volume, return immediately.
 i = []; 
 t = [];
-if ~hit || tvol(2) < 0 || diff(tvol) == 0
+if ~hit || tvol(1) < 0 || tvol(1) > 1 || diff(tvol) == 0
     return
 end
 
