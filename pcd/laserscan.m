@@ -1,4 +1,4 @@
-classdef laserscan < handle
+classdef laserscan < matlab.mixin.Copyable
     % LASERSCAN Object for storing 3D laser scan.
     %   L = LASERSCAN(SP, AZIMUTH, ELEVATION, RADIUS, RLIM) creates a 
     %   laser scan object.
@@ -34,6 +34,7 @@ classdef laserscan < handle
     %   LS2PC      - Transform laser scan to point cloud
     %   RET        - Identify returned rays
     %   LSCONCAT   - Concatenate laser scans
+    %   CHREF      - Change reference system
     %   PLOT       - Plot laser scan
     %
     %   See also TRAV, SLAB.
@@ -364,7 +365,33 @@ classdef laserscan < handle
                 reshape([x.elevation], [], 1), ...
                 reshape([x.radius], [], 1), ...
                 [max(xrlim(1,:)), min(xrlim(2,:))]);
-        end            
+        end
+        
+        % Change reference system.
+        function ls = chref(obj, tform)
+            % CHREF Change reference system.
+            %   LS = CHREF(OBJ, T) changes the reference system of the
+            %   laserscan object OBJ according to the transformation T.
+            %   After this operation, the sensor poses SP are specified in
+            %   the new reference frame.
+            %
+            %   T is the homogeous transformation matrix from the current
+            %   reference frame of the scan to the new reference frame.
+            %
+            %   LS is the laserscan object with the new reference frame.
+            
+            %% Validate input.
+            % Check the number of input arguments.
+            narginchk(1, 2)
+            
+            % Check the validity of the homogeneous transformation matrix.
+            hrtchk(tform)
+            
+            %% Change sensor poses.
+            nsp = httimes(repmat(inv(tform),1,1,size(obj.sp,3)), obj.sp);
+            ls = laserscan(nsp, obj.azimuth, obj.elevation, obj.radius, ...
+                obj.rlim);
+        end
        
         % Plot the laser scan.
         function plot(obj)
