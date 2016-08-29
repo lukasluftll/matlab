@@ -1,5 +1,6 @@
 result
 *~
+*.asv
 pathdef.m
 watermelon_pcd
 pcd/data/campus
@@ -7,4 +8,3 @@ pcd/data/mooswald
 pcd/data/schauinsland
 pcd/data/demo
 parprogress.txt
-
