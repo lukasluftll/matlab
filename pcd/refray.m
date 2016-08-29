@@ -48,6 +48,11 @@ if ~isa(ref, 'voxelmap')
     error('REF must be a voxelmap object.')
 end
 
+% Check the validity of the reflectivity map.
+if any(ref.data(:) < 0) || any(ref.data(:) > 1)
+    error('REF must only contain values in [0;1].')
+end
+
 %% Preprocess input arguments.
 % Compute the normalized Cartesian ray direction vectors with respect to
 % the map frame.
