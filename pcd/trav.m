@@ -5,8 +5,8 @@ function [i, t] = trav(origin, ray, xgv, ygv, zgv)
 %   end point ORIGIN + RAY. The grid is defined by the grid vectors XGV, 
 %   YGV, and ZGV.
 %
-%   If the ray only touches the voxel, no corresponding traversal is 
-%   reported.
+%   If the ray only touches a voxel, i.e. the ray and the voxel have only
+%   one point in common, no corresponding traversal is reported.
 %
 %   ORIGIN is a 3-element row vector that contains the coordinates of
 %   the starting point of the ray.
@@ -83,7 +83,7 @@ vol = [xgv(1), ygv(1), zgv(1), xgv(end), ygv(end), zgv(end)];
 % If the ray does not traverse the volume, return immediately.
 i = []; 
 t = [];
-if ~hit || tvol(1) < 0 || tvol(1) > 1 || diff(tvol) == 0
+if ~hit || tvol(2) <= 0 || tvol(1) > 1 || diff(tvol) == 0
     return
 end
 
@@ -100,9 +100,9 @@ i = [find(letol(xgv(1:end-1), entry(1)), 1, 'last'), ...
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the line parameters of the ray corresponding to the intersections
 % with the grid planes.
-tx = (xgv(:) - origin(1)) / ray(1);
-ty = (ygv(:) - origin(2)) / ray(2);
-tz = (zgv(:) - origin(3)) / ray(3);
+tx = (xgv(:)-origin(1)) / ray(1);
+ty = (ygv(:)-origin(2)) / ray(2);
+tz = (zgv(:)-origin(3)) / ray(3);
 
 % Sort the line parameters corresponding to the start point, the end point, 
 % and the intersections.
