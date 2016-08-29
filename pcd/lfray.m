@@ -1,4 +1,4 @@
-function [p, L] = lfray(ls, lf, por)
+function [p, L] = lfray(ls, lf, pnr)
 % LFRAY Compute probability of laser scan given likelihood field.
 %   [P, L] = LFRAY(LS, LF, POR) computes the probability of obtaining the 
 %   laser scan LS conditioned on the likelihood field map LF.
@@ -12,7 +12,7 @@ function [p, L] = lfray(ls, lf, por)
 %   belongs to an object. It may or may not be normalized, as LFRAY
 %   normalizes the return probability over each ray.
 %
-%   POR defines the unconditioned probability of obtaining a no-return ray.
+%   PNR defines the unconditioned probability of obtaining a no-return ray.
 %   Usually, it is defined as the ratio of the number of no-return rays to 
 %   the number of all rays.
 % 
@@ -54,21 +54,17 @@ end
 
 % If not given, set probability of no-return rays to zero.
 if nargin < 3
-    por = 0;
+    pnr = 0;
 end
 
 % Check whether value of probability of no-return rays is valid.
-if por < 0 || por > 1
-    error('PNIR must stay in [0;1].')
+if pnr < 0 || pnr > 1
+    error('PNR must stay in [0;1].')
 end
 
 %% Compute scan probability.
 % Compute the logical indices of the returned rays.
 iret = ls.ret;
-
-% Compute the Cartesian ray direction vectors of the returned rays with
-% respect to the map frame.
-ray = dir2cart(ls, iret);
 
 % Loop over all rays and compute their probabilities.
 p = ones(ls.count, 1);
@@ -77,8 +73,9 @@ parfor i = 1 : ls.count
     if iret(i) % Returned ray.
         % Compute the indices of the grid cells that the ray traverses
         % inside the valid sensor range.
-        start = tform2trvec(ls.sp(:,:,i)) + ray*ls.rlim(1);  %#ok<*PFBNS>
-        [iv,t] = trav(start, ray*diff(ls.rlim), ls.xgv, ls.ygv, ls.zgv);
+        ray = dir2cart(ls, i);
+        start = tform2trvec(ls.sp(:,:,i)) + ray*ls.rlim(1);
+        [iv,t] = trav(start, ray*diff(ls.rlim), lf.xgv, lf.ygv, lf.zgv);
         
         % If the map does not cover the point on the ray corresponding to 
         % minimum or maximum sensor range, set the probability of the ray 
@@ -90,16 +87,16 @@ parfor i = 1 : ls.count
         end
         
         % Convert the subscript voxel indices to linear indices.
-        iv = sub2ind(size(ls.data), iv(:,1), iv(:,2), iv(:,3));
+        iv = sub2ind(size(lf.data), iv(:,1), iv(:,2), iv(:,3));
         
         % Compute the factor to normalize the probabilities of returned
         % rays.
-        k = (1-por) / sum(ls.data(iv).*diff(t)*ls.radius(i));
+        k = (1-pnr) / sum(lf.data(iv).*diff(t)*ls.radius(i));
 
         % Compute the normalized likelihood of obtaining the returned ray.
         L(i) = log(k * lf.data(iv(end)));
     else % No-return ray.
-        p(i) = por;
+        p(i) = pnr;
     end
 end
 
