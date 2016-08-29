@@ -91,11 +91,11 @@ end
 % into the grid and to the point where the ray leaves the grid.
 tlim = [ max([0, tvol(1)]), min([1, tvol(2)]) ];
 
-% Calculate the index of the voxel corresponding to the starting point. 
+% Calculate the index of the voxel corresponding to the starting point.
 entry = origin + tlim(1) * ray;
-i = [find(xgv(1:end-1) <= entry(1), 1, 'last'), ...
-    find(ygv(1:end-1) <= entry(2), 1, 'last'), ...
-    find(zgv(1:end-1) <= entry(3), 1, 'last')];
+i = [find(letol(xgv(1:end-1), entry(1)), 1, 'last'), ...
+    find(letol(ygv(1:end-1), entry(2)), 1, 'last'), ...
+    find(letol(zgv(1:end-1), entry(3)), 1, 'last')];
 
 %% Incremental phase: calculate indices of traversed voxels.
 % Compute the line parameters of the ray corresponding to the intersections
