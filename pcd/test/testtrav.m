@@ -2,8 +2,6 @@
 
 % Copyright 2016 Alexander Schaefer
 
-% SHARED VARIABLES SECTION.
-
 %% Origin ray in x direction
 origin = [0, 0, 0];
 ray = [10, 0, 0];
