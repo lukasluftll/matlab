@@ -11,6 +11,7 @@ pcdPerLs = 1;
 % Minimum and maximum admissible map values.
 decayLim = [0.002, 10];
 refLim = [0.001, 0.999];
+lfLim = [1e-6, 1];
 
 %% Prepare output file.
 % Load the file that contains the lidar map.
@@ -49,7 +50,7 @@ parfor i = 1 : numel(iScan)
         case 'ref'
             [pi, Li] = refray(ls, constrain(lidarMap, refLim));
         case 'lf'
-            [pi, Li] = lfray(ls, lidarMap, pNan);
+            [pi, Li] = lfray(ls, constrain(lidarMap, lfLim), pNan);
         otherwise
             error(['Sensor model ', model, ' not supported.'])
     end
