@@ -8,10 +8,10 @@ resultFolder = 'pcd/result';
 pcFile = [resultFolder, '/pcmap_demo.mat'];
 
 % Sensor model to use to build map: 'decay' | 'ref' | 'lf'.
-model = 'ref';
+model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapRes = 5;
+mapRes = 2.0;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -25,7 +25,7 @@ load(pcFile);
 
 % Print caption.
 hline(75)
-disp(['Computing ', model, 'map for ', dataset, ' ...'])
+disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 
 % Define the name of the output MAT file.
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
