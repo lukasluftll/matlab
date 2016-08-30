@@ -2,7 +2,7 @@
 
 %% Parameters.
 % Dataset name.
-dataset = 'demo';
+dataset = 'campus';
 
 % Dataset folder containing the PCD files.
 folder = ['pcd/data/', dataset, '/pcd_sph'];

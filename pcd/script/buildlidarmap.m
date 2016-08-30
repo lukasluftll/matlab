@@ -5,7 +5,7 @@
 resultFolder = 'pcd/result';
 
 % Name of the file that contains the merged point cloud.
-pcFile = [resultFolder, '/pcmap_demo.mat'];
+pcFile = [resultFolder, '/pcmap_campus.mat'];
 
 % Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
 model = 'decay';
@@ -95,7 +95,7 @@ switch lower(model)
         end
         
         % Compute the decay rate map.
-        lidarMap = voxelmap(r./l, xgv, ygv, zgv, rtot/ltot);
+        lidarMap = voxelmap(single(r./l), xgv, ygv, zgv, rtot/ltot);
     case 'ref'
         % Iterate over all laser scans, compute local reflectivity maps and
         % merge them into a global map.
@@ -123,10 +123,12 @@ switch lower(model)
         end
         
         % Compute the reflectivity map.
-        lidarMap = voxelmap(h./(h+m), xgv, ygv, zgv, htot/(htot+mtot));
+        lidarMap = voxelmap(single(h./(h+m)), xgv, ygv, zgv, ...
+            htot/(htot+mtot));
     case 'lf'
         % Compute the likelihood field.
         lidarMap = lfmap(pcMap, sigma, xgv, ygv, zgv);
+        lidarMap.data = single(lidarMap.data);
         
         % Count the number of no-returns and the number of returned rays.
         nRet = 0;
