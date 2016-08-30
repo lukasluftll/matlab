@@ -98,10 +98,6 @@ classdef voxelmap < matlab.mixin.Copyable
             % Check if the data matrix sizes match.
             if ndims(a.data) ~= ndims(b.data) ...
                     || ~all(size(a.data) == size(b.data))
-                disp('size a')
-                size(a.data)
-                disp('size b')
-                size(b.data)
                 error('Voxelmaps must be of same size.');
             end
         end

@@ -11,7 +11,7 @@ pcFile = [resultFolder, '/pcmap_demo.mat'];
 model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapRes = 1;
+mapRes = 5;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -71,8 +71,10 @@ parprogress(nPcdFile);
 pNan = [];
 switch lower(model)
     case 'decay'
-        r = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
-        l = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
+        r = zeros(gridsize);
+        l = zeros(gridsize);
+        rtot = 0;
+        ltot = 0;
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
             ls = lsread([folder, '/', pcdFile(i).name], rlim);
@@ -81,22 +83,26 @@ switch lower(model)
             warning('off', 'pcd:mapping:rlim')
             [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
             warning('on', 'pcd:mapping:rlim')
-            
+                        
             % Integrate the local map information into the global map.
-            r = r + ri;
-            l = l + li;
+            r = r + ri.data;
+            l = l + li.data;
+            rtot = rtot + ri.prior;
+            ltot = ltot + li.prior;
 
             % Update progress bar.
             parprogress;
         end
         
         % Compute the decay rate map.
-        lidarMap = r ./ l;
+        lidarMap = voxelmap(r./l, xgv, ygv, zgv, rtot/ltot);
     case 'ref'
         % Iterate over all laser scans, compute local reflectivity maps and
         % merge them into a global map.
-        h = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
-        m = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
+        h = zeros(gridsize);
+        m = zeros(gridsize);
+        htot = 0;
+        mtot = 0;
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
             ls = lsread([folder, '/', pcdFile(i).name], rlim);
@@ -107,15 +113,17 @@ switch lower(model)
             warning('on', 'pcd:mapping:rlim')
             
             % Integrate the local map information into the global map.
-            h = h + hi;
-            m = m + mi;
+            h = h + hi.data;
+            m = m + mi.data;
+            htot = htot + hi.prior;
+            mtot = mtot + mi.prior;
             
             % Update the progress bar.
             parprogress;
         end
         
         % Compute the reflectivity map.
-        lidarMap = h ./ (h+m);
+        lidarMap = voxelmap(h./(h+m), xgv, ygv, zgv, htot/(htot+mtot));
     case 'lf'
         % Compute the likelihood field.
         lidarMap = lfmap(pcMap, sigma, xgv, ygv, zgv);
