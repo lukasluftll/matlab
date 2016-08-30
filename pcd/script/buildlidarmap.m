@@ -11,7 +11,8 @@ pcFile = [resultFolder, '/pcmap_campus.mat'];
 model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapRes = 5;
+mapResFine = 0.5;
+mapResCoarse = 5;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -31,19 +32,22 @@ disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 %% Compute extent of lidar map.
+% Get the volume where the map resolution is high.
+mapLimFine = [pcMap.XLimits; pcMap.YLimits; pcMap.ZLimits];
+
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 nPcdFile = numel(pcdFile);
 
 % Iterate over all scans and compute an axis-aligned bounding box of all
 % sensor poses.
-mapLim = repmat([Inf, -Inf], 3, 1);
+mapLimCoarse = repmat([Inf, -Inf], 3, 1);
 for i = 1 : nPcdFile
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     spmin = min(tform2trvec(ls.sp)).';
     spmax = max(tform2trvec(ls.sp)).';
-    mapLim = [min([mapLim(:,1), spmin], [], 2), ...
-        max([mapLim(:,2), spmax], [], 2)];
+    mapLimCoarse = [min([mapLimCoarse(:,1), spmin], [], 2), ...
+        max([mapLimCoarse(:,2), spmax], [], 2)];
 end
 
 % Compute the bounding box of a scan that consists of maximum range
@@ -53,14 +57,25 @@ zlim = rlim(2) * sin(elevationLim);
 xylim = [-1,+1] * rlim(2);
 
 % Add the extent of the maximum range scan to the bounding box of the
-% sensor poses to get the extent of the map.
-mapLim = mapLim + [xylim; xylim; zlim];
+% sensor poses to get the extent of the coarse-grained map.
+mapLimCoarse = mapLimCoarse + [xylim; xylim; zlim];
 
 %% Create lidar map.
 % Compute the grid vectors of the map.
-xgv = mapLim(1,1) : mapRes : mapLim(1,2)+mapRes;
-ygv = mapLim(2,1) : mapRes : mapLim(2,2)+mapRes;
-zgv = mapLim(3,1) : mapRes : mapLim(3,2)+mapRes;
+xgv = [mapLimCoarse(1,1) : mapResCoarse : mapLimFine(1,1), ...
+    mapLimFine(1,1) : mapResFine : mapLimFine(1,2), ...
+    mapLimFine(1,2) : mapResCoarse : mapLimCoarse(1,2)+mapRes];
+ygv = [mapLimCoarse(2,1) : mapResCoarse : mapLimFine(2,1), ...
+    mapLimFine(2,1) : mapResFine : mapLimFine(2,2), ...
+    mapLimFine(2,2) : mapResCoarse : mapLimCoarse(2,2)+mapRes];
+zgv = [mapLimCoarse(3,1) : mapResCoarse : mapLimFine(3,1), ...
+    mapLimFine(3,1) : mapResFine : mapLimFine(3,2), ...
+    mapLimFine(3,2) : mapResCoarse : mapLimCoarse(3,2)+mapRes];
+
+% Remove too small spacings.
+xgv([false, diff(xgv)<mapResFine]) = [];
+ygv([false, diff(ygv)<mapResFine]) = [];
+zgv([false, diff(zgv)<mapResFine]) = [];
 
 % For the decay model and the reflectivity model, loop over all scans, 
 % compute local maps and merge them to form a global map.
@@ -153,6 +168,6 @@ end
 parprogress(0);
 
 %% Save map.
-save(lidarMapFile, 'dataset', 'folder', 'pcRes', 'model', ...
-    'mapRes', 'rlim', 'sigma', 'lidarMap', 'pNan', '-v7.3');
+save(lidarMapFile, 'dataset', 'folder', 'pcRes', 'model', 'mapResFine', ...
+    'mapResCoarse', 'rlim', 'sigma', 'lidarMap', 'pNan', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])
