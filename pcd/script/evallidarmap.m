@@ -65,6 +65,6 @@ warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', 'Dgh', ...
-    '-v7.3');
+save(evalFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', ...
+    'lfLim', 'Dgh', '-v7.3');
 display(['Result written to ', evalFile, '.'])

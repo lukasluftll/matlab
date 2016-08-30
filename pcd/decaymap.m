@@ -17,13 +17,16 @@ function [lambda, r, l] = decaymap(ls, xgv, ygv, zgv)
 %
 %   LAMBDA is a voxelmap object that contains the mean decay rate of each 
 %   voxel. The lambda value of a voxel that has not been visited by any ray
-%   is NaN.
+%   is NaN. The prior of LAMBDA is the quotient of the number of returns 
+%   by the total length of all rays.
 %
 %   [LAMBDA, R, L] = DECAYMAP(LS, XGV, YGV, ZGV) also returns the voxelmap 
 %   objects R and L. 
 %   R contains the number of ray remissions for each voxel. 
 %   L contains the cumulated length of all rays that traversed the 
 %   respective grid cell.
+%   The priors of R and L are the total number of returns and the total 
+%   length of all rays, respectively.
 %
 %   Concept of ray decay rate
 %   -------------------------
@@ -62,8 +65,9 @@ gvchk(xgv, ygv, zgv);
 % If the sensor measurement range starts at a positive value, issue a
 % warning.
 if ls.rlim(1) > 0
-    warning(['LS.RLIM(1) > 0, but all no-return ray lengths are ', ...
-      'assumed to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
+    warning('decaymap:rlim', ...
+        ['LS.RLIM(1) > 0, but all no-return ray lengths are assumed ', ...
+        'to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
 end
 
 %% Compute ray lengths and returns per voxel.
@@ -71,24 +75,27 @@ end
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 
 % Loop over all laser scans.
+ltot = 0;
+rtot = 0;
 for s = 1 : numel(ls)
-    % Compute the Cartesian ray direction vectors in the sensor frame.
+    % Compute the Cartesian ray direction vectors in the map frame.
     ray = dir2cart(ls(s));
-
-    % Compute the indices of the returned rays.
-    iret = ls(s).ret;
 
     % Set the length of no-return rays to maximum sensor range.
     radius = ls(s).radius;
-    radius(~iret) = ls(s).rlim(2);
+    radius(~ls(s).ret) = ls(s).rlim(2);
     ray = ray .* repmat(radius, 1, 3);
+    
+    % Sum up the lengths of all rays and the number of returns.
+    ltot = ltot + sum(radius);
+    rtot = rtot + sum(ls(s).ret);
 
     % Compute ray length and number of returns per voxel.
     l = zeros(gridsize);
     r = zeros(gridsize);
     for i = 1 : ls(s).count   
         % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav(tform2trvec(ls(s).sp(:,:,i)),ray(i,:),xgv,ygv,zgv);
+        [vi,t] = trav(tform2trvec(ls(s).sp(:,:,i)), ray(i,:), xgv,ygv,zgv);
 
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
@@ -101,8 +108,10 @@ for s = 1 : numel(ls)
     end
 end
 
-%% Compute the decay rate.
-lambda = voxelmap(r./l, xgv, ygv, zgv);
-lambda.data(l == 0) = NaN;
+%% Create voxelmaps.
+r = voxelmap(r, xgv, ygv, zgv, rtot);
+l = voxelmap(l, xgv, ygv, zgv, ltot);
+lambda = r ./ l;
+lambda.data(l==0) = NaN;
 
 end

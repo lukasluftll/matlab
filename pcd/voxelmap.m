@@ -1,11 +1,11 @@
 classdef voxelmap < matlab.mixin.Copyable
     % VOXELMAP Object for storing a 3D voxel map.
-    %   M = VOXELMAP(DATA) creates a voxel map object.
+    %   VM = VOXELMAP(DATA) creates a voxel map object.
     %   
     %   DATA is an IxJxK matrix that contains the map data.
     %
-    %   M = VOXELMAP(DATA, XGV, YGV, ZGV) creates a voxel map object with a
-    %   defined voxel grid.
+    %   VM = VOXELMAP(DATA, XGV, YGV, ZGV) creates a voxel map object with
+    %   a defined voxel grid.
     %   
     %   XGV, YGV, ZGV are vectors that define the rasterization of the 
     %   voxel grid. A voxel with index [i,j,k] contains all points [x,y,z]
@@ -18,15 +18,19 @@ classdef voxelmap < matlab.mixin.Copyable
     %   DATA is an IxJxK matrix that contains the map data, where 
     %   I = numel(XGV)-1, J = numel(YGV)-1, and K = numel(ZGV)-1.
     %
+    %   VM = VOXELMAP(DATA, XGV, YGV, ZGV, PRIOR) defines the value of all
+    %   points outside the volume covered by the voxelmap. The default 
+    %   value for PRIOR is NaN.
+    %
     %   Example:
-    %      data = rand(10, 10, 10);
-    %      m = voxelmap(data)
+    %      vm = voxelmap(rand(10,10,10))
     %
     %   VOXELMAP properties:
     %   DATA     - Map data
     %   XGV      - x-axis grid vector
     %   YGV      - y-axis grid vector
     %   ZGV      - z-axis grid vector
+    %   PRIOR    - Value of all points outside the map volume
     %
     %   VOXELMAP methods:
     %   PLUS      - Add map data element-wise
@@ -48,6 +52,7 @@ classdef voxelmap < matlab.mixin.Copyable
     
     properties 
         data;
+        prior;
     end
     
     properties ( SetAccess = private )
@@ -112,17 +117,19 @@ classdef voxelmap < matlab.mixin.Copyable
         
     methods ( Access = public )
         % Construct a voxelmap object.
-        function obj = voxelmap(data, xgv, ygv, zgv)
+        function obj = voxelmap(data, xgv, ygv, zgv, prior)
             % Check number of input arguments.
-            if ~(nargin == 1 || nargin == 4)
-                error('VOXELMAP takes 1 or 4 input arguments.')
-            end
-            
-            % If the grid vectors are not given, construct them.
-            if nargin == 1
-                xgv = 0 : size(data, 1);
-                ygv = 0 : size(data, 2);
-                zgv = 0 : size(data, 3);
+            switch nargin
+                case 1
+                    xgv = 0 : size(data, 1);
+                    ygv = 0 : size(data, 2);
+                    zgv = 0 : size(data, 3);
+                    prior = NaN;
+                case 4
+                    prior = NaN;
+                case 5
+                otherwise
+                    error('VOXELMAP takes 1, 4, or 5 input arguments.')
             end
             
             % Check the grid vectors.
@@ -130,6 +137,7 @@ classdef voxelmap < matlab.mixin.Copyable
             
             % Store the input.
             obj.data = data;
+            obj.prior = prior;
             obj.xgv = xgv;
             obj.ygv = ygv;
             obj.zgv = zgv;
@@ -161,7 +169,7 @@ classdef voxelmap < matlab.mixin.Copyable
             chkewo(a, b)
             
             % Add map data and create resulting voxelmap.
-            c = voxelmap(a.data + b.data, a.xgv, a.ygv, a.zgv);
+            c = voxelmap(a.data+b.data,a.xgv,a.ygv,a.zgv,a.prior+b.prior);
         end
         
         % Increment map data element-wise.
@@ -188,8 +196,9 @@ classdef voxelmap < matlab.mixin.Copyable
             % Check whether element-wise operation can be performed.
             chkewo(obj, d)
             
-            % Add the data to the voxelmap object.
+            % Add the data and the prior to the voxelmap object.
             obj.data = obj.data + d.data;
+            obj.prior = obj.prior + d.prior;
         end
         
         % Sum of multiple voxelmaps.
@@ -225,22 +234,7 @@ classdef voxelmap < matlab.mixin.Copyable
             %   matrix.
             %
             %   C is a voxelmap object.   
-            
-            % Check number of input arguments.
-            narginchk(2, 2)
-            
-            % Force the input argument to be voxelmaps.
-            [a, b] = any2voxelmap(a, b);
-            
-            % If any voxelmap is empty, set its size to match the other
-            % voxelmap.
-            [a, b] = fitsize(a, b);
-            
-            % Check whether element-wise operations can be performed.
-            chkewo(a, b)
-            
-            % Subtract cell data.
-            c = voxelmap(a.data - b.data, a.xgv, a.ygv, a.zgv);
+            c = plus(a, -b);
         end
         
         % Decrement map data element-wise.
@@ -278,7 +272,7 @@ classdef voxelmap < matlab.mixin.Copyable
             chkewo(a, b)
             
             % Multiply cell data.
-            c = voxelmap(a.data .* b.data, a.xgv, a.ygv, a.zgv);
+            c = voxelmap(a.data.*b.data,a.xgv,a.ygv,a.zgv,a.prior*b.prior);
         end
         
         % Divide cell data element-wise from right.
@@ -303,7 +297,7 @@ classdef voxelmap < matlab.mixin.Copyable
             chkewo(a, b)
             
             % Divide cell data.
-            c = voxelmap(a.data ./ b.data, a.xgv, a.ygv, a.zgv);
+            c = voxelmap(a.data./b.data,a.xgv,a.ygv,a.zgv,a.prior/b.prior);
         end
         
         % Natural logarithm.
@@ -315,7 +309,8 @@ classdef voxelmap < matlab.mixin.Copyable
             narginchk(1, 1)
             
             % Compute logarithm.
-            l = voxelmap(log(obj.data), obj.xgv, obj.ygv, obj.zgv);
+            l = voxelmap(log(obj.data), obj.xgv, obj.ygv, obj.zgv, ...
+                log(obj.prior));
         end
         
         % Unary minus.
@@ -327,7 +322,7 @@ classdef voxelmap < matlab.mixin.Copyable
             narginchk(1, 1)
             
             % Negate data.
-            u = voxelmap(-obj.data, obj.xgv, obj.ygv, obj.zgv);
+            u = voxelmap(-obj.data, obj.xgv, obj.ygv, obj.zgv, -obj.prior);
         end
         
         % Fit map data to interval.
@@ -341,6 +336,8 @@ classdef voxelmap < matlab.mixin.Copyable
             y = copy(obj);
             y.data = constrain(y.data, lim);
             y.data(isnan(y.data)) = lim(1);
+            y.prior = constrain(y.prior, lim);
+            y.prior(isnan(y.prior)) = lim(1);
         end
         
         % Plot histogram of map data.

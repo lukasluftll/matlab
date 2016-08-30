@@ -8,7 +8,7 @@ dataset = 'demo';
 folder = ['pcd/data/', dataset, '/pcd_sph'];
 
 % Resolution of the merged point cloud map.
-pcRes = 0.5;
+pcRes = 0.1;
 
 %% Prepare output file.
 % Print caption.
@@ -29,7 +29,7 @@ pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
     
-% Build the map and denoise it.
+% Build the map.
 pcMap = pcmap(folder, pcRes);
 
 % Save the point cloud map to file.

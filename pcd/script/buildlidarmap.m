@@ -7,11 +7,11 @@ resultFolder = 'pcd/result';
 % Name of the file that contains the merged point cloud.
 pcFile = [resultFolder, '/pcmap_demo.mat'];
 
-% Sensor model to use to build map: 'decay' | 'ref' | 'lf'.
-model = 'lf';
+% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
+model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapRes = 2.0;
+mapRes = 0.25;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -47,7 +47,7 @@ for i = 1 : nPcdFile
 end
 
 % Compute the bounding box of a scan that consists of maximum range
-% readings only.
+% readings.
 elevationLim = [min(ls.elevation), max(ls.elevation)];
 zlim = rlim(2) * sin(elevationLim);
 xylim = [-1,+1] * rlim(2);
@@ -62,16 +62,14 @@ xgv = mapLim(1,1) : mapRes : mapLim(1,2)+mapRes;
 ygv = mapLim(2,1) : mapRes : mapLim(2,2)+mapRes;
 zgv = mapLim(3,1) : mapRes : mapLim(3,2)+mapRes;
 
-% For the decay and the reflectivity model, loop over all scans and compute
-% the numerator and denominator of each map cell's value.
+% For the decay model and the reflectivity model, loop over all scans, 
+% compute local maps and merge them to form a global map.
 % For the endpoint model, simply compute the Gaussian of the distance to
 % the nearest obstacle for each voxel.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 parprogress(nPcdFile);
 switch lower(model)
     case 'decay'
-        % Iterate over all laser scans, compute local decay rate maps and 
-        % merge them into a global map.
         r = zeros(gridsize);
         l = zeros(gridsize);
         parfor i = 1 : nPcdFile
@@ -79,9 +77,9 @@ switch lower(model)
             ls = lsread([folder, '/', pcdFile(i).name], rlim);
 
             % Build the local decay rate map.
-            warning('off') %#ok<*WNOFF>
+            warning('off', 'decaymap:rlim')
             [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
-            warning('on') %#ok<*WNON>
+            warning('on', 'decaymap:rlim')
             
             % Integrate the local map information into the global map.
             r = r + ri;
