@@ -65,7 +65,7 @@ gvchk(xgv, ygv, zgv);
 % If the sensor measurement range starts at a positive value, issue a
 % warning.
 if ls.rlim(1) > 0
-    warning('decaymap:rlim', ...
+    warning('pcd:mapping:rlim', ...
         ['LS.RLIM(1) > 0, but all no-return ray lengths are assumed ', ...
         'to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
 end
@@ -81,14 +81,17 @@ for s = 1 : numel(ls)
     % Compute the Cartesian ray direction vectors in the map frame.
     ray = dir2cart(ls(s));
 
+    % Compute the indices of the returned rays.
+    iret = ls(s).ret;
+    
     % Set the length of no-return rays to maximum sensor range.
     radius = ls(s).radius;
-    radius(~ls(s).ret) = ls(s).rlim(2);
+    radius(~iret) = ls(s).rlim(2);
     ray = ray .* repmat(radius, 1, 3);
     
     % Sum up the lengths of all rays and the number of returns.
     ltot = ltot + sum(radius);
-    rtot = rtot + sum(ls(s).ret);
+    rtot = rtot + sum(iret);
 
     % Compute ray length and number of returns per voxel.
     l = zeros(gridsize);
