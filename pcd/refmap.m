@@ -4,7 +4,7 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 %   reflectivity of each voxel in the grid volume defined by the grid 
 %   vectors XGV, YGV, ZGV.
 %
-%   LS is a vector of laserscan objects. The sensor poses of the scans are
+%   LS is a matrix of laserscan objects. The sensor poses of the scans are
 %   assumed to be specified with respect to the reflectivity map frame.
 %
 %   XGV, YGV, ZGV are vectors that define the rasterization of the grid.
@@ -17,15 +17,18 @@ function [ref, h, m] = refmap(ls, xgv, ygv, zgv)
 %
 %   REF is a voxelmap object that contains the reflectivity of each voxel.
 %   The reflectivity is a value in [0;1]. It indicates the fraction of 
-%   rays that are reflected by the voxel compared to all rays that reach 
+%   rays that are reflected in the voxel compared to all rays that reach 
 %   the voxel. If the voxel has not been visited by any ray, its 
-%   reflectivity is NaN.
+%   reflectivity is NaN. The prior of REF is the ratio of the number of 
+%   reflected rays to the number of all rays.
 %
 %   [REF, H, M] = REFMAP(LS, XGV, YGV, ZGV) also returns the voxelmap 
 %   objects H and M. 
 %   H contains the number of ray remissions for each voxel. 
 %   M contains for each voxel the number of rays that traversed the voxel
 %   without reflection.
+%   The priors of H and M are the total numbers of remissions and
+%   traversals, respectively.
 %
 %   Example:
 %      ls = lsread('pcd/data/campus/pcd_sph/campus-00100.pcd');
@@ -56,8 +59,9 @@ gvchk(xgv, ygv, zgv);
 % If the sensor measurement range starts at a positive value, issue a
 % warning.
 if ls.rlim(1) > 0
-    warning(['LS.RLIM(1) > 0, but all no-return ray lengths are ', ...
-      'assumed to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
+    warning('pcd:mapping:rlim', ...
+        ['LS.RLIM(1) > 0, but all no-return ray lengths are assumed ', ...
+        'to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
 end
 
 %% Compute hits and misses per voxel.
@@ -70,6 +74,8 @@ h = zeros(gridsize);
 m = zeros(gridsize);
 
 % Loop over all laser scans.
+htot = 0;
+mtot = 0;
 for s = 1 : numel(ls)
     % Compute the Cartesian ray direction vectors in sensor frame.
     ray = dir2cart(ls(s));
@@ -80,17 +86,23 @@ for s = 1 : numel(ls)
     % Set the length of no-return rays to maximum sensor range.
     ray(iret,:) = ray(iret,:) .* repmat(ls(s).radius(iret), 1, 3);
     ray(~iret,:) = ray(~iret,:) .* ls(s).rlim(2);
+    
+    % Sum up the total numbers of hits and misses.
+    htot = htot + sum(iret);
+    mtot = mtot + sum(~iret);
 
-    % Compute the number of returns and traversals per voxel for each ray.
+    % Count the number of returns and traversals per voxel for each ray.
     h = zeros(gridsize);
     m = zeros(gridsize);
     for i = 1 : ls(s).count
         % Compute the indices of the voxels through which the ray travels.
-        [vi, t] = trav(tform2trvec(ls(s).sp(:,:,i)),ray(i,:),xgv,ygv,zgv);
+        [vi,t] = trav(tform2trvec(ls(s).sp(:,:,i)), ray(i,:), xgv,ygv,zgv);
         
-        % If the ray does not intersect with the map volume, issue warning.
+        % If the ray does not intersect with the map volume, issue a 
+        % warning.
         if isempty(vi)
-            warning(['Ray #', num2str(i), ...
+            warning('pcd:mapping:noRayMapIntersection', ...
+                ['Ray #', num2str(i), ...
                 ' does not intersect with map volume.'])
             continue
         end
@@ -105,6 +117,8 @@ for s = 1 : numel(ls)
 end
 
 %% Compute reflectivity map.
-ref = voxelmap(h ./ (h+m), xgv, ygv, zgv);
+h = voxelmap(h, xgv, ygv, zgv, htot);
+m = voxelmap(m, xgv, ygv, zgv, mtot);
+ref = h ./ (h+m);
 
 end

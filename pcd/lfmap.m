@@ -18,16 +18,15 @@ function lf = lfmap(pc, sigma, xgv, ygv, zgv)
 %      && (ZGV(k) <= z < ZGV(k+1))
 %
 %   LF is a voxelmap object that contains the likelihood of each voxel.
+%   The prior of LF is the Gaussian of the mean distance to the next
+%   obstacle inside the map.
 %
 %   Example:
 %      pcd = pcdread('castle.pcd');
 %      pc = pointCloud([pcd.x(:), pcd.y(:), pcd.z(:)]);
-%      xgv = min(pcd.x(:)) : 1 : max(pcd.x(:));
-%      ygv = min(pcd.y(:)) : 1 : max(pcd.y(:));
-%      zgv = min(pcd.z(:)) : 1 : max(pcd.z(:));
-%      lf = lfmap(pc, 1, xgv, ygv, zgv)
+%      lf = lfmap(pc, 1, -100:5:100, -100:5:100, -20:5:20)
 %
-%   See also POINTCLOUD, VOXELMAP, LFPC, REFMAP.
+%   See also POINTCLOUD, VOXELMAP, LFPC, LFRAY, REFMAP.
 
 % Copyright 2016 Alexander Schaefer
 
@@ -55,11 +54,11 @@ gvchk(xgv, ygv, zgv);
     ygv(1:end-1) + diff(ygv)/2, zgv(1:end-1) + diff(zgv)/2);
 c = [cx(:), cy(:), cz(:)];
 
-% Make sure the points are not organized.
+% Arrange the points in a 3-column matrix.
 points = reshape(pc.Location, pc.Count, 3);
 
 % For each voxel center, compute the distance to the nearest point of the 
-% point cloud in parallel using multiple workers.spmd 
+% point cloud using multiple workers.
 spmd
     % Compute the number of voxels per parallel worker.
     cpw = ceil(size(c,1) / numlabs);
@@ -74,7 +73,10 @@ end
 % Merge the results of the individual workers.
 dist = reshape(cell2mat(dist(:)), [numel(xgv),numel(ygv),numel(zgv)] - 1);
 
+% Compute the likelihood prior.
+prior = normpdf(mean(dist(:)), 0, sigma);
+
 % Compute the likelihood field.
-lf = voxelmap(normpdf(dist, 0, sigma), xgv, ygv, zgv);
+lf = voxelmap(normpdf(dist, 0, sigma), xgv, ygv, zgv, prior);
 
 end
