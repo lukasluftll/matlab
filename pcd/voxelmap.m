@@ -79,6 +79,16 @@ classdef voxelmap < matlab.mixin.Copyable
         % Check if the map data of two voxelmaps are amenable to 
         % element-wise operations.
         function chkewo(a, b)
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Check whether both input arguments are voxelmap objects.
+            if ~isa(a, 'voxelmap') || ~isa(b, 'voxelmap')
+                error('A and B must be voxelmap objects.')
+            end
+            
+            %% Check readiness for element-wise operations.
             % Check if the grid vectors match.
             if ~(all(a.xgv == b.xgv) && all(a.ygv == b.ygv) ...
                 && any(a.zgv == b.zgv))
@@ -86,7 +96,12 @@ classdef voxelmap < matlab.mixin.Copyable
             end
                         
             % Check if the data matrix sizes match.
-            if ~all(size(a.data) == size(b.data))
+            if ndims(a.data) ~= ndims(b.data) ...
+                    || ~all(size(a.data) == size(b.data))
+                disp('size a')
+                size(a.data)
+                disp('size b')
+                size(b.data)
                 error('Voxelmaps must be of same size.');
             end
         end
