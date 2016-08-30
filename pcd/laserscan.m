@@ -74,17 +74,10 @@ classdef laserscan < matlab.mixin.Copyable
         function set.sp(obj, sp)
             % Check if SP contains the same number of dimensions and
             % elements as the current sensor pose data.
-            if ~isempty(obj.sp)
-                if ndims(sp) ~= ndims(obj.sp)
-                    error(['SP must be a ', num2str(ndims(obj.sp)), ...
-                        'D matrix.'])
-                end
-                if any(size(sp) ~= size(obj.sp))
-                    error(['SP must be of size ', ...
-                        num2str(size(obj.sp, 1)), 'x', ...
-                        num2str(size(obj.sp, 2)), 'x', ...
-                        num2str(size(obj.sp, 3)), '.'])
-                end
+            if ~isempty(obj.sp) && ~all(size(sp) == size(obj.sp))
+                error(['SP must be a ', num2str(size(obj.sp,1)), 'x', ...
+                    num2str(size(obj.sp,2)), 'x', ...
+                    num2str(size(obj.sp,3)), ' matrix.'])
             end
             
             % Check if SP contains homogeneous transformation matrices.
@@ -206,6 +199,13 @@ classdef laserscan < matlab.mixin.Copyable
             if nargin < 5
                 radiusFinite = radius(isfinite(radius));
                 rlim = [min(radiusFinite), max(radiusFinite)];
+            end
+            
+            % Check whether the sizes of the input arguments match.
+            n = size(sp,3);
+            if numel(azimuth) ~= n || numel(elevation) ~= n ...
+                    || numel(radius) ~= n
+                error('Number of elements of input arguments must match.')
             end
             
             % Store the input.
