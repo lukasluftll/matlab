@@ -62,9 +62,13 @@ end
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
 
-% If the sensor measurement range starts at a positive value, issue a
-% warning.
-if ls.rlim(1) > 0
+% If the sensor measurement range of any scan starts at a positive value, 
+% issue a warning.
+rmin = zeros(numel(ls), 1);
+for i = 1 : numel(ls)
+    rmin(i) = ls(i).rlim(1);
+end
+if any(rmin > 0)
     warning('pcd:mapping:rlim', ...
         ['LS.RLIM(1) > 0, but all no-return ray lengths are assumed ', ...
         'to surpass LS.RLIM(2), not to fall into [0; LS.RLIM(1)].'])
