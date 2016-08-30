@@ -3,7 +3,7 @@
 %% Set parameters.
 % MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/lfmap_demo.mat'];
+lidarMapFile = [resultFolder, '/decaymap_demo.mat'];
 
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;

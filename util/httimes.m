@@ -1,30 +1,26 @@
-function c = httimes(a, b)
-% HTTIMES Homogeneous transformation multiply.
-%   C = HTTIMES(A, B) multiplies N homogeneous transformation matrices by
-%   N homogeneous transformation matrices or N transformation matrices
-%   by N homogeneous coordinate vectors.
+function c = pagetimes(a, b)
+% PAGETIMES Page-wise matrix-matrix multiply.
+%   C = PAGETIMES(A, B) multiplies K matrices by K matrices or K matrices
+%   by K vectors.
 %
-%   A is a 4x4xN page-wise concatenation of homogeneous transformation
-%   matrices.
+%   A is a IxJxK page-wise concatenation of IxJ matrices.
 %
 %   Matrix-by-matrix multiplication
 %   -------------------------------
-%   B is a 4x4xN page-wise concatenation of homogeneous transformation
-%   matrices.
+%   B is a IxJxK page-wise concatenation IxJ matrices.
 %
-%   C is a 4x4xN page-wise concatenation of homogeneous transformation
-%   matrices, where the n-th page contains the product of 
-%   A(:,:,n) * B(:,:,n).
+%   C is a IxJxK page-wise concatenation of matrices, where the k-th page 
+%   contains the product of A(:,:,k) * B(:,:,k).
 %
 %   Matrix-by-vector multiplication
 %   -------------------------------
-%   B is a 4xN matrix. The rows of B contain homogenous coordinate vectors.
+%   B is a JxK matrix. The columns of B contain J-element vectors.
 %
-%   C is a 4xN matrix. The n-th row of C contains the product of 
-%   A(:,:,n) * B(:,n).
+%   C is a IxK matrix. The k-th column of C contains the product of 
+%   A(:,:,k) * B(:,k).
 %
 %   Example:
-%      httimes([ones(3), rand(3,1); 0,0,0,1], [rand(3,1); 1])
+%      httimes([eye(3), rand(3,1); 0,0,0,1], rand(4,1))
 %
 %   See also TIMES, MTIMES, ISHRT.
 
