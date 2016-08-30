@@ -11,7 +11,7 @@ pcFile = [resultFolder, '/pcmap_demo.mat'];
 model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapRes = 0.25;
+mapRes = 0.5;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -77,9 +77,9 @@ switch lower(model)
             ls = lsread([folder, '/', pcdFile(i).name], rlim);
 
             % Build the local decay rate map.
-            warning('off', 'decaymap:rlim')
+            warning('off', 'pcd:mapping:rlim')
             [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
-            warning('on', 'decaymap:rlim')
+            warning('on', 'pcd:mapping:rlim')
             
             % Integrate the local map information into the global map.
             r = r + ri;
@@ -90,7 +90,7 @@ switch lower(model)
         end
         
         % Compute the decay rate map.
-        lidarMap = voxelmap(r./l, xgv, ygv, zgv);
+        lidarMap = r ./ l;
     case 'ref'
         % Iterate over all laser scans, compute local reflectivity maps and
         % merge them into a global map.
@@ -101,9 +101,9 @@ switch lower(model)
             ls = lsread([folder, '/', pcdFile(i).name], rlim);
             
             % Build the local reflectivity map.
-            warning('off')
+            warning('off', 'pcd:mapping:rlim')
             [~,hi,mi] = refmap(ls, xgv, ygv, zgv);
-            warning('on')
+            warning('on', 'pcd:mapping:rlim')
             
             % Integrate the local map information into the global map.
             h = h + hi;
@@ -114,7 +114,7 @@ switch lower(model)
         end
         
         % Compute the reflectivity map.
-        lidarMap = voxelmap(h ./ (h+m), xgv, ygv, zgv);
+        lidarMap = h ./ (h+m);
     case 'lf'
         % Compute the likelihood field.
         lidarMap = lfmap(pcMap, sigma, xgv, ygv, zgv);
