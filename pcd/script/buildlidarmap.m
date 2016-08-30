@@ -11,7 +11,7 @@ pcFile = [resultFolder, '/pcmap_demo.mat'];
 model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapRes = 0.5;
+mapRes = 1;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -68,10 +68,11 @@ zgv = mapLim(3,1) : mapRes : mapLim(3,2)+mapRes;
 % the nearest obstacle for each voxel.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 parprogress(nPcdFile);
+pNan = [];
 switch lower(model)
     case 'decay'
-        r = zeros(gridsize);
-        l = zeros(gridsize);
+        r = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
+        l = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
             ls = lsread([folder, '/', pcdFile(i).name], rlim);
@@ -94,8 +95,8 @@ switch lower(model)
     case 'ref'
         % Iterate over all laser scans, compute local reflectivity maps and
         % merge them into a global map.
-        h = zeros(gridsize);
-        m = zeros(gridsize);
+        h = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
+        m = voxelmap(zeros(gridsize), xgv, ygv, zgv, 0);
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
             ls = lsread([folder, '/', pcdFile(i).name], rlim);

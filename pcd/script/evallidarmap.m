@@ -11,7 +11,7 @@ pcdPerLs = 1;
 % Minimum and maximum admissible map values.
 decayLim = [0.002, 10];
 refLim = [0.001, 0.999];
-lfLim = [1e-6, 1];
+lfLim = [1e-6, 10];
 
 %% Prepare output file.
 % Load the file that contains the lidar map.
