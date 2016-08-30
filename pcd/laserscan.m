@@ -262,7 +262,7 @@ classdef laserscan < matlab.mixin.Copyable
            
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p = hom2cart(httimes(obj.sp(:,:,i(:)), cart2hom([x,y,z]).').');
+            p=hom2cart(pagetimes(obj.sp(:,:,i(:)),cart2hom([x,y,z]).').');
         end
         
         % Get Cartesian ray direction vectors.
@@ -303,7 +303,7 @@ classdef laserscan < matlab.mixin.Copyable
             % Transform the ray direction vectors into the reference frame
             % of the laser scan.
             rot = rotm2tform(tform2rotm(obj.sp(:,:,i(:))));
-            v = hom2cart(httimes(rot, cart2hom([x,y,z]).').');
+            v = hom2cart(pagetimes(rot, cart2hom([x,y,z]).').');
         end
         
         % Transform laser scan to point cloud.
@@ -388,7 +388,7 @@ classdef laserscan < matlab.mixin.Copyable
             hrtchk(tform)
             
             %% Change sensor poses.
-            nsp = httimes(repmat(inv(tform),1,1,size(obj.sp,3)), obj.sp);
+            nsp = pagetimes(repmat(inv(tform),1,1,size(obj.sp,3)), obj.sp);
             ls = laserscan(nsp, obj.azimuth, obj.elevation, obj.radius, ...
                 obj.rlim);
         end
