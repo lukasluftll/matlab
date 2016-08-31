@@ -14,7 +14,10 @@ function y = constrain(x, lim)
 % Check the number of input arguments.
 narginchk(2, 2)
 
-% Make sure the interval is an ordered 2-element vector.
+% Make sure the interval is an ordered 2-element vector of numeric values.
+if ~isnumeric(lim)
+    error('LIM must contain numeric values.')
+end
 if numel(lim) ~= 2
     error('LIM must have exactly 2 elements.')
 end
