@@ -4,14 +4,17 @@
 % Define the folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
 
+% Dataset name.
+dataset = 'demo';
+
 % Name of the file that contains the merged point cloud.
-pcFile = [resultFolder, '/pcmap_campus.mat'];
+pcFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 
 % Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
 model = 'decay';
 
 % Resolution of the resulting lidar map.
-mapResFine = 0.5;
+mapResFine = 1;
 mapResCoarse = 5;
 
 % Sensor reading range.
@@ -64,13 +67,13 @@ mapLimCoarse = mapLimCoarse + [xylim; xylim; zlim];
 % Compute the grid vectors of the map.
 xgv = [mapLimCoarse(1,1) : mapResCoarse : mapLimFine(1,1), ...
     mapLimFine(1,1) : mapResFine : mapLimFine(1,2), ...
-    mapLimFine(1,2) : mapResCoarse : mapLimCoarse(1,2)+mapRes];
+    mapLimFine(1,2) : mapResCoarse : mapLimCoarse(1,2)+mapResCoarse];
 ygv = [mapLimCoarse(2,1) : mapResCoarse : mapLimFine(2,1), ...
     mapLimFine(2,1) : mapResFine : mapLimFine(2,2), ...
-    mapLimFine(2,2) : mapResCoarse : mapLimCoarse(2,2)+mapRes];
+    mapLimFine(2,2) : mapResCoarse : mapLimCoarse(2,2)+mapResCoarse];
 zgv = [mapLimCoarse(3,1) : mapResCoarse : mapLimFine(3,1), ...
     mapLimFine(3,1) : mapResFine : mapLimFine(3,2), ...
-    mapLimFine(3,2) : mapResCoarse : mapLimCoarse(3,2)+mapRes];
+    mapLimFine(3,2) : mapResCoarse : mapLimCoarse(3,2)+mapResCoarse];
 
 % Remove too small spacings.
 xgv([false, diff(xgv)<mapResFine]) = [];
