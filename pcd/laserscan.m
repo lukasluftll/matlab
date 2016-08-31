@@ -1,10 +1,10 @@
-classdef laserscan < matlab.mixin.Copyable
+classdef laserscan
     % LASERSCAN Object for storing 3D laser scan.
     %   L = LASERSCAN(SP, AZIMUTH, ELEVATION, RADIUS, RLIM) creates a 
     %   laser scan object.
     %
-    %   SP is a 4x4xN matrix, where N is the number of rays the laser 
-    %   scan contains. Its n-th page defines the laser sensor pose at the 
+    %   SP is a 4x4xN matrix, where N is the number of rays of the laser 
+    %   scan. Its n-th page defines the laser sensor pose at the 
     %   moment of the n-th observation; it is a 4x4 homogeneous
     %   transformation matrix from the reference frame of the scan to the 
     %   laser sensor pose.
@@ -17,24 +17,24 @@ classdef laserscan < matlab.mixin.Copyable
     %   outside interval RLIM are interpreted as no-return rays.
     %
     %   RLIM is a 2-element vector that defines the minimum and maximum 
-    %   radius the sensor is able to measure. It defaults to the minimum
-    %   and maximum given RADIUS.
+    %   radius that the sensor is able to measure. It defaults to the 
+    %   minimum and maximum given RADIUS.
     %
     %   LASERSCAN properties:
     %   SP         - Sensor poses in global reference frame
-    %   AZIMUTH    - Azimuth angles [rad]
-    %   ELEVATION  - Elevation angles [rad]
+    %   AZIMUTH    - Azimuth angles in sensor frame [rad]
+    %   ELEVATION  - Elevation angles in sensor frame [rad]
     %   RADIUS     - Ray lengths
     %   RLIM       - Sensor measurement range
     %
     %   LASERSCAN methods:
     %   COUNT      - Number of rays
-    %   END2CART   - Cartesian coordinates of ray endpoints
-    %   DIR2CART   - Cartesian ray direction vectors
+    %   END2CART   - Cartesian coordinates of ray endpoints in global frame
+    %   DIR2CART   - Cartesian ray direction vectors in global frame
     %   LS2PC      - Transform laser scan to point cloud
     %   RET        - Identify returned rays
     %   LSCONCAT   - Concatenate laser scans
-    %   CHREF      - Change reference system
+    %   CHREF      - Change global reference system
     %   PLOT       - Plot laser scan
     %
     %   See also TRAV, SLAB.
@@ -44,23 +44,25 @@ classdef laserscan < matlab.mixin.Copyable
     properties
         % SP 4x4xN matrix; concatenation of 4x4 homogeneous transformation 
         % matrices defining for each ray the transformation from the 
-        % reference frame of the laser scan to the laser sensor.
+        % global reference frame of the laser scan to the laser sensor.
         % N is the number of rays.
         sp;
         
         % AZIMUTH N-element vector defining the azimuth angle of the rays 
-        % with respect to the sensor frame in [rad]. 
-        % N is the number of measured rays.
+        % with respect to the sensor frame in [rad]. The azimuth angle is 
+        % the counterclockwise angle in the x-y plane measured from the 
+        % positive x axis. N is the number of measured rays.
         azimuth;
         
         % ELEVATION N-element vector defining the elevation angle of the  
-        % rays with respect to the sensor frame in [rad]. 
-        % N is the number of measured rays.
+        % rays with respect to the sensor frame in [rad]. The elevation 
+        % angle is the angle measured from the x-y plane. N is the number 
+        % of measured rays.
         elevation;
         
         % RADIUS N-element vector defining the length of the rays
-        % originating from the laser sensor. 
-        % N is the number of measured rays.
+        % originating from the laser sensor. N is the number of measured 
+        % rays.
         % NaN values identify no-return rays.
         radius;
         
@@ -70,20 +72,22 @@ classdef laserscan < matlab.mixin.Copyable
     end
     
     methods
-        % Change the sensor poses.
-        function set.sp(obj, sp)
+        function obj = set.sp(obj, sp)
+            % SET.SP Set sensor poses.
+            
             % Check if SP contains the same number of dimensions and
             % elements as the current sensor pose data.
-            if ~isempty(obj.sp) && ~all(size(sp) == size(obj.sp))
+            if ~isempty(obj.sp) && (ndims(sp) ~= ndims(obj.sp) ...
+                    || ~all(size(sp) == size(obj.sp)))
                 error(['SP must be a ', num2str(size(obj.sp,1)), 'x', ...
                     num2str(size(obj.sp,2)), 'x', ...
                     num2str(size(obj.sp,3)), ' matrix.'])
             end
             
-            % Check if SP contains homogeneous transformation matrices.
-            hrt = ishrt(sp);
-            if ~all(hrt)
-                error(['SP(:,:,', num2str(find(hrt, 1)), ...
+            % Check if SP contains homogeneous transformation matrices 
+            % only.
+            if ~all(ishrt(sp))
+                error(['SP(:,:,', num2str(find(~ishrt(sp), 1)), ...
                         ') is not a homogeneous transformation.'])
             end
             
@@ -91,13 +95,14 @@ classdef laserscan < matlab.mixin.Copyable
             obj.sp = sp;
         end
         
-        % Change the azimuth angles.
-        function set.azimuth(obj, azimuth)
+        function obj = set.azimuth(obj, azimuth)
+            % SET.AZIMUTH Set azimuth angles in sensor frame in [rad].
+            
             % Check if AZIMUTH contains the same number of elements as the 
             % current azimuth data.
             if ~isempty(obj.azimuth) && numel(azimuth)~=numel(obj.azimuth)
                 error(['AZIMUTH must contain ', ...
-                    num2str(numel(obj.azimuth)), 'elements.'])
+                    num2str(numel(obj.azimuth)), ' elements.'])
             end
             
             % Make sure all angles are finite.
@@ -109,14 +114,15 @@ classdef laserscan < matlab.mixin.Copyable
             obj.azimuth = azimuth(:);
         end
         
-        % Change the elevation angles.
-        function set.elevation(obj, elevation)            
+        function obj = set.elevation(obj, elevation)
+            % SET.ELEVATION Set elevation angles in sensor frame in [rad].
+            
             % Check if ELEVATION contains the same number of elements as 
             % the current elevation data.
             if ~isempty(obj.elevation) ...
                     && numel(elevation)~=numel(obj.elevation)
                 error(['ELEVATION must contain ', ...
-                    num2str(numel(obj.elevation)), 'elements.'])
+                    num2str(numel(obj.elevation)), ' elements.'])
             end
             
             % Make sure all angles are finite.
@@ -128,8 +134,9 @@ classdef laserscan < matlab.mixin.Copyable
             obj.elevation = elevation(:);
         end
         
-        % Change the ray radii.
-        function set.radius(obj, radius)           
+        function obj = set.radius(obj, radius)
+            % SET.RADIUS Set the ray radii.
+            
             % Check if RADIUS contains the size as the current radius data.
             if ~isempty(obj.radius) && numel(radius)~=numel(obj.radius)
                 error(['RADIUS must contain ', ...
@@ -143,34 +150,42 @@ classdef laserscan < matlab.mixin.Copyable
             obj.radius = radius(:);
         end
         
-        % Change the sensor radius limits.
-        function set.rlim(obj, rlim)
+        function obj = set.rlim(obj, rlim)
+            % SET.RLIM Set sensor radius limits.
+            
+            %% Validate input.
+            % Check the number of input arguments.
+            narginchk(2, 2)
+            
             % Check the size of the limit vector.
             if numel(rlim) ~= 2
                 error('RLIM must contain exactly 2 elements.')
             end
             
-            % Check the minimum limit is positive.
+            % Check if the minimum limit is positive.
             if rlim(1) < 0
                 error('RLIM(1) must be greater or equal zero.')
             end
             
-            % Check the all values are finite.
+            % Check if all values are finite.
             if ~all(isfinite(rlim))
                 error('RLIM must be finite.')
             end
             
-            % Check the limit vector is ordered.
+            % Check if the limit vector is ordered.
             if diff(rlim) <= 0
                 error('RLIM(2) must be greater than RLIM(1).');
             end
             
-            % Assign new limits to object.
+            %% Assign new limits.
             obj.rlim = rlim;
         end
         
-        % Check laser scan ray indices.
         function idxchk(obj, i)
+            % IDXCHK Check laser scan ray indices.
+            %   IDXCHK(OBJ, I) throws an error if I is not a valid index
+            %   matrix for the rays of the laserscan object OBJ.
+            
             if islogical(i)
                 if numel(i) > obj.count
                     error('I contains too many elements.')
@@ -189,8 +204,10 @@ classdef laserscan < matlab.mixin.Copyable
     end
     
     methods ( Access = public )
-        % Construct laserscan object.
         function obj = laserscan(sp, azimuth, elevation, radius, rlim)
+            % LASERSCAN Constructor.
+            
+            %% Validate input.
             % Check number of input arguments.
             narginchk(4, 5);
             
@@ -208,7 +225,7 @@ classdef laserscan < matlab.mixin.Copyable
                 error('Number of elements of input arguments must match.')
             end
             
-            % Store the input.
+            %% Assign input.
             obj.sp = sp;
             obj.azimuth = azimuth;
             obj.elevation = elevation;
@@ -216,13 +233,11 @@ classdef laserscan < matlab.mixin.Copyable
             obj.rlim = rlim;
         end
         
-        % Return number of rays.
         function n = count(obj)
             % COUNT Number of rays.
             n = numel(obj.azimuth);
         end
         
-        % Get Cartesian coordinates of ray endpoints.
         function p = end2cart(obj, i)
             % END2CART(OBJ) Cartesian coordinates of ray endpoints.
             %   P = LS2CART(OBJ) returns an Nx3 matrix that contains the
@@ -241,19 +256,19 @@ classdef laserscan < matlab.mixin.Copyable
             %% Validate input.
             narginchk(1, 2)
             
-            % If no rays are selected, select all.
+            % If no index is given, select all rays.
             if nargin < 2
                 i = 1 : obj.count;
             end
             
-            % If the laser scan or the index vector is empty, return.
+            % Check validity of indices.
+            obj.idxchk(i)
+            
+            % If the laser scan or the index vector is empty, abort.
             p = zeros(0, 3);
             if obj.count < 1 || isempty(i) || all(~i)    
                 return
             end
-            
-            % Check validity of indices.
-            obj.idxchk(i)
             
             %% Compute coordinates.
             % Compute the ray endpoint coordinates in the sensor frame.
@@ -265,7 +280,6 @@ classdef laserscan < matlab.mixin.Copyable
             p=hom2cart(pagetimes(obj.sp(:,:,i(:)),cart2hom([x,y,z]).').');
         end
         
-        % Get Cartesian ray direction vectors.
         function v = dir2cart(obj, i)
             % DIR2CART(OBJ) Cartesian ray direction vectors.
             %   V = DIRECTION2CART(OBJ) returns an Nx3 matrix that contains
@@ -287,17 +301,18 @@ classdef laserscan < matlab.mixin.Copyable
                 i = 1 : obj.count;
             end
             
+            % Check validity of indices.
+            obj.idxchk(i)
+            
             % If the laser scan or the index vector is empty, return.
             v = zeros(0, 3);
             if obj.count < 1 || isempty(i) || all(~i)    
                 return
             end
             
-            % Check validity of indices.
-            obj.idxchk(i)
-            
             %% Compute direction vectors.
-            % Compute the ray direction vectors in the sensor frame.
+            % Compute the normalized ray direction vectors in the sensor 
+            % frame.
             [x,y,z] = sph2cart(obj.azimuth(i(:)), obj.elevation(i(:)), 1);
             
             % Transform the ray direction vectors into the reference frame
@@ -306,9 +321,8 @@ classdef laserscan < matlab.mixin.Copyable
             v = hom2cart(pagetimes(rot, cart2hom([x,y,z]).').');
         end
         
-        % Transform laser scan to point cloud.
         function pc = ls2pc(obj)
-            % LS2PC Transform laser scan to point cloud.
+            % LS2PC Laser scan to point cloud.
             %   PC = LS2PC(OBJ) returns a pointCloud object that contains 
             %   the ray endpoints of the laser scan.
             %   
@@ -319,7 +333,6 @@ classdef laserscan < matlab.mixin.Copyable
             pc = pointCloud(end2cart(obj));
         end
         
-        % Identify the return and no-return rays.
         function r = ret(obj)
             % RET Identify return and no-return rays.
             %   R = RET(OBJ) returns for each ray of the laser scan 
@@ -331,7 +344,6 @@ classdef laserscan < matlab.mixin.Copyable
             r = obj.radius >= obj.rlim(1) & obj.radius <= obj.rlim(2);
         end
         
-        % Concatenate laser scans.
         function y = lsconcat(x)
             % LSCONCAT Concatenate laser scans.
             %   Y = LSCONCAT(X) concatenates all laserscan objects 
@@ -357,28 +369,28 @@ classdef laserscan < matlab.mixin.Copyable
                 ysp = cat(3, ysp, x(i).sp);
             end
             
-            % Create matrix that contains sensor ranges.
+            % Create a matrix whose rows contain the sensor ranges of the
+            % individual scans.
             xrlim = reshape([x.rlim], 2, []);
             
             % Build new laserscan object.
-            y = laserscan(ysp, reshape([x.azimuth], [], 1), ...
+            y = laserscan(ysp, ...
+                reshape([x.azimuth], [], 1), ...
                 reshape([x.elevation], [], 1), ...
                 reshape([x.radius], [], 1), ...
                 [max(xrlim(1,:)), min(xrlim(2,:))]);
         end
         
-        % Change reference system.
-        function ls = chref(obj, tform)
+        function obj = chref(obj, tform)
             % CHREF Change reference system.
-            %   LS = CHREF(OBJ, T) changes the reference system of the
-            %   laserscan object OBJ according to the transformation T.
+            %   LS = CHREF(OBJ, TFORM) changes the reference system of the
+            %   laserscan object OBJ according to the transformation TFORM.
             %   After this operation, the sensor poses SP are specified in
             %   the new reference frame.
             %
-            %   T is the homogeous transformation matrix from the current
-            %   reference frame of the scan to the new reference frame.
-            %
-            %   LS is the laserscan object with the new reference frame.
+            %   TFORM is the 4x4 homogeous transformation matrix from the 
+            %   current reference frame of the scan to the new reference 
+            %   frame.
             
             %% Validate input.
             % Check the number of input arguments.
@@ -388,26 +400,33 @@ classdef laserscan < matlab.mixin.Copyable
             hrtchk(tform)
             
             %% Change sensor poses.
-            nsp = pagetimes(repmat(inv(tform),1,1,size(obj.sp,3)), obj.sp);
-            ls = laserscan(nsp, obj.azimuth, obj.elevation, obj.radius, ...
-                obj.rlim);
+            obj.sp=pagetimes(repmat(inv(tform),1,1,size(obj.sp,3)),obj.sp);
         end
        
-        % Plot the laser scan.
         function plot(obj)
             % PLOT Plot laser scan.
             %   PLOT(OBJ) visualizes the rays originating from the laser 
-            %   scanner. Returned rays are plotted in red, no-return rays 
-            %   are plotted in light gray. 
+            %   scanner. Returned rays are plotted in red. No-return rays 
+            %   are plotted in light gray with length equal to maximum 
+            %   sensor range.
+            %
+            %   If the scan contains a large set of rays, a random 
+            %   selection of rays and sensor poses is plotted to minimize
+            %   computational effort.
           
-            % Limit number of rays to plot.
-            nl = 2000;
-            il = false(obj.count, 1);
-            il(round(linspace(1, obj.count, min([obj.count, nl])))) = true;
+            %% Select subset of rays to plot.
+            % Define the maximum number of rays to plot.
+            nray = min([obj.count, 2000]); 
             
-            % Identify returned and no-return rays.
-            ir = ret(obj) & il;
-            inr = ~ret(obj) & il;
+            % Build logical index vector that selects the maximum number of
+            % rays at random.
+            i = false(obj.count, 1);
+            i(randsample(1:obj.count, nray)) = true;
+            
+            %% Compute sensor positions and ray endpoints.
+            % Identify returned and no-return rays to plot.
+            ir = ret(obj) & i;
+            inr = ~ret(obj) & i;
             
             % Create laserscan objects that contain the returned rays to
             % plot and the no-returns to plot.
@@ -425,6 +444,7 @@ classdef laserscan < matlab.mixin.Copyable
             sr = ht2tv(lsr.sp);
             snr = ht2tv(lsnr.sp);
             
+            %% Plot.
             % Plot returned rays.
             retplot = plot3([sr(:,1).'; er(:,1).'], ...
                 [sr(:,2).'; er(:,2).'], ...
@@ -441,12 +461,17 @@ classdef laserscan < matlab.mixin.Copyable
             % Plot point cloud.
             pcshow(pointCloud(er), 'MarkerSize', 80);
             
-            % Plot sensor position.
-            s = tform2trvec(obj.sp);
-            plot3(s(:,1), s(:,2), s(:,3), 'k.');
+            % Plot sensor poses.
+            nsp = min([10, obj.count]);
+            l = 0.05 * mean(sqrt(sum(tform2trvec(obj.sp).^2, 2)));
+            spplot = obj.sp(:,:,randsample(1:obj.count, nsp));
+            plotht(spplot, l);
+            ptext = tform2trvec(spplot(:,:,1));
+            text(ptext(1), ptext(2), ptext(3), 'Sensor pose')
             
             % Plot decoration.
             plotht(eye(4), min(max(er)), 'LineWidth', 2)
+            text(0, 0, 0, 'Scan reference')
             labelaxes
             grid on
         end
