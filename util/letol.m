@@ -2,8 +2,13 @@ function x = letol(a, b, tol)
 % LETOL Less than or equal with tolerance.
 %   X = LETOL(A, B) does element by element comparisons between A and B and
 %   returns a logical matrix X of the same size. X(i) is true if 
-%   A(i) < B(i) or if A(i) is within tolerance of B(i). The tolerance is
-%   1e-6 for single-precision inputs and 1e-12 for double-precision inputs.
+%   A(i) < B(i) or if A(i) is within tolerance of B(i). 
+% 
+%   Two values A(i) and B(i) are within tolerance if:
+%      abs(A(i)-B(i)) <= TOL * max(abs([A(:);B(:)]))
+%
+%   The tolerance is 1e-6 for single-precision inputs and 1e-12 for 
+%   double-precision inputs.
 %
 %   X = LETOL(A, B, TOL) specifies an absolute scalar tolerance TOL.
 %
@@ -20,12 +25,23 @@ function x = letol(a, b, tol)
 % Check number of input arguments.
 narginchk(2, 3)
 
-%% Compare input.
-switch nargin
-    case 2
-        x = a < b | ismembertol(a, b);
-    case 3
-        x = a < b | ismembertol(a, b, tol);
+% Check the type of the inputs.
+if ~isnumeric(a) || ~isnumeric(b) || (nargin==3 && ~isnumeric(tol))
+    error('All input arguments must be numeric values.')
 end
+
+% If the tolerance is not given, define it.
+if nargin < 3
+    if isa(a, 'single') || isa(b, 'single')
+        tol = 1e-6;
+    else
+        tol = 1e-12;
+    end
+end    
+
+%% Compare input.
+% Do not use MATLAB's built-in function ISMEMBERTOL because it leads to
+% memory leaks!
+x = a < b | abs(a-b) <= tol*max(abs([a(:);b(:)]));
 
 end
