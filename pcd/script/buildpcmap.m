@@ -2,7 +2,7 @@
 
 %% Parameters.
 % Dataset name.
-dataset = 'campus';
+dataset = 'demo';
 
 % Dataset folder containing the PCD files.
 folder = ['pcd/data/', dataset, '/pcd_sph'];
@@ -29,8 +29,8 @@ pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
     
-% Build the map.
-pcMap = pcmap(folder, pcRes);
+% Build the map and denoise it.
+pcMap = pcdenoise(pcmap(folder, pcRes));
 
 % Save the point cloud map to file.
 save(pcMapFile, 'dataset', 'folder', 'pcRes', 'pcMap', '-v7.3')
