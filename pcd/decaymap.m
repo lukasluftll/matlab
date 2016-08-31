@@ -119,6 +119,6 @@ end
 r = voxelmap(r, xgv, ygv, zgv, rtot);
 l = voxelmap(l, xgv, ygv, zgv, ltot);
 lambda = r ./ l;
-lambda.data(l==0) = NaN;
+lambda.data(l.data==0) = NaN;
 
 end
