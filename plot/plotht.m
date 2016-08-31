@@ -1,10 +1,8 @@
 function plotht(ht, l, varargin)
-% PLOTPOSE Plot 3D homogeneous transformation.
-%   PLOTHT(HT) plots a Cartesian coordinate system that represents the
-%   rotation and translation contained in the 4x4 homogeneous
-%   transformation matrix HT. Given HT is a transformation from system A 
-%   to system B, PLOTHT(HT) plots the x, y, and z unit vectors of B in
-%   system A as red, green, and blue arrows.
+% PLOTHT Plot homogeneous transformations.
+%   PLOTHT(HT) plots N Cartesian coordinate systems that represent the
+%   rotation and translation of N 4x4 homogeneous transformation matrices.
+%   These transformation matrices are the pages of the 4x4xN matrix HT. 
 %
 %   PLOTHT(HT, L) plots the axis vectors with length L.
 %
@@ -24,30 +22,32 @@ function plotht(ht, l, varargin)
 % Check number of input arguments.
 narginchk(1, +Inf)
 
-% Check HT is a homogeneous transformation matrix.
-if ~ishrt(ht)
-    error('HT must be a 4x4 homogeneous translation-rotation matrix.')
+% Check it HT is a concatenation of homogeneous transformation matrices.
+if ~all(ishrt(ht))
+    error(['HT(:,:,' num2str(find(~ishrt(ht), 1)), ...
+        ') must be a 4x4 homogeneous translation-rotation matrix.'])
 end
 
-% If axis vector length is not given, define it.
+% If the axis vector length is not given, define it.
 l(nargin<2) = 1;
 
-% Check axis vector length argument.
+% Check the axis vector length argument.
 if l <= 0
     error('L must be positive.')
 end
 
 %% Plot unit vectors.
-% Define the origin of B in A.
+% Compute the origins of the coordinate systems.
 o = tform2trvec(ht);
 
-% Compute the unit vectors of B in A.
-e = tform2rotm(ht) * l * eye(3);
+% Compute the unit vectors.
+e = pagetimes(tform2rotm(ht), repmat(eye(3), 1, 1, size(ht,3))) * l;
+e = permute(e, [3,1,2]);
 
-% Plot the unit vectors of B in A.
-quiver3(o(1), o(2), o(3), e(1,1), e(2,1), e(3,1), 'r', varargin{:})
+% Plot the unit vectors.
+quiver3(o(:,1),o(:,2),o(:,3),e(:,1,1),e(:,2,1),e(:,3,1),0,'r',varargin{:})
 hold on
-quiver3(o(1), o(2), o(3), e(1,2), e(2,2), e(3,2), 'g', varargin{:})
-quiver3(o(1), o(2), o(3), e(1,3), e(2,3), e(3,3), 'b', varargin{:})
+quiver3(o(:,1),o(:,2),o(:,3),e(:,1,2),e(:,2,2),e(:,3,2),0,'g',varargin{:})
+quiver3(o(:,1),o(:,2),o(:,3),e(:,1,3),e(:,2,3),e(:,3,3),0,'b',varargin{:})
 
 end
