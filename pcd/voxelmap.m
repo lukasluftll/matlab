@@ -1,4 +1,4 @@
-classdef voxelmap < matlab.mixin.Copyable
+classdef voxelmap
     % VOXELMAP Object for storing a 3D voxel map.
     %   VM = VOXELMAP(DATA) creates a voxel map object.
     %   
@@ -34,10 +34,8 @@ classdef voxelmap < matlab.mixin.Copyable
     %
     %   VOXELMAP methods:
     %   PLUS      - Add map data element-wise
-    %   ADD       - Increment map data
     %   SUM       - Sum up map data element-wise
     %   MINUS     - Subtract map data element-wise
-    %   SUBTRACT  - Decrement map data
     %   TIMES     - Multiply map data element-wise
     %   RDIVIDE   - Divide map data element-wise from right
     %   LOG       - Natural logarithm of map dta
@@ -62,23 +60,38 @@ classdef voxelmap < matlab.mixin.Copyable
     end
     
     methods
-        % Change the map data.
-        function set.data(obj, data)
+        function obj = set.data(obj, data)
+            % SET.DATA Change map data.
+            
             % Check if DATA has the same size as the current map data.
-            if ~isempty(obj.data) && any(size(data) ~= size(obj.data))
+            if ~isempty(obj.data) && (ndims(data) ~= ndims(obj.data) ...
+                    || any(size(data) ~= size(obj.data)))
                 error(['DATA must be a matrix of size ', ...
                     num2str(size(obj.data, 1)), 'x', ...
                     num2str(size(obj.data, 2)), 'x', ...
                     num2str(size(obj.data, 3)), '.'])
             end
             
-            % Assign new map data to object.
+            % Assign new data to object.
             obj.data = data;
         end
         
-        % Check if the map data of two voxelmaps are amenable to 
-        % element-wise operations.
+        function obj = set.prior(obj, prior)
+            % SET.PRIOR Set map prior.
+            
+            % Check the size and type of PRIOR.
+            if numel(prior) ~= 1 || ~isnumeric(prior)
+                error('PRIOR must be a numeric scalar.')
+            end
+            
+            % Assign new prior to object.
+            obj.prior = prior;
+        end
+        
         function chkewo(a, b)
+            % CHKEWO Check if two voxelmaps are amenable to element-wise 
+            % operations.
+            
             %% Validate input.
             % Check number of input arguments.
             narginchk(2, 2)
@@ -102,33 +115,58 @@ classdef voxelmap < matlab.mixin.Copyable
             end
         end
         
-        % Convert a pair of input arguments to voxelmap objects.
-        % At least one of the arguments must already be a voxelmap object.
         function [a, b] = any2voxelmap(a, b)
-            % If any input argument is not a voxelmap, convert it.
+            % ANY2VOXELMAP Convert to voxelmap.
+            %   [A, B] = ANY2VOXELMAP(A, B) returns two voxelmap objects A 
+            %   and B. At least one of the input arguments must already be
+            %   a voxelmap object.
+
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Check whether at least on input argument is a voxelmap
+            % object.
+            if ~isa(a, 'voxelmap') && ~isa(b, 'voxelmap')
+                error('At least one input must be a voxelmap object.')
+            end
+            
+            %% Convert.
             if ~isa(a, 'voxelmap')
-                a = voxelmap(a, b.xgv, b.ygv, b.zgv);
+                a = voxelmap(a, b.xgv, b.ygv, b.zgv, b.prior);
             elseif ~isa(b, 'voxelmap')
-                b = voxelmap(b, a.xgv, a.ygv, a.zgv);
+                b = voxelmap(b, a.xgv, a.ygv, a.zgv, a.prior);
             end
         end
         
-        % Fit the size of the map data of two voxelmaps to match, if 
-        % possible.
         function [a, b] = fitsize(a, b)
+            % FITSIZE Fit size of map data to match, if possible.
+            
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Make sure both inputs are voxelmap objects.
+            if ~isa(a, 'voxelmap') || ~isa(b, 'voxelmap')
+                error('A and B must be voxelmap objects.')
+            end
+            
+            %% Fit size.
             % If any voxelmap is empty, set its size to match the other
             % voxelmap.
             if isempty(a.data)
-                a.data = zeros(size(b.data));
+                a.data = NaN(size(b.data));
             elseif isempty(b.data)
-                b.data = zeros(size(a.data));
+                b.data = NaN(size(a.data));
             end
         end
     end
         
     methods ( Access = public )
-        % Construct a voxelmap object.
         function obj = voxelmap(data, xgv, ygv, zgv, prior)
+            % VOXELMAP Constructor.
+            
+            %% Validate input.
             % Check number of input arguments.
             switch nargin
                 case 1
@@ -146,7 +184,7 @@ classdef voxelmap < matlab.mixin.Copyable
             % Check the grid vectors.
             gvchk(xgv, ygv, zgv);
             
-            % Store the input.
+            %% Assign input to properties.
             obj.data = data;
             obj.prior = prior;
             obj.xgv = xgv;
@@ -154,7 +192,6 @@ classdef voxelmap < matlab.mixin.Copyable
             obj.zgv = zgv;
         end
         
-        % Add map data element-wise.
         function c = plus(a, b)
             % +  Add map data element-wise.
             %   C = A + B adds the map data A and B element-wise and 
@@ -166,6 +203,7 @@ classdef voxelmap < matlab.mixin.Copyable
             %
             %   C is a voxelmap object.
             
+            %% Validate input.
             % Check number of input arguments.
             narginchk(2, 2)
             
@@ -179,64 +217,35 @@ classdef voxelmap < matlab.mixin.Copyable
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
             
-            % Add map data and create resulting voxelmap.
-            c = voxelmap(a.data+b.data,a.xgv,a.ygv,a.zgv,a.prior+b.prior);
+            %% Add map data.
+            c = voxelmap(a.data + b.data, a.xgv, a.ygv, a.zgv, ...
+                a.prior + b.prior);
         end
         
-        % Increment map data element-wise.
-        function add(obj, d)
-            % ADD Increment map data element-wise.
-            %   ADD(OBJ, D) adds the data D to the map data of voxelmap
-            %   object OBJ.
-            %
-            %   OBJ must be a voxelmap object.
-            %
-            %   D is a voxelmap object or a 3D matrix. The data matrix must
-            %   be of the same size as the map data of OBJ.
-            
-            % Check number of input arguments.
-            narginchk(2, 2)
-            
-            % Convert the data to add to a voxelmap object.
-            [obj, d] = any2voxelmap(obj, d);
-            
-            % If any voxelmap is empty, set its size to match the other
-            % voxelmap.
-            [obj, d] = fitsize(obj, d);
-            
-            % Check whether element-wise operation can be performed.
-            chkewo(obj, d)
-            
-            % Add the data and the prior to the voxelmap object.
-            obj.data = obj.data + d.data;
-            obj.prior = obj.prior + d.prior;
-        end
-        
-        % Sum of multiple voxelmaps.
-        function s = sum(x)
+        function b = sum(a)
             % SUM Sum of map data of multiple voxelmaps.
-            %   S = SUM(X) returns a voxelmap object whose map data
+            %   S = SUM(A) returns a voxelmap object whose map data
             %   contains the element-wise sum of the map data matrices in 
-            %   the voxelmap array X.
+            %   the voxelmap array A.
             
+            %% Validate input.
             % Check number of input arguments.
             narginchk(1, 1)
             
             % Check whether element-wise operations can be performed.
-            for i = 2 : numel(x)
-                chkewo(x(1), x(i))
+            for i = 2 : numel(a)
+                chkewo(a(1), a(i))
             end
             
-            % Compute the sum of the map data.
-            s = x(1);
-            for i = 2 : numel(x)
-                s.add(x(i));
+            %% Compute sum.
+            b = a(1);
+            for i = 2 : numel(a)
+                b = b + a(i);
             end
         end
             
-        % Subtract cell data element-wise.
         function c = minus(a, b)
-            % -  Subtract cell data element-wise.
+            % -  Subtract map data element-wise.
             %   C = A - B subtracts the map data B element-wise from A and 
             %   returns the difference.
             %
@@ -244,26 +253,12 @@ classdef voxelmap < matlab.mixin.Copyable
             %   matrix of the same size as the voxelmap object's data
             %   matrix.
             %
-            %   C is a voxelmap object.   
+            %   C is a voxelmap object.
             c = plus(a, -b);
         end
         
-        % Decrement map data element-wise.
-        function subtract(obj, d)
-            % SUBTRACT Decrement map data element-wise.
-            %   SUBTRACT(OBJ, D) subtracts the data D from the map data of 
-            %   voxelmap object OBJ.
-            %
-            %   OBJ must be a voxelmap object.
-            %
-            %   D is a voxelmap object or a 3D matrix. The data matrix must
-            %   be of the same size as the map data of OBJ.
-            add(obj, -d);
-        end
-        
-        % Multiply cell data element-wise.
         function c = times(a, b)
-            % .*  Multiply cell data element-wise.
+            % .*  Multiply map data element-wise.
             %   C = A .* B multiplies the map data A element-wise by B and 
             %   returns the product C.
             %
@@ -273,6 +268,7 @@ classdef voxelmap < matlab.mixin.Copyable
             %
             %   C is a voxelmap object. 
             
+            %% Validate input.
             % Check number of input arguments.
             narginchk(2, 2)
                         
@@ -282,11 +278,11 @@ classdef voxelmap < matlab.mixin.Copyable
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
             
-            % Multiply cell data.
-            c = voxelmap(a.data.*b.data,a.xgv,a.ygv,a.zgv,a.prior*b.prior);
+            %% Multiply map data.
+            c = voxelmap(a.data .* b.data, a.xgv, a.ygv, a.zgv, ...
+                a.prior * b.prior);
         end
         
-        % Divide cell data element-wise from right.
         function c = rdivide(a, b)
             % ./  Divide cell data element-wise from right.
             %   C = A ./ B divides the map data A element-wise from right 
@@ -298,6 +294,7 @@ classdef voxelmap < matlab.mixin.Copyable
             %
             %   C is a voxelmap object. 
             
+            %% Validate input.
             % Check number of input arguments.
             narginchk(2, 2)
                         
@@ -307,25 +304,24 @@ classdef voxelmap < matlab.mixin.Copyable
             % Check whether element-wise operations can be performed.
             chkewo(a, b)
             
-            % Divide cell data.
-            c = voxelmap(a.data./b.data,a.xgv,a.ygv,a.zgv,a.prior/b.prior);
+            %% Divide cell data.
+            c = voxelmap(a.data ./ b.data, a.xgv, a.ygv, a.zgv, ...
+                a.prior / b.prior);
         end
         
-        % Natural logarithm.
-        function l = log(obj)
+        function obj = log(obj)
             % LOG(OBJ) Natural logarithm.
-            %   L = LOG(OBJ) computes the natural logarithm of every cell.
+            %   L = LOG(OBJ) computes the natural logarithm for every voxel.
             
             % Check number of input arguments.
             narginchk(1, 1)
             
             % Compute logarithm.
-            l = voxelmap(log(obj.data), obj.xgv, obj.ygv, obj.zgv, ...
-                log(obj.prior));
+            obj.data = log(obj.data);
+            obj.prior = log(obj.prior);
         end
         
-        % Unary minus.
-        function u = uminus(obj)
+        function obj = uminus(obj)
             % -  Unary minus.
             %   Negates the values of all map elements of OBJ.
             
@@ -333,31 +329,34 @@ classdef voxelmap < matlab.mixin.Copyable
             narginchk(1, 1)
             
             % Negate data.
-            u = voxelmap(-obj.data, obj.xgv, obj.ygv, obj.zgv, -obj.prior);
+            obj.data = -obj.data;
+            obj.prior = -obj.prior;
         end
         
-        % Fit map data to interval.
-        function y = constrain(obj, lim)
+        function obj = constrain(obj, lim)
             % CONSTRAIN Fit map data to interval.
-            %   Y = CONSTRAIN(OBJ, LIM) fits all map data values of
+            %   OBJ = CONSTRAIN(OBJ, LIM) fits all map data values of
             %   voxelmap object OBJ into the interval defined by the
             %   ordered 2-element vector LIM.
             %
             %   NaN values are set to LIM(1).
-            y = copy(obj);
-            y.data = constrain(y.data, lim);
-            y.data(isnan(y.data)) = lim(1);
-            y.prior = constrain(y.prior, lim);
-            y.prior(isnan(y.prior)) = lim(1);
+            
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            %% Fit data to interval.
+            obj.data = constrain(obj.data, lim);
+            obj.data(isnan(obj.data)) = lim(1);
+            obj.prior = constrain(obj.prior, lim);
+            obj.prior(isnan(obj.prior)) = lim(1);
         end
         
-        % Plot histogram of map data.
         function h = histogram(obj, varargin)
             % HISTOGRAM Plot histogram of map data.
             %   HISTOGRAM(OBJ) plots a histogram of all map data contained
-            %   in the voxelmap object OBJ. Apart from its first input
-            %   argument, the function works exactly like the standard
-            %   HISTORGRAM function.
+            %   in the voxelmap object OBJ. The function works like the 
+            %   standard HISTORGRAM function.
             %
             %   Example:
             %      histogram(voxelmap(rand(10,10,10)))
@@ -370,17 +369,17 @@ classdef voxelmap < matlab.mixin.Copyable
             end
         end
 
-        % Plot the map.
         function plot(obj, mode)
             % PLOT Plot voxel map.
-            %   PLOT(OBJ, MODE) visualizes the voxelmap object VM using
+            %   PLOT(OBJ) visualizes the voxelmap object OBJ using
             %   semi-transparent voxels. 
             %
-            %   MODE can assume the following values:
+            %   PLOT(OBJ, MODE) determines how the map data is represented
+            %   as colors. MODE can assume the following values:
             %
-            %      'scale' (default) - The highest value of VM is drawn as
+            %      'scale' (default) - The highest value of OBJ is drawn as
             %                          completely intransparent voxel, the 
-            %                          lowest value of VM is drawn as
+            %                          lowest value of OBJ is drawn as
             %                          completely transparent voxel.
             %      'direct'          - Data values are directly interpreted 
             %                          as transparencies, with 0
@@ -401,15 +400,18 @@ classdef voxelmap < matlab.mixin.Copyable
             plotdata = obj.data;
             plotdata(~isfinite(plotdata)) = NaN;
             
-            %% Plot map.
+            %% Convert data to colors.
+            % Compute minimum and maximum data elements.
+            lim = [min(plotdata(:)), max(plotdata(:))];
+            
+            % Compute transparency values to plot
             switch lower(mode)
                 case 'scale'
-                    % Compute minimum and maximum data elements.
-                    lim = [min(plotdata(:)), max(plotdata(:))];
-                    
-                    % Compute the transparency values to plot.
                     plotdata = (plotdata - lim(1)) / diff(lim);
                 case 'direct'
+                    if lim(1) < 0 || lim(2) > 1
+                        warning('Map data exceeds [0;1].')
+                    end
                 otherwise
                     error(['MODE ', mode, ' not supported.'])
             end
@@ -417,7 +419,7 @@ classdef voxelmap < matlab.mixin.Copyable
             % Crop data to interval [0; 1].
             plotdata = constrain(plotdata, [0,1]);
             
-            % Plot.
+            %% Plot.
             alphaplot(plotdata, plotdata, obj.xgv, obj.ygv, obj.zgv);
             colormap('jet')
             axis image vis3d
