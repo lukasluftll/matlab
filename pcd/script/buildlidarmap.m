@@ -42,7 +42,7 @@ nPcdFile = numel(pcdFile);
 % sensor poses.
 mapLim = repmat([Inf, -Inf], 3, 1);
 disp('Determining map size ...')
-parprogress(nPcdFile)
+parprogress(nPcdFile);
 for i = 1 : nPcdFile
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     spmin = min(tform2trvec(ls.sp)).';
