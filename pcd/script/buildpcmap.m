@@ -1,7 +1,7 @@
 % Build a map out of many lidar scans.
 
 %% Declare global variables.
-global dataset resultFolder folder pcRes
+global dataset resultFolder folder pcRes pcMapFile
 
 %% Prepare output file.
 % Print caption.

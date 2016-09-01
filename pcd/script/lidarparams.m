@@ -2,7 +2,7 @@
 
 %% Declare global variables.
 global dataset model pcdPerLs mapRes pcRes decayLim refLim lfLim sigma ...
-    folder resultFolder rlim pcFile lidarMapFile
+    folder resultFolder rlim
 
 %% Dynamic parameters.
 % Dataset name.
@@ -37,9 +37,3 @@ resultFolder = 'pcd/result';
 
 % Sensor reading range.
 rlim = [2, 120];
-
-% MAT file that contains the merged point cloud.
-pcFile = [resultFolder, '/pcmap_', dataset, '.mat'];
-
-% MAT file that contains the lidar map.
-lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
