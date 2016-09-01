@@ -35,6 +35,7 @@ classdef laserscan
     %   RET        - Identify returned rays
     %   LSCONCAT   - Concatenate laser scans
     %   CHREF      - Change global reference system
+    %   SELECT     - Select subset of measurements
     %   PLOT       - Plot laser scan
     %
     %   See also TRAV, SLAB.
@@ -401,6 +402,20 @@ classdef laserscan
             
             %% Change sensor poses.
             obj.sp=pagetimes(repmat(inv(tform),1,1,size(obj.sp,3)),obj.sp);
+        end
+        
+        function sub = select(obj, i)
+            % SELECT Select subset of measurements.
+            %   SUB = SELECT(OBJ, I) returns a laserscan object that
+            %   contains only the laser measurement indexed by I.
+            
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            %% Select subset of measurements.
+            sub = laserscan(obj.sp(:,:,i), ...
+                obj.azimuth(i), obj.elevation(i), obj.radius(i), obj.rlim);
         end
        
         function plot(obj)
