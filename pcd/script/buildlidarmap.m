@@ -4,14 +4,14 @@
 % Define the folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
 
+% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
+model = 'lf';
+
 % Dataset name.
 dataset = 'demo';
 
 % Name of the file that contains the merged point cloud.
 pcFile = [resultFolder, '/pcmap_', dataset, '.mat'];
-
-% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'ref';
 
 % Resolution of the resulting lidar map.
 mapRes = 1;
@@ -40,10 +40,10 @@ nPcdFile = numel(pcdFile);
 
 % Iterate over all scans and compute an axis-aligned bounding box of all
 % ray endpoints.
-maplim = repmat([Inf, -Inf], 3, 1);
+maplim = repmat([Inf, -Inf], 3, 1, numel(nPcdFile));
 disp('Determining map size ...')
 parprogress(nPcdFile);
-for i = 1 : nPcdFile
+parfor i = 1 : nPcdFile
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
     % Set the length of all no-return rays to maximum sensor range.
@@ -52,14 +52,14 @@ for i = 1 : nPcdFile
     % Compute the minimum and maximum coordinates of the endpoints of this
     % scan.
     pc = ls2pc(ls);
-    scanlim = [pc.XLimits; pc.YLimits; pc.ZLimits];
+    maplim(:,:,i)= [pc.XLimits; pc.YLimits; pc.ZLimits];
     
-    % Determine the global minimum and maximum of the ray endpoints.
-    maplim = [min([maplim(:,1), scanlim(:,1)],[],2), ...
-        max([maplim(:,2), scanlim(:,2)],[],2)];
     parprogress;
 end
-parprogress(0)
+parprogress(0);
+
+% Compute the global minimum and maximum coordinates of the scan endpoints.
+maplim = [min(maplim(:,1,:), [], 3), max(maplim(:,2,:), [], 3)];
 
 % Compute the grid vectors of the map.
 xgv = maplim(1,1)-mapRes : mapRes : maplim(1,2)+mapRes;
@@ -72,6 +72,7 @@ zgv = maplim(3,1)-mapRes : mapRes : maplim(3,2)+mapRes;
 % For the endpoint model, simply compute the Gaussian of the distance to
 % the nearest obstacle for each voxel.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
+disp('Computing map ...')
 parprogress(nPcdFile);
 pNan = [];
 switch lower(model)
