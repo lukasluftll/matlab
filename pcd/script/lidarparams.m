@@ -1,11 +1,15 @@
 % Parameters for scripts buildpcmap, buildlidarmap, evallidarmap.
 
+%% Declare global variables.
+global dataset model pcdPerLs mapRes pcRes decayLim refLim lfLim sigma ...
+    folder resultFolder rlim pcFile lidarMapFile
+
 %% Dynamic parameters.
 % Dataset name.
 dataset = 'demo';
 
 % Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'decay';
+model = 'ref';
 
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;

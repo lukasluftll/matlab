@@ -1,12 +1,14 @@
 % Build a map out of many lidar scans.
 
+%% Declare global variables.
+global dataset resultFolder folder pcRes
+
 %% Prepare output file.
 % Print caption.
 hline(75)
 display(['Merging ', dataset, ' point cloud ...'])
 
 % Create folder for results.
-resultFolder = 'pcd/result';
 [resultFolderPath, resultFolderName] = fileparts(resultFolder);
 if ~exist(resultFolder, 'dir')
     mkdir(resultFolderPath, resultFolderName);

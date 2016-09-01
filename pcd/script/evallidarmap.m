@@ -1,8 +1,12 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
+%% Declare global variables.
+global lidarMapFile model dataset folder pcdPerLs rlim decayLim refLim ...
+    lfLim
+
 %% Prepare output file.
 % Load the file that contains the lidar map.
-load(lidarMapFile);
+load(lidarMapFile, 'lidarMap');
 
 % Print caption.
 hline(75)
@@ -23,7 +27,7 @@ parprogress(numel(iScan));
 warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parfor i = 1 : numel(iScan)
     % Read laser scan data from files.
-    ls = laserscan.empty(pcdPerLs, 0);
+    ls = laserscan.empty(pcdPerLs, 0); %#ok<*PFGV>
     for j = 1 : pcdPerLs
         filePath = [folder, '/', pcdFile(iScan(i)+j-1).name]; %#ok<PFBNS>
         ls(j) = lsread(filePath, rlim);
