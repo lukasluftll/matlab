@@ -1,21 +1,17 @@
 % Parameters for scripts buildpcmap, buildlidarmap, evallidarmap.
 
-%% Declare global variables.
-global dataset model pcdPerLs mapRes pcRes decayLim refLim lfLim sigma ...
-    folder resultFolder rlim
-
 %% Dynamic parameters.
 % Dataset name.
 dataset = 'demo';
 
 % Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'ref';
+model = 'decay';
 
 % Set the parameter that defines how many files make one scan.
-pcdPerLs = 1;
+pcdPerLs = 4;
 
 % Resolution of the lidar map.
-mapRes = 1;
+mapRes = 0.5;
 
 % Resolution of the merged point cloud map.
 pcRes = 0.1;

@@ -1,9 +1,5 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
-%% Declare global variables.
-global lidarMapFile model dataset folder pcdPerLs rlim decayLim refLim ...
-    lfLim
-
 %% Prepare output file.
 % Load the file that contains the lidar map.
 load(lidarMapFile, 'lidarMap');

@@ -1,8 +1,5 @@
 % Build a map out of many lidar scans.
 
-%% Declare global variables.
-global pcMapFile model dataset folder rlim mapRes sigma lidarMapFile
-
 %% Prepare output file.
 % Load the file that contains the merged point cloud.
 load(pcMapFile, 'pcMap');
@@ -10,6 +7,9 @@ load(pcMapFile, 'pcMap');
 % Print caption.
 hline(75)
 disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
+
+% Define the name of the output file that contains the lidar map.
+lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 %% Compute extent of lidar map.
 % Get the PCD file names.
@@ -137,7 +137,6 @@ end
 parprogress(0);
 
 %% Save map.
-lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 save(lidarMapFile, 'dataset', 'folder', 'pcRes', 'model', 'mapRes', ...
     'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])
