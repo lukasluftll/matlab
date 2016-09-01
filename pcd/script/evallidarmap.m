@@ -1,8 +1,5 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
-%% Fetch parameters.
-lidarparams
-
 %% Prepare output file.
 % Load the file that contains the lidar map.
 load(lidarMapFile);

@@ -1,8 +1,5 @@
 % Build a map out of many lidar scans.
 
-%% Fetch parameters.
-lidarparams
-
 %% Prepare output file.
 % Print caption.
 hline(75)
