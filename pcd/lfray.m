@@ -44,18 +44,10 @@ function [p, L] = lfray(ls, lf, pnr)
 % Check number of input arguments.
 narginchk(3, 3)
 
-% Check types of input arguments.
-if ~isa(ls, 'laserscan')
-    error('LS must be a laserscan object.')
-end
-if ~isa(lf, 'voxelmap')
-    error('LF must be a voxelmap object.')
-end
-
-% Check whether value of probability of no-return rays is valid.
-if pnr < 0 || pnr > 1
-    error('PNR must stay in [0;1].')
-end
+% Check input arguments.
+validateattributes(ls, {'laserscan'}, {}, '', 'LS')
+validateattributes(lf, {'voxelmap'}, {}, '', 'LF')
+validateattributes(pnr, {'numeric'}, {'>=',0, '<=',1}, '', 'PNR')
 
 %% Compute scan probability.
 % Compute the logical indices of the returned rays.
