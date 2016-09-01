@@ -2,7 +2,7 @@
 
 %% Prepare output file.
 % Print caption.
-hline(75)
+hline(75, '#')
 display(['Merging ', dataset, ' point cloud ...'])
 
 % Create folder for results.

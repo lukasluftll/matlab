@@ -5,7 +5,7 @@
 load(pcMapFile, 'pcMap');
 
 % Print caption.
-hline(75)
+hline(75, '#')
 disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 
 % Define the name of the output file that contains the lidar map.

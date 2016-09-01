@@ -5,7 +5,7 @@
 load(lidarMapFile, 'lidarMap');
 
 % Print caption.
-hline(75)
+hline(75, '#')
 display(['Evaluating ', model, 'map of ', dataset, ' dataset ...'])
 
 % Define the name of the output MAT file.
