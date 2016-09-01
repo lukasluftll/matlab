@@ -40,9 +40,7 @@ if ~isa(pc, 'pointCloud')
 end
 
 % Make sure the variance is positive.
-if sigma <= 0
-    error('SIGMA must be positive.')
-end
+validateattributes(sigma, {'numeric'}, {'numel',1, '>',0}, '', 'SIGMA');
 
 % Check the grid vectors.
 gvchk(xgv, ygv, zgv);
@@ -71,7 +69,7 @@ spmd
 end
 
 % Merge the results of the individual workers.
-dist = reshape(cell2mat(dist(:)), [numel(xgv),numel(ygv),numel(zgv)] - 1);
+dist = reshape(cell2mat(dist(:)), [numel(xgv),numel(ygv),numel(zgv)]-1);
 
 % Compute the likelihood prior.
 prior = normpdf(mean(dist(:)), 0, sigma);
