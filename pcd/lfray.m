@@ -80,7 +80,7 @@ parfor i = 1 : ls.count
 
         % Compute the normalized log-likelihood of obtaining the returned 
         % ray.
-        L(i) = log(lf.data(iv(end)) * (1-pnr) / pr);
+        L(i) = log(lf.data(iv(end))) + log(1-pnr) - log(pr);
     else % No-return ray.
         p(i) = pnr;
     end
