@@ -41,6 +41,8 @@ classdef voxelmap
     %   LOG       - Natural logarithm of map dta
     %   UMINUS    - Unary minus of map data
     %   CONSTRAIN - Fit map data to interval
+    %   SUBVOLUME - Map subvolume
+    %   LIMITS    - Spatial limits of map 
     %   HISTOGRAM - Histogram of map data
     %   PLOT      - Visualize map using transparency values
     %
@@ -350,6 +352,65 @@ classdef voxelmap
             obj.data(isnan(obj.data)) = lim(1);
             obj.prior = constrain(obj.prior, lim);
             obj.prior(isnan(obj.prior)) = lim(1);
+        end
+        
+        function submap = subvolume(obj, lim)
+            % SUBVOLUME Get part of given map.
+            %   OBJ = SUBVOLUME(OBJ, LIM) extracts a subset of the 
+            %   voxelmap object OBJ using the specified axis-aligned limits
+            %   LIM. 
+            %
+            %   LIM is a vector [xmin, xmax, ymin, ymax, zmin, zmax].
+            %   Any NaN values in the limits indicate that the voxelmap 
+            %   should not be cropped along that axis.
+            %   The returned subvolume of the map consists of all voxels
+            %   that lie completely within LIM.
+            
+            %% Validate input.
+            % Check number of input arguments.
+            narginchk(2, 2)
+            
+            % Check the limits.
+            validateattributes(lim,{'numeric'},{'numel',6},'','LIM')
+            
+            % Set all NaN values to minimum or maximum limits.
+            mapLimits = obj.limits;
+            lim(isnan(lim)) = mapLimits(isnan(lim));
+            
+            %% Create map subvolume.
+            % Compute the logical indices of the grid vectors of the
+            % subvolume.
+            ix = lim(1)<=obj.xgv & obj.xgv<=lim(2);
+            iy = lim(3)<=obj.ygv & obj.ygv<=lim(4);
+            iz = lim(5)<=obj.zgv & obj.zgv<=lim(6);
+            
+            % Compute grid vectors of the subvolume.
+            subxgv = obj.xgv(ix);
+            subygv = obj.ygv(iy);
+            subzgv = obj.zgv(iz);
+            
+            % Compute the logical indices of the voxels in the subvolume.
+            ix(find(ix, 1, 'last')) = false;
+            iy(find(iy, 1, 'last')) = false;
+            iz(find(iz, 1, 'last')) = false;
+            
+            % Get the subvolume of the map data.
+            [ix,iy,iz] = ndgrid(ix,iy,iz);
+            subgridsize = [numel(subxgv),numel(subygv),numel(subzgv)] - 1;
+            subdata = reshape(obj.data(ix&iy&iz), subgridsize);
+            
+            % Create the subvolume voxelmap.
+            submap = voxelmap(subdata, subxgv, subygv, subzgv, obj.prior);
+        end
+        
+        function l = limits(obj)
+            % LIMITS Spatial limits of map.
+            %   L = LIMITS(OBJ) returns a 6-element row vector that
+            %   contains the spatial limits of the voxelmap object OBJ in
+            %   the order [xmin, xmax, ymin, ymax, zmin, zmax].
+            
+            l = [min(obj.xgv), max(obj.xgv), ...
+                min(obj.ygv), max(obj.ygv), min(obj.zgv),max(obj.zgv)];
         end
         
         function h = histogram(obj, varargin)
