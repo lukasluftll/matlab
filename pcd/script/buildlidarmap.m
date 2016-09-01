@@ -1,26 +1,7 @@
 % Build a map out of many lidar scans.
 
-%% Parameters.
-% Define the folder from where to read and where to keep the results.
-resultFolder = 'pcd/result';
-
-% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'lf';
-
-% Dataset name.
-dataset = 'demo';
-
-% Name of the file that contains the merged point cloud.
-pcFile = [resultFolder, '/pcmap_', dataset, '.mat'];
-
-% Resolution of the resulting lidar map.
-mapRes = 1;
-
-% Sensor reading range.
-rlim = [2, 120];
-
-% Variance for likelihood field computation.
-sigma = 1;
+%% Fetch parameters.
+lidarparams
 
 %% Prepare output file.
 % Load the file that contains the merged point cloud.

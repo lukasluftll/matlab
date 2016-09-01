@@ -1,14 +1,7 @@
 % Build a map out of many lidar scans.
 
-%% Parameters.
-% Dataset name.
-dataset = 'demo';
-
-% Dataset folder containing the PCD files.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
-
-% Resolution of the merged point cloud map.
-pcRes = 0.1;
+%% Fetch parameters.
+lidarparams
 
 %% Prepare output file.
 % Print caption.

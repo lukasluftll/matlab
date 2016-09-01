@@ -1,20 +1,7 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
-%% Set parameters.
-% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'lf';
-
-% MAT file created by buildlidarmap script.
-resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/', model, 'map_demo.mat'];
-
-% Set the parameter that defines how many files make one scan.
-pcdPerLs = 1;
-
-% Minimum and maximum admissible map values.
-decayLim = [0.002, 10];
-refLim = [0.001, 0.999];
-lfLim = [1e-6, 10];
+%% Fetch parameters.
+lidarparams
 
 %% Prepare output file.
 % Load the file that contains the lidar map.
