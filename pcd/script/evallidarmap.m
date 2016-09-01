@@ -1,9 +1,12 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
 %% Set parameters.
+% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
+model = 'lf';
+
 % MAT file created by buildlidarmap script.
 resultFolder = 'pcd/result';
-lidarMapFile = [resultFolder, '/decaymap_demo.mat'];
+lidarMapFile = [resultFolder, '/', model, 'map_demo.mat'];
 
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
@@ -56,7 +59,7 @@ parfor i = 1 : numel(iScan)
     end
     
     % Compute the KL divergence of the whole scan.
-    Dgh(i) = -sum([Li(~isnan(Li)); log(pi(~isnan(pi)))]);
+    Dgh(i) = -sum([Li; log(pi)]);
     
     % Update the progress bar.
     parprogress;
