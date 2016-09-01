@@ -12,6 +12,9 @@ disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 %% Compute extent of lidar map.
+% Dataset folder containing the PCD files.
+folder = ['pcd/data/', dataset, '/pcd_sph'];
+
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 nPcdFile = numel(pcdFile);

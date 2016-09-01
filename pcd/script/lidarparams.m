@@ -25,9 +25,6 @@ lfLim = [1e-6, 10];
 sigma = 1;
 
 %% Static parameters.
-% Dataset folder containing the PCD files.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
-
 % Folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
 
