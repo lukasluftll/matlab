@@ -66,8 +66,8 @@ l = ls.radius;
 l(~iret) = ls.rlim(2);
 
 % Increase the length of each returned ray by the diameter of the largest 
-% voxel to make sure it completely traverses the voxel that contains its
-% endpoint.
+% voxel to make sure it completely traverses the voxel that contains the
+% ray endpoint.
 l = l + sqrt(3)*max([diff(ref.xgv(:));diff(ref.ygv(:));diff(ref.zgv(:))]);
 ray = ray .* repmat(l, 1, 3);
 
@@ -83,8 +83,8 @@ parfor i = 1 : ls.count
     % Convert the subscript voxel indices to linear indices.
     iv = sub2ind(size(ref.data), iv(:,1), iv(:,2), iv(:,3));
     
-    % Compute the index of the voxel where the ray is reflected, and where
-    % the sensor measurement range ends.
+    % Compute the index of the voxel where the ray is reflected and the
+    % index of the voxel where the sensor measurement range ends.
     ivret = find(t*l(i) < ls.radius(i), 1, 'last');
     ivend = find(t*l(i) < ls.rlim(2), 1, 'last');
     
@@ -104,7 +104,8 @@ parfor i = 1 : ls.count
         lr = diff(t(ivret + [0,1])) * l(i);
         
         % Compute the density of the probability that the ray is reflected.
-        L(i) = log(ref.data(iv(ivret))*prod(1-ref.data(iv(1:ivret-1)))/lr);
+        L(i) = log(ref.data(iv(ivret))) ...
+            + sum(log(1-ref.data(iv(1:ivret-1)))) - log(lr);
     else % Ray does not return.
         % Compute the index of the voxel where the sensor measurement range
         % begins.
