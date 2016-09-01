@@ -46,8 +46,8 @@ parprogress(nPcdFile);
 parfor i = 1 : nPcdFile
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
     
-    % Set the length of all no-return rays to maximum sensor range.
-    ls.radius(~ls.ret) = ls.rlim(2);
+    % Set the length of all rays to maximum sensor range.
+    ls.radius = repmat(ls.rlim(2), size(ls.radius));
     
     % Compute the minimum and maximum coordinates of the endpoints of this
     % scan.
@@ -74,7 +74,7 @@ zgv = maplim(3,1)-mapRes : mapRes : maplim(3,2)+mapRes;
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 disp('Computing map ...')
 parprogress(nPcdFile);
-pNan = [];
+pnr = [];
 switch lower(model)
     case 'decay'
         r = zeros(gridsize);
@@ -152,7 +152,7 @@ switch lower(model)
         end
         
         % Compute the unconditioned probability of no-returns.
-        pNan = nNret / (nRet+nNret);
+        pnr = nNret / (nRet+nNret);
     otherwise
         error(['Sensor model ', model, ' not supported.'])
 end
@@ -160,5 +160,5 @@ parprogress(0);
 
 %% Save map.
 save(lidarMapFile, 'dataset', 'folder', 'pcRes', 'model', 'mapRes', ...
-    'rlim', 'sigma', 'lidarMap', 'pNan', '-v7.3');
+    'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])

@@ -53,7 +53,7 @@ parfor i = 1 : numel(iScan)
         case 'ref'
             [pi, Li] = refray(ls, constrain(lidarMap, refLim));
         case 'lf'
-            [pi, Li] = lfray(ls, constrain(lidarMap, lfLim), pNan);
+            [pi, Li] = lfray(ls, constrain(lidarMap, lfLim), pnr);
         otherwise
             error(['Sensor model ', model, ' not supported.'])
     end
