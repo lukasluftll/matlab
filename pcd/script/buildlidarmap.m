@@ -11,10 +11,10 @@ dataset = 'demo';
 pcFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 
 % Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'decay';
+model = 'ref';
 
 % Resolution of the resulting lidar map.
-mapRes = 0.5;
+mapRes = 1;
 
 % Sensor reading range.
 rlim = [2, 120];
@@ -39,34 +39,32 @@ pcdFile = dir([folder, '/*.pcd']);
 nPcdFile = numel(pcdFile);
 
 % Iterate over all scans and compute an axis-aligned bounding box of all
-% sensor poses.
-mapLim = repmat([Inf, -Inf], 3, 1);
+% ray endpoints.
+maplim = repmat([Inf, -Inf], 3, 1);
 disp('Determining map size ...')
 parprogress(nPcdFile);
 for i = 1 : nPcdFile
     ls = lsread([folder, '/', pcdFile(i).name], rlim);
-    spmin = min(tform2trvec(ls.sp)).';
-    spmax = max(tform2trvec(ls.sp)).';
-    mapLim = [min([mapLim(:,1), spmin], [], 2), ...
-        max([mapLim(:,2), spmax], [], 2)];
+    
+    % Set the length of all no-return rays to maximum sensor range.
+    ls.radius(~ls.ret) = ls.rlim(2);
+    
+    % Compute the minimum and maximum coordinates of the endpoints of this
+    % scan.
+    pc = ls2pc(ls);
+    scanlim = [pc.XLimits; pc.YLimits; pc.ZLimits];
+    
+    % Determine the global minimum and maximum of the ray endpoints.
+    maplim = [min([maplim(:,1), scanlim(:,1)],[],2), ...
+        max([maplim(:,2), scanlim(:,2)],[],2)];
     parprogress;
 end
 parprogress(0)
 
-% Compute the bounding box of a scan that consists of maximum range
-% readings.
-elevationLim = [min(ls.elevation), max(ls.elevation)];
-zlim = rlim(2) * sin(elevationLim);
-xylim = [-1,+1] * rlim(2);
-
-% Add the extent of the maximum range scan to the bounding box of the
-% sensor poses to get the extent of the coarse-grained map.
-mapLim = mapLim + [xylim; xylim; zlim];
-
 % Compute the grid vectors of the map.
-xgv = mapLim(1,1) : mapRes : mapLim(1,2)+mapRes;
-ygv = mapLim(2,1) : mapRes : mapLim(2,2)+mapRes;
-zgv = mapLim(3,1) : mapRes : mapLim(3,2)+mapRes;
+xgv = maplim(1,1)-mapRes : mapRes : maplim(1,2)+mapRes;
+ygv = maplim(2,1)-mapRes : mapRes : maplim(2,2)+mapRes;
+zgv = maplim(3,1)-mapRes : mapRes : maplim(3,2)+mapRes;
 
 %% Create lidar map.
 % For the decay model and the reflectivity model, loop over all scans, 
