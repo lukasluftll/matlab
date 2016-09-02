@@ -1,6 +1,6 @@
 function map = pcmap(folder, res, mode)
 % PCMAP Build map from multiple PCD files.
-%   MAP = PCMAP(FOLDER, RES) reads all PCD files in directory FOLDER and 
+%   MAP = PCMAP(FOLDER, RES) reads all PCD files in the folder FOLDER and 
 %   merges them into a single pointCloud object MAP.
 %
 %   RES specifies the grid resolution parameter used for subsampling. 
@@ -37,9 +37,7 @@ function map = pcmap(folder, res, mode)
 narginchk(2, 3)
 
 % Check the FOLDER input argument.
-if ~ischar(folder)
-    error('FOLDER must be a string.')
-end
+validateattributes(folder, {'char'}, {'nonempty'}, '', 'FOLDER')
 if ~isdir(folder)
     error('FOLDER does not refer to a folder.')
 end
