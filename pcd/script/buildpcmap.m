@@ -1,5 +1,8 @@
 % Build a map out of many lidar scans.
 
+%% Fetch parameters.
+lidarparams
+
 %% Prepare output file.
 % Print caption.
 hline(75, '#')
@@ -15,9 +18,6 @@ end
 pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 
 %% Merge point clouds.
-% Dataset folder containing the PCD files.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
-
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
     

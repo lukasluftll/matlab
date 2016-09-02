@@ -1,12 +1,5 @@
 % Parameters for scripts buildpcmap, buildlidarmap, evallidarmap.
 
-%% Dynamic parameters.
-% Dataset name.
-dataset = 'demo';
-
-% Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
-model = 'decay';
-
 % Resolution of the lidar map.
 mapRes = 0.5;
 
@@ -21,7 +14,6 @@ lfLim = [1e-6, 10];
 % Variance for likelihood field computation.
 sigma = 1;
 
-%% Static parameters.
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
 switch dataset
@@ -34,6 +26,9 @@ switch dataset
     case 'mooswald'
         pcdPerLs = 19;
 end
+
+% Dataset folder containing the PCD files.
+folder = ['pcd/data/', dataset, '/pcd_sph'];
 
 % Folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';

@@ -1,5 +1,8 @@
 % Compute KL divergence of lidar scans given a lidar map.
 
+%% Fetch parameters.
+lidarparams
+
 %% Prepare output file.
 % Load the file that contains the lidar map.
 load(lidarMapFile, 'lidarMap');
@@ -13,9 +16,6 @@ display(['Evaluating ', model, 'map of ', dataset, ' dataset ...'])
 evalFile = [path, '/', name, '_eval', extension];
 
 %% Compute KL divergence.
-% Dataset folder containing the PCD files.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
-
 % Get the PCD file names.
 pcdFile = dir([folder, '/*.pcd']);
 
