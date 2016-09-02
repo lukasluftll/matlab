@@ -43,8 +43,8 @@ parprogress(0);
 maplim = [min(maplim(:,1,:), [], 3), max(maplim(:,2,:), [], 3)];
 
 % Compute the grid vectors of the map.
-xgv = maplim(1,1)-mapRes : mapRes : maplim(1,2)+mapRes;
-ygv = maplim(2,1)-mapRes : mapRes : maplim(2,2)+mapRes;
+xgv = maplim(1,1)-mapRes-rkli : mapRes : maplim(1,2)+mapRes+rkli;
+ygv = maplim(2,1)-mapRes-rkli : mapRes : maplim(2,2)+mapRes+rkli;
 zgv = maplim(3,1)-mapRes : mapRes : maplim(3,2)+mapRes;
 
 %% Create lidar map.

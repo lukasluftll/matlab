@@ -14,6 +14,14 @@ lfLim = [1e-6, 10];
 % Variance for likelihood field computation.
 sigma = 1;
 
+% Radius in x-y plane used for probability normalization when computing
+% inverse KL divergence.
+rkli = 2.5;
+
+% Number of shifts used for probability normalization when computing
+% inverse KL divergence.
+nShift = 50;
+
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
 switch dataset

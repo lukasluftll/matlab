@@ -9,7 +9,8 @@ load(lidarMapFile, 'lidarMap');
 
 % Print caption.
 hline(75, '#')
-display(['Evaluating ', model, 'map of ', dataset, ' dataset ...'])
+display(['Computing KL divergence of ', model, 'map of ', dataset, ...
+    ' dataset ...'])
 
 % Define the name of the output MAT file.
 [path, name, extension] = fileparts(lidarMapFile);
