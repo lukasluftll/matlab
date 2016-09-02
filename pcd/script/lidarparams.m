@@ -5,7 +5,7 @@
 mapRes = 0.5;
 
 % Resolution of the merged point cloud map.
-pcRes = 2;
+pcRes = 0.1;
 
 % Minimum and maximum admissible map values.
 decayLim = [0.002, 10];
