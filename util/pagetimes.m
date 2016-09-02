@@ -19,12 +19,6 @@ function c = pagetimes(a, b)
 %   C is a IxK matrix. The k-th column of C contains the product of 
 %   A(:,:,k) * B(:,k).
 %
-%   Automatic expansion
-%   -------------------
-%   If K is one either for A or for B, the size of the respective input
-%   argument is automatically expanded to match the size of the other input
-%   argument.
-%
 %   Example:
 %      pagetimes([eye(3), rand(3,1); 0,0,0,1], rand(4,1))
 %
@@ -56,33 +50,14 @@ if ndims(b) > 3
     error('B must be a 2D or a 3D matrix.')
 end
 
-% Make sure the sizes of A and B match and perform auto-expansion, if
-% necessary.
+% Make sure the sizes of A and B match.
 msg = 'Sizes of A and B do not match.';
-if ismatrix(b)   % Matrix-vector multiply.
-    if size(a,2) == size(b,1)
-        if size(a,3) == 1
-            a = repmat(a, 1, 1, size(b,2));
-        elseif size(b,2) == 1
-            b = repmat(b, 1, size(a,3));
-        elseif size(a,3) ~= size(b,2)
-            error(msg)
-        end
-    else
+if ismatrix(b) 
+    if size(a,2)~=size(b,1) || size(a,3) ~= size(b,2)
         error(msg)
     end
-else   % Matrix-matrix multiply.
-    if all([size(a,1), size(a,2)] == [size(b,1), size(b,2)])
-        if size(a,3) == 1
-            a = repmat(a, 1, 1, size(b,3));
-        elseif size(b,3) == 1
-            b = repmat(b, 1, 1, size(a,3));
-        elseif size(a,3) ~= size(b,3)
-            error(msg)
-        end
-    else
-        error(msg)
-    end
+elseif ~all(size(a)==size(b))
+    error(msg)
 end
 
 %% Perform multiplication.
