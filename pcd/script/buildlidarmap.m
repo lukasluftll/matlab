@@ -11,12 +11,9 @@ load(pcMapFile, 'pcMap');
 hline(75, '#')
 disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 
-% Define the name of the output file that contains the lidar map.
-lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
-
 %% Compute extent of lidar map.
 % Get the PCD file names.
-pcdFile = dir([folder, '/mapping/*.pcd']);
+pcdFile = dir([mappingFolder, '/*.pcd']);
 nPcdFile = numel(pcdFile);
 
 % Iterate over all scans and compute an axis-aligned bounding box of all
@@ -25,7 +22,7 @@ maplim = repmat([Inf, -Inf], 3, 1, numel(nPcdFile));
 disp('Determining map size ...')
 parprogress(nPcdFile);
 parfor i = 1 : nPcdFile
-    ls = lsread([folder, '/', pcdFile(i).name], rlim); %#ok<*PFGV>
+    ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim); %#ok<*PFGV>
     
     % Set the length of all rays to maximum sensor range.
     ls.radius = repmat(ls.rlim(2), size(ls.radius));
@@ -64,7 +61,7 @@ switch lower(model)
         ltot = 0;
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
-            ls = lsread([folder, '/', pcdFile(i).name], rlim);
+            ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim);
 
             % Build the local decay rate map.
             warning('off', 'pcd:mapping:rlim')
@@ -92,7 +89,7 @@ switch lower(model)
         mtot = 0;
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
-            ls = lsread([folder, '/', pcdFile(i).name], rlim);
+            ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim);
             
             % Build the local reflectivity map.
             warning('off', 'pcd:mapping:rlim')
@@ -122,7 +119,7 @@ switch lower(model)
         nNret = 0;
         parfor i = 1 : nPcdFile
             % Read laser scan data from file.
-            ls = lsread([folder, '/', pcdFile(i).name], rlim);
+            ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim);
             
             % Sum up the number of returns and no-returns.
             nRet = nRet + sum(ls.ret);
@@ -140,6 +137,6 @@ end
 parprogress(0);
 
 %% Save map.
-save(lidarMapFile, 'dataset', 'folder', 'pcRes', 'model', 'mapRes', ...
-    'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
+save(lidarMapFile, 'dataset', 'pcMapFile', 'mappingFolder', 'pcRes', ...
+    'model', 'mapRes', 'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])

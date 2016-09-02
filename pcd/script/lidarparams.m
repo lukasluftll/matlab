@@ -1,5 +1,6 @@
 % Parameters for scripts buildpcmap, buildlidarmap, evallidarmap.
 
+%% Parameters.
 % Resolution of the lidar map.
 mapRes = 0.5;
 
@@ -22,6 +23,7 @@ rkli = 2.5;
 % inverse KL divergence.
 nShift = 50;
 
+%% Derived parameters.
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
 switch dataset
@@ -36,10 +38,31 @@ switch dataset
 end
 
 % Dataset folder containing the PCD files.
-folder = ['pcd/data/', dataset, '/pcd_sph'];
+mappingFolder = ['pcd/data/', dataset, '/pcd_sph/mapping'];
+evaluationFolder = ['pcd/data/', dataset, '/pcd_sph/evaluation'];
 
 % Folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
 
+% Name of the MAT file that contains the merged point cloud.
+pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
+
+% Define default value for sensor model, if not defined.
+if ~exist('model', 'var')
+    model = 'decay';
+end
+
+% Name of the output file that contains the lidar map.
+lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
+
+% Name of the evaluation file that contains KL divergence.
+evalKlFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
+
 % Sensor reading range.
 rlim = [2, 120];
+
+%% Create folder for results.
+[resultFolderPath, resultFolderName] = fileparts(resultFolder);
+if ~exist(resultFolder, 'dir')
+    mkdir(resultFolderPath, resultFolderName);
+end
