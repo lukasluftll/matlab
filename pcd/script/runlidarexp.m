@@ -4,26 +4,26 @@
 dataset = 'campus'; %#ok<*NASGU>
 buildpcmap
 model = 'decay';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 model = 'ref';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 model = 'lf';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 
 dataset = 'schauinsland';
 buildpcmap
 model = 'decay';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 model = 'ref';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 model = 'lf';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 
 dataset = 'mooswald';
 buildpcmap
 model = 'decay';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 model = 'ref';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
 model = 'lf';
-buildlidarmap, kllidarmap%, klilidarmap
+buildlidarmap, kllidarmap, klilidarmap
