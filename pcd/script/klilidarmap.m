@@ -3,23 +3,19 @@
 %% Fetch parameters.
 lidarparams
 
-%% Prepare output file.
+%% Prepare processing.
 % Load the file that contains the lidar map.
-load(lidarMapFile, 'lidarMap');
+load(lidarMapFile, 'lidarMap', 'pnr');
 
 % Print caption.
 hline(75, '#')
 display(['Computing inverse KL divergence of ', model, 'map of ', ...
     dataset, ' dataset ...'])
 
-% Define the name of the output MAT file.
-[path, name, extension] = fileparts(lidarMapFile);
-evalFile = [path, '/', name, '_kli', extension];
-
-%% Compute KL divergence.
 % Get the PCD file names.
-pcdFile = dir([folder, '/evaluation/*.pcd']);
+pcdFile = dir([evaluationFolder, '/*.pcd']);
 
+%% Compute inverse KL divergence.
 % Compute the inverse KL divergence for each scan.
 nPcdFile = numel(pcdFile);
 Dhg = NaN(nPcdFile, 1);
@@ -27,7 +23,7 @@ parprogress(nPcdFile);
 warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 for i = 1 : nPcdFile
     % Read laser scan data from file.
-    ls = lsread([folder, '/evaluation/', pcdFile(i).name], rlim);
+    ls = lsread([evaluationFolder, '/', pcdFile(i).name], rlim);
     
     % Randomly shift the scan in the x-y plane and compute the overall
     % likelihood.
@@ -64,21 +60,19 @@ for i = 1 : nPcdFile
                 error(['Sensor model ', model, ' not supported.'])
         end
         
-        % Sum up the overall probability of the scan.
-        Ls = sum([log(pr); Lr]);
-        ps(j) = exp(Ls);
+        % Integrate the probability of the scan over the circle area.
+        ps(j) = sum([pr; exp(Lr)]);
     end
     
     % Normalize the probabilities.
-    ptot = sum(ps);
-    ps = ps / ptot;
+    ps = ps / sum(ps);
     
     % Normalize the Gaussian.
-    Ntot = sum(mvnpdf(offset, [0,0], eye(2)*sigma));
-    Ns = Ns / Ntot;
+    Ns = mvnpdf(offset, 0, eye(2)*sigmaLoc);
+    Ns = Ns / sum(Ns);
 
-    % Compute the inverse KL divergence of the whole scan.
-    Dhg(i) = sum(ps * (log(ps) - log(Ns)));
+    % Compute the inverse KL divergence of the scan.
+    Dhg(i) = sum(ps .* (log(ps) - log(Ns)));
     
     % Update the progress bar.
     parprogress;
@@ -87,6 +81,6 @@ warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', ...
-    'lfLim', 'Dgh', '-v7.3');
+save(evalKliFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', ...
+    'lfLim', 'Dhg', '-v7.3');
 display(['Result written to ', evalFile, '.'])
