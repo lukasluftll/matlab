@@ -7,9 +7,6 @@ dataset = 'demo';
 % Sensor model to use to build the map: 'decay' | 'ref' | 'lf'.
 model = 'decay';
 
-% Set the parameter that defines how many files make one scan.
-pcdPerLs = 4;
-
 % Resolution of the lidar map.
 mapRes = 0.5;
 
@@ -25,6 +22,19 @@ lfLim = [1e-6, 10];
 sigma = 1;
 
 %% Static parameters.
+% Set the parameter that defines how many files make one scan.
+pcdPerLs = 1;
+switch dataset
+    case 'demo'
+        pcdPerLs = 1;
+    case 'campus'
+        pcdPerLs = 4;
+    case 'schauinsland'
+        pcdPerLs = 17;
+    case 'mooswald'
+        pcdPerLs = 19;
+end
+
 % Folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
 
