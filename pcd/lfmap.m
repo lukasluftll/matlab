@@ -32,22 +32,16 @@ function lf = lfmap(pc, sigma, xgv, ygv, zgv)
 
 %% Validate input.
 % Check number of input arguments.
-narginchk(5, 5);
+narginchk(5, 5)
 
-% Check the pointCloud object.
-if ~isa(pc, 'pointCloud')
-    error('PC must be a pointCloud object.')
-end
-
-% Make sure the variance is positive.
-validateattributes(sigma, {'numeric'}, {'numel',1, '>',0}, '', 'SIGMA');
-
-% Check the grid vectors.
-gvchk(xgv, ygv, zgv);
+% Check input arguments.
+validateattributes(pc, {'pointCloud'}, {'numel',1}, 'PC')
+validateattributes(sigma, {'numeric'}, {'numel',1, '>',0}, '', 'SIGMA')
+gvchk(xgv, ygv, zgv)
 
 %% Calculate likelihood field.
-% Compute an IxJxK matrix whose rows contain the coordinates of the voxel 
-% centers.
+% Compute an IxJxK matrix whose rows contain the x-y-z coordinates of the 
+% voxel centers.
 [cx, cy, cz] = ndgrid(xgv(1:end-1) + diff(xgv)/2, ...
     ygv(1:end-1) + diff(ygv)/2, zgv(1:end-1) + diff(zgv)/2);
 c = [cx(:), cy(:), cz(:)];
