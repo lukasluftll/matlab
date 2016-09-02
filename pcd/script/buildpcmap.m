@@ -19,7 +19,7 @@ pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];
 
 %% Merge point clouds.
 % Get the PCD file names.
-pcdFile = dir([folder, '/*.pcd']);
+pcdFile = dir([folder, '/mapping/*.pcd']);
     
 % Build the map and denoise it.
 pcMap = pcdenoise(pcmap(folder, pcRes));

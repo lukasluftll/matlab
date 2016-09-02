@@ -16,7 +16,7 @@ lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 %% Compute extent of lidar map.
 % Get the PCD file names.
-pcdFile = dir([folder, '/*.pcd']);
+pcdFile = dir([folder, '/mapping/*.pcd']);
 nPcdFile = numel(pcdFile);
 
 % Iterate over all scans and compute an axis-aligned bounding box of all
