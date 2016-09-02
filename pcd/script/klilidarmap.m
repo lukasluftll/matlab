@@ -25,9 +25,9 @@ nPcdFile = numel(pcdFile);
 Dhg = NaN(nPcdFile, 1);
 parprogress(nPcdFile);
 warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
-parfor i = 1 : nPcdFile
+for i = 1 : nPcdFile
     % Read laser scan data from file.
-    ls = lsread([folder, '/', pcdFile(i).name], rlim);
+    ls = lsread([folder, '/evaluation/', pcdFile(i).name], rlim);
     
     % Randomly shift the scan in the x-y plane and compute the overall
     % likelihood.
@@ -49,8 +49,8 @@ parfor i = 1 : nPcdFile
         % Shift laser scan.
         offset(j,:) = offsetTmp;
         lss = ls;
-        lss.sp = lss.sp + repmat(trvec2tform([offset(j,:),0]), ...
-            1, 1, size(ls.sp,3));
+        lss.sp = pagetimes(lss.sp, ...
+            repmat(trvec2tform([offset(j,:),0]), 1, 1, size(lss.sp,3)));
         
         % Compute the measurement likelihood.
         switch lower(model)
@@ -72,6 +72,10 @@ parfor i = 1 : nPcdFile
     % Normalize the probabilities.
     ptot = sum(ps);
     ps = ps / ptot;
+    
+    % Normalize the Gaussian.
+    Ntot = sum(mvnpdf(offset, [0,0], eye(2)*sigma));
+    Ns = Ns / Ntot;
 
     % Compute the inverse KL divergence of the whole scan.
     Dhg(i) = sum(ps * (log(ps) - log(Ns)));
