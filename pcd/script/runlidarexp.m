@@ -1,8 +1,5 @@
 % Run all lidar map experiments.
 
-% Upload parameters.
-lidarparams
-
 % Run all models for all datasets.
 dataset = 'campus'; %#ok<*NASGU>
 buildpcmap
