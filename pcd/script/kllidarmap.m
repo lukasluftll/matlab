@@ -13,11 +13,11 @@ display(['Evaluating ', model, 'map of ', dataset, ' dataset ...'])
 
 % Define the name of the output MAT file.
 [path, name, extension] = fileparts(lidarMapFile);
-evalFile = [path, '/', name, '_eval', extension];
+evalFile = [path, '/', name, '_kl', extension];
 
 %% Compute KL divergence.
 % Get the PCD file names.
-pcdFile = dir([folder, '/*.pcd']);
+pcdFile = dir([folder, '/evaluation/*.pcd']);
 
 % Compute the KL divergence for each scan.
 iScan = 1 : pcdPerLs : numel(pcdFile);
