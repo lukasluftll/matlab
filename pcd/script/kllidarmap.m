@@ -29,7 +29,7 @@ parfor i = 1 : numel(iScan)
     % Read laser scan data from files.
     ls = laserscan.empty(pcdPerLs, 0); %#ok<*PFGV>
     for j = 1 : pcdPerLs
-        filePath = [folder, '/', pcdFile(iScan(i)+j-1).name]; %#ok<PFBNS>
+        filePath = [folder, '/evaluation/', pcdFile(iScan(i)+j-1).name]; %#ok<PFBNS>
         ls(j) = lsread(filePath, rlim);
     end
     ls = lsconcat(ls);
