@@ -14,7 +14,7 @@ display(['Computing inverse KL divergence of ', model, 'map of ', ...
 
 %% Compute inverse KL divergence.
 % Compute the inverse KL divergence for each scan.
-Dhg = NaN(numel(evalFile), 1);
+Dhg = NaN(numel(1:nShift:numel(evalFile)), 1);
 parprogress(numel(evalFile));
 for i = 1 : nShift : numel(evalFile)
     % Read laser scan data from file.
