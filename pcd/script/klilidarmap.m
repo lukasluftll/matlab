@@ -48,17 +48,17 @@ try
             % Compute the measurement likelihood.
             switch lower(model)
                 case 'decay'
-                    [pr, Lr] = decayray(lss, constrain(lidarMap,decayLim));
+                    [pj, Lj] = decayray(lss, constrain(lidarMap,decayLim));
                 case 'ref'
-                    [pr, Lr] = refray(lss, constrain(lidarMap,refLim));
+                    [pj, Lj] = refray(lss, constrain(lidarMap,refLim));
                 case 'lf'
-                    [pr, Lr] = lfray(lss, constrain(lidarMap,lfLim), pnr);
+                    [pj, Lj] = lfray(lss, constrain(lidarMap,lfLim), pnr);
                 otherwise
                     error(['Sensor model ', model, ' not supported.'])
             end
             
             % Integrate the probability of the scan over the circle area.
-            ps(j) = sum([pr; exp(Lr)]);
+            ps(j) = sum([pj; exp(Lj)]);
         end
         
         % Normalize the probabilities.
