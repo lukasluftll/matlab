@@ -15,11 +15,12 @@ display(['Computing inverse KL divergence of ', model, 'map of ', ...
 %% Compute inverse KL divergence.
 try
     % Compute the inverse KL divergence for each scan.
-    Dhg = NaN(numel(1:nShift:numel(evalFile)), 1);
-    parprogress(numel(evalFile));
-    for i = 1 : nShift : numel(evalFile)
+    fi = 1 : nShift : numel(evalFile);
+    Dhg = NaN(numel(fi), 1);
+    parprogress(numel(fi));
+    parfor i = 1 : numel(fi)
         % Read laser scan data from file.
-        ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
+        ls = lsread([dataFolder, '/', evalFile(fi(i)).name], rlim);
         
         % Randomly shift the scan in the x-y plane and compute the overall
         % likelihood.
