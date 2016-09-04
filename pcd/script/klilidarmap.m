@@ -13,6 +13,7 @@ display(['Computing inverse KL divergence of ', model, 'map of ', ...
     dataset, ' dataset ...'])
 
 %% Compute inverse KL divergence.
+ex = [];
 try
     % Compute the inverse KL divergence for each scan.
     fi = 1 : nShift : numel(evalFile);
@@ -75,10 +76,11 @@ try
         parprogress;
     end
     parprogress(0);
-catch
+catch ex
+    display(ex.msgtext)
 end
 
 % Save the KL divergence to file.
 save(kliFile, 'lidarMapFile', 'dataset', 'model', 'pcdPerLs', ...
-    'decayLim', 'refLim', 'lfLim', 'Dhg', '-v7.3');
+    'decayLim', 'refLim', 'lfLim', 'Dhg', 'ex', '-v7.3');
 display(['Result written to ', kliFile, '.'])

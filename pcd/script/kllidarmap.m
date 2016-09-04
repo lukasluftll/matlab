@@ -13,6 +13,7 @@ display(['Computing KL divergence of ', model, 'map of ', dataset, ...
     ' dataset ...'])
 
 %% Compute KL divergence.
+ex = [];
 try
     % Compute the KL divergence for each scan.
     Dgh = NaN(numel(evalFile), 1);
@@ -42,10 +43,11 @@ try
         parprogress;
     end
     parprogress(0);
-catch
+catch ex
+    display(ex.msgtext)
 end
 
 % Save the KL divergence to file.
 save(klFile, 'lidarMapFile', 'dataset', 'model', 'decayLim', ...
-    'refLim', 'lfLim', 'Dgh', '-v7.3');
+    'refLim', 'lfLim', 'Dgh', 'ex', '-v7.3');
 display(['Result written to ', klFile, '.'])
