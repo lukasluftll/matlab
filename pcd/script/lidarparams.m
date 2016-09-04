@@ -21,7 +21,7 @@ rkli = 2.5;
 
 % Number of shifts used for probability normalization when computing
 % inverse KL divergence.
-nShift = 5;
+nShift = 50;
 
 % Ground-truth localization accuracy of the robot.
 sigmaLoc = 0.2;
@@ -31,7 +31,7 @@ sigmaLoc = 0.2;
 pcdPerLs = 1;
 switch dataset
     case 'demo'
-        pcdPerLs = 1;
+        pcdPerLs = 2;
     case 'campus'
         pcdPerLs = 4;
     case 'schauinsland'
@@ -48,7 +48,8 @@ resultFolder = 'pcd/result';
 
 % Files used to build the map and localize the robot.
 pcdFile = dir([dataFolder, '/*.pcd']);
-iMap = rem(1:numel(pcdFile), 2*pcdPerLs) < pcdPerLs;
+iMap = rem(1:numel(pcdFile), 2*pcdPerLs);
+iMap = iMap>0 & iMap<=pcdPerLs;
 mappingFile = pcdFile(iMap);
 evalFile = pcdFile(~iMap);
 
