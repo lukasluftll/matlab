@@ -2,7 +2,7 @@
 
 %% Parameters.
 % Resolution of the lidar map.
-mapRes = 5;
+mapRes = 0.5;
 
 % Resolution of the merged point cloud map.
 pcRes = 0.1;
