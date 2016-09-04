@@ -1,4 +1,4 @@
-function map = pcmap(folder, res, mode)
+function map = pcmap(folder, file, res, mode)
 % PCMAP Build map from multiple PCD files.
 %   MAP = PCMAP(FOLDER, RES) reads all PCD files in the folder FOLDER and 
 %   merges them into a single pointCloud object MAP.
@@ -34,23 +34,36 @@ function map = pcmap(folder, res, mode)
 
 %% Valiate input.
 % Check the number of input arguments.
-narginchk(2, 3)
+narginchk(3, 4)
 
-% Check the FOLDER input argument.
+% Check the FILE input argument.
 validateattributes(folder, {'char'}, {'nonempty'}, '', 'FOLDER')
-if ~isdir(folder)
-    error('FOLDER does not refer to a folder.')
+if exist(folder, 'dir') ~= 7
+    error('Folder %s does not exist.', folder)
+end
+
+if isempty(file)
+    file = dir([folder, '/*.pcd']);
+    if isempty(file)
+        error('Folder %s does not contain any PCD files.', file)
+    end
+else
+    for i = 1 : numel(file)
+        if exist([folder, '/', file(i).name], 'file') ~= 2
+            error('File %s does not exist.', file(i).name);
+        end
+    end
 end
 
 % Check the RES input argument.
-if numel(res) ~= 1 || ~isnumeric(res) || res <= 0
-    error('RES must be a positive number.')
-end
+validateattributes(res, {'numeric'}, {'numel',1, 'nonnegative'}, '', 'RES')
 
 % Define the MODE input argument, if not specified.
-if nargin < 3
+if nargin < 4
     mode = 'direct';
 end
+
+validateattributes(mode, {'char'}, {'nonempty'}, '', 'MODE')
 
 % Check the MODE input argument.
 switch lower(mode)
@@ -61,9 +74,6 @@ switch lower(mode)
 end    
 
 %% Merge point clouds.
-% Get the PCD file names.
-file = dir([folder, '/*.pcd']);
-
 % Use multiple workers to create local maps.
 disp('Merging local maps ...')
 parprogress(numel(file));
