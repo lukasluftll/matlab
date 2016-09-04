@@ -75,6 +75,6 @@ end
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalKliFile, 'lidarMapFile', 'dataset', 'model', 'pcdPerLs', ...
+save(kliFile, 'lidarMapFile', 'dataset', 'model', 'pcdPerLs', ...
     'decayLim', 'refLim', 'lfLim', 'Dhg', '-v7.3');
-display(['Result written to ', evalFile, '.'])
+display(['Result written to ', kliFile, '.'])

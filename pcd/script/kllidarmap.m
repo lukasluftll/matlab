@@ -43,6 +43,6 @@ end
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalKlFile, 'lidarMapFile', 'dataset', 'model', 'decayLim', ...
+save(klFile, 'lidarMapFile', 'dataset', 'model', 'decayLim', ...
     'refLim', 'lfLim', 'Dgh', '-v7.3');
-display(['Result written to ', evalKlFile, '.'])
+display(['Result written to ', klFile, '.'])

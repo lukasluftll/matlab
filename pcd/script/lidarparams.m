@@ -65,8 +65,8 @@ lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 % Names of the evaluation files that contain KL divergence and inverse KL
 % divergence.
-evalKlFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
-evalKliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
+klFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
+kliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
 
 % Sensor reading range.
 rlim = [2, 120];
