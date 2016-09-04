@@ -13,25 +13,16 @@ display(['Computing KL divergence of ', model, 'map of ', dataset, ...
     ' dataset ...'])
 
 %% Compute KL divergence.
-% Get the PCD file names.
-pcdFile = dir([evaluationFolder, '/*.pcd']);
-
 % Compute the KL divergence for each scan.
-iScan = 1 : pcdPerLs : numel(pcdFile);
-Dgh = NaN(size(iScan));
-parprogress(numel(iScan));
-warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
-parfor i = 1 : numel(iScan)
-    % Read multiple laser scans from files and concatenate to get a full
-    % revolution.
-    ls = laserscan.empty(pcdPerLs, 0); %#ok<*PFGV>
-    for j = 1 : pcdPerLs %#ok<*PFBNS>
-        filePath = [evaluationFolder, '/', pcdFile(iScan(i)+j-1).name]; 
-        ls(j) = lsread(filePath, rlim);
-    end
-    ls = lsconcat(ls);
-    
+Dgh = NaN(numel(evalFile), 1);
+parprogress(numel(evalFile));
+pnr = 0;
+parfor i = 1 : numel(evalFile)
+    % Read laser scan.
+    ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
+   
     % Compute the measurement likelihood.
+
     switch lower(model)
         case 'decay'
             [pi, Li] = decayray(ls, constrain(lidarMap, decayLim));
@@ -49,10 +40,9 @@ parfor i = 1 : numel(iScan)
     % Update the progress bar.
     parprogress;
 end
-warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalKlFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', ...
-    'lfLim', 'Dgh', '-v7.3');
+save(evalKlFile, 'lidarMapFile', 'dataset', 'model', 'decayLim', ...
+    'refLim', 'lfLim', 'Dgh', '-v7.3');
 display(['Result written to ', evalKlFile, '.'])

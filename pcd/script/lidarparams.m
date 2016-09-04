@@ -2,7 +2,7 @@
 
 %% Parameters.
 % Resolution of the lidar map.
-mapRes = 0.5;
+mapRes = 5;
 
 % Resolution of the merged point cloud map.
 pcRes = 0.1;
@@ -21,7 +21,7 @@ rkli = 2.5;
 
 % Number of shifts used for probability normalization when computing
 % inverse KL divergence.
-nShift = 50;
+nShift = 5;
 
 % Ground-truth localization accuracy of the robot.
 sigmaLoc = 0.2;
@@ -41,11 +41,16 @@ switch dataset
 end
 
 % Dataset folder containing the PCD files.
-mappingFolder = ['pcd/data/', dataset, '/pcd_sph/mapping'];
-evaluationFolder = ['pcd/data/', dataset, '/pcd_sph/evaluation'];
+dataFolder = ['pcd/data/', dataset, '/pcd_sph'];
 
 % Folder from where to read and where to keep the results.
 resultFolder = 'pcd/result';
+
+% Files used to build the map and localize the robot.
+pcdFile = dir([dataFolder, '/*.pcd']);
+iMap = rem(1:numel(pcdFile), 2*pcdPerLs) < pcdPerLs;
+mappingFile = pcdFile(iMap);
+evalFile = pcdFile(~iMap);
 
 % Name of the MAT file that contains the merged point cloud.
 pcMapFile = [resultFolder, '/pcmap_', dataset, '.mat'];

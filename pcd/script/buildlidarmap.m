@@ -12,17 +12,13 @@ hline(75, '#')
 disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 
 %% Compute extent of lidar map.
-% Get the PCD file names.
-pcdFile = dir([mappingFolder, '/*.pcd']);
-nPcdFile = numel(pcdFile);
-
 % Iterate over all scans and compute an axis-aligned bounding box of all
 % ray endpoints.
-maplim = repmat([Inf, -Inf], 3, 1, numel(nPcdFile));
+maplim = repmat([Inf, -Inf], 3, 1, numel(mappingFile));
 disp('Determining map size ...')
-parprogress(nPcdFile);
-parfor i = 1 : nPcdFile
-    ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim); %#ok<*PFGV>
+parprogress(numel(mappingFile));
+parfor i = 1 : numel(mappingFile)
+    ls = lsread([dataFolder,'/',mappingFile(i).name], rlim); %#ok<*PFGV>
     
     % Set the length of all rays to maximum sensor range.
     ls.radius = repmat(ls.rlim(2), size(ls.radius));
@@ -51,7 +47,7 @@ zgv = maplim(3,1)-mapRes : mapRes : maplim(3,2)+mapRes;
 % the nearest obstacle for each voxel.
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 disp('Computing map ...')
-parprogress(nPcdFile);
+parprogress(numel(mappingFile));
 pnr = [];
 switch lower(model)
     case 'decay'
@@ -59,9 +55,9 @@ switch lower(model)
         l = zeros(gridsize);
         rtot = 0;
         ltot = 0;
-        parfor i = 1 : nPcdFile
+        parfor i = 1 : numel(mappingFile)
             % Read laser scan data from file.
-            ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim);
+            ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
 
             % Build the local decay rate map.
             warning('off', 'pcd:mapping:rlim')
@@ -87,9 +83,9 @@ switch lower(model)
         m = zeros(gridsize);
         htot = 0;
         mtot = 0;
-        parfor i = 1 : nPcdFile
+        parfor i = 1 : numel(mappingFile)
             % Read laser scan data from file.
-            ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim);
+            ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
             
             % Build the local reflectivity map.
             warning('off', 'pcd:mapping:rlim')
@@ -117,9 +113,9 @@ switch lower(model)
         % Count the number of no-returns and the number of returned rays.
         nRet = 0;
         nNret = 0;
-        parfor i = 1 : nPcdFile
+        parfor i = 1 : numel(mappingFile)
             % Read laser scan data from file.
-            ls = lsread([mappingFolder, '/', pcdFile(i).name], rlim);
+            ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
             
             % Sum up the number of returns and no-returns.
             nRet = nRet + sum(ls.ret);
@@ -137,6 +133,6 @@ end
 parprogress(0);
 
 %% Save map.
-save(lidarMapFile, 'dataset', 'pcMapFile', 'mappingFolder', 'pcRes', ...
-    'model', 'mapRes', 'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
+save(lidarMapFile, 'dataset', 'model', 'pcMapFile', 'dataFolder', ...
+    'pcRes', 'mapRes', 'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])

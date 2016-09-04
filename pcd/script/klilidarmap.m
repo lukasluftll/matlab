@@ -12,18 +12,13 @@ hline(75, '#')
 display(['Computing inverse KL divergence of ', model, 'map of ', ...
     dataset, ' dataset ...'])
 
-% Get the PCD file names.
-pcdFile = dir([evaluationFolder, '/*.pcd']);
-
 %% Compute inverse KL divergence.
 % Compute the inverse KL divergence for each scan.
-nPcdFile = numel(pcdFile);
-Dhg = NaN(nPcdFile, 1);
-parprogress(nPcdFile);
-warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
-for i = 1 : nPcdFile
+Dhg = NaN(numel(evalFile), 1);
+parprogress(numel(evalFile));
+for i = 1 : nShift : numel(evalFile)
     % Read laser scan data from file.
-    ls = lsread([evaluationFolder, '/', pcdFile(i).name], rlim);
+    ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
     
     % Randomly shift the scan in the x-y plane and compute the overall
     % likelihood.
@@ -77,10 +72,9 @@ for i = 1 : nPcdFile
     % Update the progress bar.
     parprogress;
 end
-warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
 parprogress(0);
 
 % Save the KL divergence to file.
-save(evalKliFile, 'lidarMapFile', 'pcdPerLs', 'decayLim', 'refLim', ...
-    'lfLim', 'Dhg', '-v7.3');
+save(evalKliFile, 'lidarMapFile', 'dataset', 'model', 'pcdPerLs', ...
+    'decayLim', 'refLim', 'lfLim', 'Dhg', '-v7.3');
 display(['Result written to ', evalFile, '.'])
