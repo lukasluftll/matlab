@@ -18,7 +18,7 @@ try
     fi = 1 : nShift : numel(evalFile);
     Dhg = NaN(numel(fi), 1);
     parprogress(numel(fi));
-    parfor i = 1 : numel(fi)
+    for i = 1 : numel(fi)
         % Read laser scan data from file.
         ls = lsread([dataFolder, '/', evalFile(fi(i)).name], rlim);
         
