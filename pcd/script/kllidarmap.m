@@ -5,7 +5,7 @@ lidarparams
 
 %% Prepare output file.
 % Load the file that contains the lidar map.
-load(lidarMapFile, 'lidarMap');
+load(lidarMapFile, 'lidarMap', 'pnr');
 
 % Print caption.
 hline(75, '#')
@@ -17,7 +17,6 @@ try
     % Compute the KL divergence for each scan.
     Dgh = NaN(numel(evalFile), 1);
     parprogress(numel(evalFile));
-    pnr = 0;
     parfor i = 1 : numel(evalFile)
         % Read laser scan.
         ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
