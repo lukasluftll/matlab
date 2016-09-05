@@ -1,5 +1,8 @@
 % Run all lidar map experiments.
 
+% Activate log.
+diary on
+
 % Run all models for all datasets.
 dataset = 'campus'; %#ok<*NASGU>
 buildpcmap
@@ -27,3 +30,6 @@ model = 'ref';
 buildlidarmap, kllidarmap, klilidarmap, problidarmap
 model = 'lf';
 buildlidarmap, kllidarmap, klilidarmap, problidarmap
+
+% Deactivate log.
+diary off
