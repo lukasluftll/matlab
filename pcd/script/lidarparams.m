@@ -1,8 +1,9 @@
-% Parameters for scripts buildpcmap, buildlidarmap, evallidarmap.
+% Parameters for scripts buildpcmap, buildlidarmap, kllidarmap, 
+% klilidarmap, problidarmap.
 
 %% Parameters.
 % Resolution of the lidar map.
-mapRes = 1;
+mapRes = 0.5;
 
 % Resolution of the merged point cloud map.
 pcRes = 0.1;
@@ -21,7 +22,7 @@ rkli = 2.5;
 
 % Number of shifts used for probability normalization when computing
 % inverse KL divergence.
-nShift = 25;
+nShift = 50;
 
 % Ground-truth localization accuracy of the robot.
 sigmaLoc = 0.2;
