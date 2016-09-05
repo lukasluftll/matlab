@@ -20,7 +20,7 @@ ex = [];
 try
     % Compute the KL divergence for each scan.
     parprogress(n);
-    DghScan = NaN(n, 1);
+    Dghs = NaN(n, 1);
     parfor i = 1 : n
         % Read laser scan.
         ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
@@ -38,21 +38,21 @@ try
         end
         
         % Compute the KL divergence of the scan.
-        DghScan(i) = -sum([Li; log(pi)]);
+        Dghs(i) = -sum([log(pi); Li]);
         
         % Update the progress bar.
         parprogress;
     end
     parprogress(0);
 catch ex
-    display(ex.msgtext)
+    display(ex.message)
 end
 
-% Merge the KL divergences of several scans to get the divergence of at
-% least one full scanner revolution.
-Dgh = sum(reshape(DghScan(1:n>floor(n/pcdPerLs)*pcdPerLs), pcdPerLs, []));
+% Merge the KL divergences of several scans to get the divergence of a 
+% full scanner revolution.
+Dgh = sum(reshape(Dghs(1 : floor(n/pcdPerLs)*pcdPerLs), pcdPerLs, []));
 
 % Save the KL divergence to file.
 save(klFile, 'lidarMapFile', 'dataset', 'model', 'decayLim', ...
-    'refLim', 'lfLim', 'pcdPerLs', 'DghScan', 'Dgh', 'ex', '-v7.3');
+    'refLim', 'lfLim', 'pcdPerLs', 'Dghs', 'Dgh', 'ex', '-v7.3');
 display(['Result written to ', klFile, '.'])
