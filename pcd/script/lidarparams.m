@@ -2,7 +2,7 @@
 
 %% Parameters.
 % Resolution of the lidar map.
-mapRes = 0.5;
+mapRes = 1;
 
 % Resolution of the merged point cloud map.
 pcRes = 0.1;
@@ -21,7 +21,7 @@ rkli = 2.5;
 
 % Number of shifts used for probability normalization when computing
 % inverse KL divergence.
-nShift = 50;
+nShift = 25;
 
 % Ground-truth localization accuracy of the robot.
 sigmaLoc = 0.2;
@@ -64,10 +64,11 @@ end
 % Name of the output file that contains the lidar map.
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
-% Names of the evaluation files that contain KL divergence and inverse KL
-% divergence.
+% Names of the evaluation files that contain KL divergence, inverse KL
+% divergence, and probability distributions.
 klFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
 kliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
+probFile = [resultFolder, '/', model, 'map_', dataset, '_prob.mat'];
 
 % Sensor reading range.
 rlim = [2, 120];

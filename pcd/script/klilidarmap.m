@@ -3,22 +3,22 @@
 %% Fetch parameters.
 lidarparams
 
-%% Prepare processing.
-% Load the file that contains the lidar map.
-load(lidarMapFile, 'lidarMap', 'pnr');
-
+%% Compute inverse KL divergence.
 % Print caption.
 hline(75, '#')
 display(['Computing inverse KL divergence of ', model, 'map of ', ...
     dataset, ' dataset ...'])
 
-%% Compute inverse KL divergence.
+% Load the lidar map and the unconditioned probability of no-return rays.
+load(lidarMapFile, 'lidarMap', 'pnr');
+
+% Catch any error that occurs while computing the inverse KL divergence.
 ex = [];
 try
-    % Compute the inverse KL divergence for each scan.
+    % Compute the inverse KL divergence for a subset of scans.
+    parprogress(numel(fi));
     fi = 1 : nShift : numel(evalFile);
     Dhg = NaN(numel(fi), 1);
-    parprogress(numel(fi));
     for i = 1 : numel(fi)
         % Read laser scan data from file.
         ls = lsread([dataFolder, '/', evalFile(fi(i)).name], rlim);
@@ -27,7 +27,7 @@ try
         % likelihood.
         j = 0;
         offset = NaN(nShift, 2);
-        ps = NaN(nShift, 1);
+        Ls = NaN(nShift, 1);
         while j < nShift
             % Generate random x-y offset.
             offsetTmp = rkli * ([2*rand,2*rand]-1);
@@ -58,19 +58,19 @@ try
                     error(['Sensor model ', model, ' not supported.'])
             end
             
-            % Integrate the probability of the scan over the circle area.
-            ps(j) = sum([pj; exp(Lj)]);
+            % Compute the overall probability of obtaining the whole scan.
+            Ls(j) = sum([log(pj); Lj]);
         end
         
         % Normalize the probabilities.
-        ps = ps / sum(ps);
+        Ls = Ls - logsumexp(Ls);
         
         % Normalize the Gaussian.
         Ns = mvnpdf(offset, 0, eye(2)*sigmaLoc);
         Ns = Ns / sum(Ns);
         
         % Compute the inverse KL divergence of the scan.
-        Dhg(i) = sum(ps .* (log(ps) - log(Ns)));
+        Dhg(i) = sum(ps .* (Ls - log(Ns)));
         
         % Update the progress bar.
         parprogress;
