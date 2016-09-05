@@ -3,15 +3,15 @@
 %% Fetch parameters.
 lidarparams
 
-%% Prepare output file.
+%% Merge point clouds.
 % Print caption.
 hline(75, '#')
 display(['Merging ', dataset, ' point cloud ...'])
 
-%% Merge point clouds.
-% Build the map and denoise it.
+% Assemble the map and denoise it.
 pcMap = pcdenoise(pcmap(dataFolder, mappingFile, pcRes));
 
 % Save the point cloud map to file.
-save(pcMapFile, 'dataset', 'dataFolder', 'pcRes', 'pcMap', '-v7.3')
+save(pcMapFile, 'dataset', 'dataFolder', 'mappingFile', 'pcRes', ...
+    'pcMap', '-v7.3')
 display(['Result written to ', pcMapFile, '.'])

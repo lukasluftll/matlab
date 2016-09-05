@@ -3,22 +3,20 @@
 %% Fetch parameters.
 lidarparams
 
-%% Prepare output file.
-% Load the file that contains the merged point cloud.
-load(pcMapFile, 'pcMap');
-
+%% Compute extent of lidar map.
 % Print caption.
 hline(75, '#')
 disp(['Computing ', model, 'map for ', dataset, ' dataset ...'])
 
-%% Compute extent of lidar map.
-% Iterate over all scans and compute an axis-aligned bounding box of all
-% ray endpoints.
-maplim = repmat([Inf, -Inf], 3, 1, numel(mappingFile));
+% Load the merged point cloud.
+load(pcMapFile, 'pcMap');
+
+% Compute an axis-aligned bounding box of all scans.
 disp('Determining map size ...')
 parprogress(numel(mappingFile));
+maplim = repmat([Inf, -Inf], 3, 1, numel(mappingFile));
 parfor i = 1 : numel(mappingFile)
-    ls = lsread([dataFolder,'/',mappingFile(i).name], rlim); %#ok<*PFGV>
+    ls = lsread([dataFolder, '/', mappingFile(i).name], rlim); %#ok<*PFGV>
     
     % Set the length of all rays to maximum sensor range.
     ls.radius = repmat(ls.rlim(2), size(ls.radius));
@@ -41,16 +39,14 @@ ygv = maplim(2,1)-mapRes-rkli : mapRes : maplim(2,2)+mapRes+rkli;
 zgv = maplim(3,1)-mapRes : mapRes : maplim(3,2)+mapRes;
 
 %% Create lidar map.
-% For the decay model and the reflectivity model, loop over all scans, 
-% compute local maps and merge them to form a global map.
-% For the endpoint model, simply compute the Gaussian of the distance to
-% the nearest obstacle for each voxel.
-gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 disp('Computing map ...')
 parprogress(numel(mappingFile));
+gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 pnr = [];
 switch lower(model)
     case 'decay'
+        % Loop over all scans, compute local maps, and merge them to form 
+        % a global map.
         r = zeros(gridsize);
         l = zeros(gridsize);
         rtot = 0;
@@ -70,15 +66,14 @@ switch lower(model)
             rtot = rtot + ri.prior;
             ltot = ltot + li.prior;
 
-            % Update progress bar.
             parprogress;
         end
         
-        % Compute the decay rate map.
+        % Compute the global decay rate map.
         lidarMap = voxelmap(single(r./l), xgv, ygv, zgv, rtot/ltot);
     case 'ref'
-        % Iterate over all laser scans, compute local reflectivity maps and
-        % merge them into a global map.
+        % Loop over all scans, compute local maps, and merge them to form 
+        % a global map.
         h = zeros(gridsize);
         m = zeros(gridsize);
         htot = 0;
@@ -97,12 +92,11 @@ switch lower(model)
             m = m + mi.data;
             htot = htot + hi.prior;
             mtot = mtot + mi.prior;
-            
-            % Update the progress bar.
+
             parprogress;
         end
         
-        % Compute the reflectivity map.
+        % Compute the global reflectivity map.
         lidarMap = voxelmap(single(h./(h+m)), xgv, ygv, zgv, ...
             htot/(htot+mtot));
     case 'lf'
@@ -121,7 +115,6 @@ switch lower(model)
             nRet = nRet + sum(ls.ret);
             nNret = nNret + sum(~ls.ret);
             
-            % Update the progress bar.
             parprogress;
         end
         
@@ -133,6 +126,7 @@ end
 parprogress(0);
 
 %% Save map.
-save(lidarMapFile, 'dataset', 'model', 'pcMapFile', 'dataFolder', ...
-    'pcRes', 'mapRes', 'rlim', 'sigma', 'lidarMap', 'pnr', '-v7.3');
+save(lidarMapFile, 'dataset', 'model', 'dataFolder', 'mappingFile', ...
+    'pcMapFile', 'pcRes', 'mapRes', 'rlim', 'sigma', 'lidarMap', 'pnr', ...
+    '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])
