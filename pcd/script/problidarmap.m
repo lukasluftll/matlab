@@ -4,30 +4,36 @@
 %% Fetch parameters.
 lidarparams
 
-%% Prepare processing.
-% Load the file that contains the lidar map.
-load(lidarMapFile, 'lidarMap', 'pnr');
-
+%% Compute probability distribution.
 % Print caption.
 hline(75, '#')
 display(['Computing probability distribution for ', model, 'map of ', ...
     dataset, ' dataset ...'])
 
-% Read a selected laser scan from file.
-i = round(numel(evalFile) / 2);
-ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
+% Load the lidar map and the unconditioned probability of no-return rays.
+load(lidarMapFile, 'lidarMap', 'pnr');
 
-%% Compute probability distribution.
+% Read a selected full-revolution laser scan from file.
+n = numel(evalFile);
+fi = 1 : nShift*pcdPerLs : floor(n/pcdPerLs)*pcdPerLs;
+fi = fi(ceil(numel(fi)/2));
+ls = laserscan.empty(pcdPerLs, 0);
+for i = 1 : pcdPerLs
+    ls(i) = lsread([dataFolder, '/', evalFile(fi+i-1).name], rlim);
+end
+ls = lsconcat(ls);
+        
+% Catch any error.
 ex = [];
 try
-    % Compute the probability of scans in grid around the true position.
-    offset = 10;
+    % Compute the log-likelihood of scans in a grid around the true 
+    % position.
     spacing = 1;
-    xgv = -offset : spacing : offset;
-    ygv = -offset : spacing : offset;
+    xgv = -rkli : spacing : rkli;
+    ygv = -rkli : spacing : rkli;
     parprogress(numel(xgv) * numel(ygv));
     L = NaN(numel(xgv), numel(ygv));
-    parfor ix = 1 : numel(xgv)
+    for ix = 1 : numel(xgv)
         for iy = 1 : numel(ygv)
             % Shift laser scan.
             lss = ls;
@@ -49,16 +55,19 @@ try
             % Compute the log-likelihood of the whole scan.
             L(ix,iy) = sum([log(pi); Li]);
             
-            % Update the progress bar.
             parprogress;
         end
     end
     parprogress(0);
 catch ex
-    display(ex.msgtext)
+    display(ex.message)
 end
 
 % Save the KL divergence to file.
 save(probFile, 'lidarMapFile', 'dataset', 'model', 'pcdPerLs', ...
     'decayLim', 'refLim', 'lfLim', 'L', 'xgv', 'ygv', 'ex', '-v7.3');
 display(['Result written to ', probFile, '.'])
+
+%% Visualize results.
+% To display the log-likelihood, use:
+% surf(xgv, ygv, L.')
