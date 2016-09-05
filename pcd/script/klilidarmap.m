@@ -16,18 +16,23 @@ load(lidarMapFile, 'lidarMap', 'pnr');
 ex = [];
 try
     % Compute the inverse KL divergence for a subset of scans.
-    parprogress(numel(fi));
-    fi = 1 : nShift : numel(evalFile);
+    n = numel(evalFile);
+    fi = 1 : nShift*pcdPerLs : floor(n/pcdPerLs)*pcdPerLs;
     Dhg = NaN(numel(fi), 1);
+    parprogress(numel(fi));    
     for i = 1 : numel(fi)
-        % Read laser scan data from file.
-        ls = lsread([dataFolder, '/', evalFile(fi(i)).name], rlim);
+        % Read a full-revolution laser scan from file.
+        ls = laserscan.empty(pcdPerLs, 0);
+        for j = 1 : pcdPerLs
+            ls(j) = lsread([dataFolder,'/',evalFile(fi(i)+j-1).name],rlim);
+        end
+        ls = lsconcat(ls);
         
         % Randomly shift the scan in the x-y plane and compute the overall
         % likelihood.
         j = 0;
         offset = NaN(nShift, 2);
-        Ls = NaN(nShift, 1);
+        L = NaN(nShift, 1);
         while j < nShift
             % Generate random x-y offset.
             offsetTmp = rkli * ([2*rand,2*rand]-1);
@@ -58,26 +63,26 @@ try
                     error(['Sensor model ', model, ' not supported.'])
             end
             
-            % Compute the overall probability of obtaining the whole scan.
-            Ls(j) = sum([log(pj); Lj]);
+            % Compute the overall log-likelihood of obtaining the scan.
+            L(j) = sum([log(pj); Lj]);
         end
         
-        % Normalize the probabilities.
-        Ls = Ls - logsumexp(Ls);
+        % Normalize the log-likelihood.
+        L = L - logsumexp(Ls);
         
         % Normalize the Gaussian.
-        Ns = mvnpdf(offset, 0, eye(2)*sigmaLoc);
-        Ns = Ns / sum(Ns);
+        N = mvnpdf(offset, 0, eye(2)*sigmaLoc);
+        N = N / sum(N);
         
         % Compute the inverse KL divergence of the scan.
-        Dhg(i) = sum(ps .* (Ls - log(Ns)));
+        Dhg(i) = sum(exp(L) .* (L - log(N)));
         
         % Update the progress bar.
         parprogress;
     end
     parprogress(0);
 catch ex
-    display(ex.msgtext)
+    display(ex.message)
 end
 
 % Save the KL divergence to file.
