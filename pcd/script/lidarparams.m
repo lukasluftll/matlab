@@ -27,6 +27,9 @@ nShift = 50;
 % Ground-truth localization accuracy of the robot.
 sigmaLoc = 0.2;
 
+% Spacing of the grid used for probability visualization.
+probSpacing = 0.5;
+
 %% Derived parameters.
 % Set the parameter that defines how many files make one scan.
 pcdPerLs = 1;
@@ -70,9 +73,6 @@ lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 klFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
 kliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
 probFile = [resultFolder, '/', model, 'map_', dataset, '_prob.mat'];
-
-% Spacing of the grid used for probability visualization.
-probSpacing = 0.1;
 
 % Sensor reading range.
 rlim = [2, 120];
