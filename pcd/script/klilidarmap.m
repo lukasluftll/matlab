@@ -68,7 +68,7 @@ try
         end
         
         % Normalize the log-likelihood.
-        L = L - logsumexp(Ls);
+        L = L - logsumexp(L);
         
         % Normalize the Gaussian.
         N = mvnpdf(offset, 0, eye(2)*sigmaLoc);
