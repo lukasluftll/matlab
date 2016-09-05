@@ -75,8 +75,8 @@ parfor i = 1 : ls.count
         % Convert the subscript voxel indices to linear indices.
         iv = sub2ind(size(lf.data), iv(:,1), iv(:,2), iv(:,3));
         
-        % Compute the probability of a return before normalization.
-        pr = sum(lf.data(iv) .* diff(t) * ls.radius(i));
+        % Compute the non-normalized probability of a return.
+        pr = sum(lf.data(iv) .* diff(t) * diff(ls.rlim));
 
         % Compute the normalized log-likelihood of obtaining the returned 
         % ray.
