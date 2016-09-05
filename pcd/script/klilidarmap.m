@@ -52,6 +52,8 @@ try
                 repmat(trvec2tform([offset(j,:),0]),1,1,size(lss.sp,3)));
             
             % Compute the measurement likelihood.
+            warning('off', ...
+                'MATLAB:mir_warning_maybe_uninitialized_temporary')
             switch lower(model)
                 case 'decay'
                     [pj, Lj] = decayray(lss, constrain(lidarMap,decayLim));
@@ -62,6 +64,8 @@ try
                 otherwise
                     error(['Sensor model ', model, ' not supported.'])
             end
+            warning('on', ...
+                'MATLAB:mir_warning_maybe_uninitialized_temporary')
             
             % Compute the overall log-likelihood of obtaining the scan.
             L(j) = sum([log(pj); Lj]);

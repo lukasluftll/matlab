@@ -26,6 +26,7 @@ try
         ls = lsread([dataFolder, '/', evalFile(i).name], rlim);
         
         % Compute the measurement likelihood.
+        warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
         switch lower(model)
             case 'decay'
                 [pi, Li] = decayray(ls, constrain(lidarMap, decayLim));
@@ -36,6 +37,7 @@ try
             otherwise
                 error(['Sensor model ', model, ' not supported.'])
         end
+        warning('on', 'MATLAB:mir_warning_maybe_uninitialized_temporary')
         
         % Compute the KL divergence of the scan.
         Dghs(i) = -sum([log(pi); Li]);
