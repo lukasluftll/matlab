@@ -28,9 +28,8 @@ ex = [];
 try
     % Compute the log-likelihood of scans in a grid around the true 
     % position.
-    spacing = 1;
-    xgv = -rkli : spacing : rkli;
-    ygv = -rkli : spacing : rkli;
+    xgv = -rkli : probSpacing : rkli;
+    ygv = -rkli : probSpacing : rkli;
     parprogress(numel(xgv) * numel(ygv));
     L = NaN(numel(xgv), numel(ygv));
     for ix = 1 : numel(xgv)

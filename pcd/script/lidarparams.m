@@ -71,6 +71,9 @@ klFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
 kliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
 probFile = [resultFolder, '/', model, 'map_', dataset, '_prob.mat'];
 
+% Spacing of the grid used for probability visualization.
+probSpacing = 0.1;
+
 % Sensor reading range.
 rlim = [2, 120];
 
