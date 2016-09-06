@@ -69,10 +69,11 @@ end
 lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 
 % Names of the evaluation files that contain KL divergence, inverse KL
-% divergence, and probability distributions.
+% divergence, probability distributions, and map value convergence.
 klFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
 kliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
 probFile = [resultFolder, '/', model, 'map_', dataset, '_prob.mat'];
+convFile = [resultFolder, '/', model, 'map_', dataset, '_conv.mat'];
 
 % Sensor reading range.
 rlim = [2, 120];
