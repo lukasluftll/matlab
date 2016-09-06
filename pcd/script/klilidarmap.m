@@ -81,6 +81,10 @@ try
         % Compute the inverse KL divergence of the scan.
         Dhg(i) = sum(exp(L) .* (L - log(N)));
         
+        % Compute baseline inverse KL divergence resulting from a uniform
+        % distribution.
+        Dhgbl = -sum(log(nShift) + log(N)) / nShift;
+        
         % Update the progress bar.
         parprogress;
     end
@@ -91,5 +95,5 @@ end
 
 % Save the KL divergence to file.
 save(kliFile, 'lidarMapFile', 'dataset', 'model', 'pcdPerLs', ...
-    'decayLim', 'refLim', 'lfLim', 'Dhg', 'ex', '-v7.3');
+    'decayLim', 'refLim', 'lfLim', 'Dhg', 'Dhgbl', 'ex', '-v7.3');
 display(['Result written to ', kliFile, '.'])
