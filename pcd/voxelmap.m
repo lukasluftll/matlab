@@ -481,7 +481,9 @@ classdef voxelmap
             plotdata = constrain(plotdata, [0,1]);
             
             %% Plot.
-            alphaplot(plotdata, plotdata, obj.xgv, obj.ygv, obj.zgv);
+            height = reshape(obj.zgv(1:end-1), 1, 1, []);
+            height = repmat(height, [numel(obj.xgv), numel(obj.ygv)]-1);
+            alphaplot(plotdata, height, obj.xgv, obj.ygv, obj.zgv);
             axis image vis3d
             grid on
             labelaxes
