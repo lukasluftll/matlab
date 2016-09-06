@@ -43,6 +43,8 @@ disp('Computing map ...')
 parprogress(numel(mappingFile));
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 pnr = [];
+h = [];
+m = [];
 switch lower(model)
     case 'decay'
         % Loop over all scans, compute local maps, and merge them to form 
@@ -128,5 +130,5 @@ parprogress(0);
 %% Save map.
 save(lidarMapFile, 'dataset', 'model', 'dataFolder', 'mappingFile', ...
     'pcMapFile', 'pcRes', 'mapRes', 'rlim', 'sigma', 'lidarMap', 'pnr', ...
-    '-v7.3');
+    'h', 'm', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])
