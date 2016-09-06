@@ -17,6 +17,6 @@ parprogress(0);
 colormap('hot')
 pcshow(pcMap)
 hold on
-plot3(rt(:,1), rt(:,2), rt(:,3), '.')
+plot3(rt(:,1), rt(:,2), rt(:,3)+0.5, '.')
 labelaxes('m')
 hold off
