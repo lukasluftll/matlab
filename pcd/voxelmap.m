@@ -371,7 +371,7 @@ classdef voxelmap
             narginchk(2, 2)
             
             % Check the limits.
-            validateattributes(lim,{'numeric'},{'numel',6},'','LIM')
+            validateattributes(lim, {'numeric'}, {'numel',6}, '', 'LIM')
             
             % Set all NaN values to minimum or maximum limits.
             mapLimits = obj.limits;
@@ -390,9 +390,9 @@ classdef voxelmap
             subzgv = obj.zgv(iz);
             
             % Compute the logical indices of the voxels in the subvolume.
-            ix(find(ix, 1, 'last')) = false;
-            iy(find(iy, 1, 'last')) = false;
-            iz(find(iz, 1, 'last')) = false;
+            ix(find(ix, 1, 'last')) = [];
+            iy(find(iy, 1, 'last')) = [];
+            iz(find(iz, 1, 'last')) = [];
             
             % Get the subvolume of the map data.
             [ix,iy,iz] = ndgrid(ix,iy,iz);
