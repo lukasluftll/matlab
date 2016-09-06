@@ -7,8 +7,8 @@ lidarparams
 rt = [];
 parprogress(numel(mappingFile));
 for i = 1 : numel(mappingFile)
-    ls = lsread([dataFolder, '/', mappingFile(i).name], rlim); %#ok<*PFGV>
-    rt = unique([rt;unique(tform2trvec(ls.sp),'rows')],'rows'); %#ok<AGROW>
+    ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
+    rt = unique([rt; unique(tform2trvec(ls.sp), 'rows')], 'rows'); 
     parprogress;
 end
 parprogress(0);
