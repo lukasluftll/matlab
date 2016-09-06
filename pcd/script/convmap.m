@@ -19,21 +19,21 @@ pfin = lidarMap.data(v);
 
 %% Create lidar map.
 parprogress(numel(mappingFile));
-gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
 pv = [];
 switch lower(model)
     case 'decay'
         % Loop over all scans, compute local maps, and merge them to form 
         % a global map.
-        r = zeros(gridsize);
-        l = zeros(gridsize);
+        r = zeros(size(lidarMap.data));
+        l = zeros(size(lidarMap.data));
         for i = 1 : numel(mappingFile)
             % Read laser scan data from file.
             ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
 
             % Build the local decay rate map.
             warning('off', 'pcd:mapping:rlim')
-            [~,ri,li] = decaymap(ls, xgv, ygv, zgv);
+            [~,ri,li] = decaymap(ls, ...
+                lidarMap.xgv, lidarMap.ygv, lidarMap.zgv);
             warning('on', 'pcd:mapping:rlim')
                         
             % Integrate the local map information into the global map.
@@ -49,15 +49,16 @@ switch lower(model)
     case 'ref'
         % Loop over all scans, compute local maps, and merge them to form 
         % a global map.
-        h = zeros(gridsize);
-        m = zeros(gridsize);
+        h = zeros(size(lidarMap.data));
+        m = zeros(size(lidarMap.data));
         for i = 1 : numel(mappingFile)
             % Read laser scan data from file.
             ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
             
             % Build the local reflectivity map.
             warning('off', 'pcd:mapping:rlim')
-            [~,hi,mi] = refmap(ls, xgv, ygv, zgv);
+            [~,hi,mi] = refmap(ls, ...
+                lidarMap.xgv, lidarMap.ygv, lidarMap.zgv);
             warning('on', 'pcd:mapping:rlim')
             
             % Integrate the local map information into the global map.
@@ -67,10 +68,6 @@ switch lower(model)
 
             parprogress;
         end
-        
-        % Compute the global reflectivity map.
-        lidarMap = voxelmap(single(h./(h+m)), xgv, ygv, zgv, ...
-            htot/(htot+mtot));
     otherwise
         error(['Sensor model ', model, ' not supported.'])
 end
