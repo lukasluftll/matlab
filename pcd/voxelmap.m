@@ -433,20 +433,25 @@ classdef voxelmap
         function plot(obj, mode)
             % PLOT Plot voxel map.
             %   PLOT(OBJ) visualizes the voxelmap object OBJ using
-            %   semi-transparent voxels. 
+            %   colored semi-transparent cuboids.
             %
-            %   PLOT(OBJ, MODE) determines how the map data is represented
-            %   as colors. MODE can assume the following values:
+            %   The map data value of each voxel is represented by the 
+            %   color and transparency value of the corresponding cuboid.
             %
-            %      'scale' (default) - The highest value of OBJ is drawn as
-            %                          completely intransparent voxel, the 
-            %                          lowest value of OBJ is drawn as
-            %                          completely transparent voxel.
+            %   PLOT(OBJ, MODE) determines how the map data relates to the
+            %   color and transparency of the cuboids.
+            %
+            %      'scale' (default) - The voxel with the highest value is 
+            %                          drawn as a completely intransparent 
+            %                          voxel; the lowest map value is drawn 
+            %                          as completely transparent voxel.
             %      'direct'          - Data values are directly interpreted 
             %                          as transparencies, with 0
             %                          representing complete intransparency
             %                          and 1 representing complete
             %                          transparency.
+            %
+            %   See also COLORMAP, ALPHAPLOT.
             
             %% Validate input.
             % Check the number of input arguments.
@@ -481,9 +486,7 @@ classdef voxelmap
             plotdata = constrain(plotdata, [0,1]);
             
             %% Plot.
-            height = reshape(obj.zgv(1:end-1), 1, 1, []);
-            height = repmat(height, [numel(obj.xgv), numel(obj.ygv)]-1);
-            alphaplot(plotdata, height, obj.xgv, obj.ygv, obj.zgv);
+            alphaplot(plotdata, plotdata, obj.xgv, obj.ygv, obj.zgv);
             axis image vis3d
             grid on
             labelaxes
