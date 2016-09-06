@@ -482,7 +482,6 @@ classdef voxelmap
             
             %% Plot.
             alphaplot(plotdata, plotdata, obj.xgv, obj.ygv, obj.zgv);
-            colormap('jet')
             axis image vis3d
             grid on
             labelaxes
