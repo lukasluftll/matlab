@@ -1,4 +1,4 @@
-% Build a map out of many lidar scans.
+% Check convergence of a selected map value.
 
 %% Fetch parameters.
 lidarparams
@@ -20,7 +20,7 @@ pfin = lidarMap.data(v);
 %% Create lidar map.
 parprogress(numel(mappingFile));
 gridsize = [numel(xgv), numel(ygv), numel(zgv)] - 1;
-pv = NaN(numel(mappingFile), 1);
+pv = [];
 switch lower(model)
     case 'decay'
         % Loop over all scans, compute local maps, and merge them to form 
@@ -39,7 +39,10 @@ switch lower(model)
             % Integrate the local map information into the global map.
             r = r + ri.data;
             l = l + li.data;            
-            pv(i) = r(v) / l(v);
+            
+            % If the scan adds new information to the voxel, store the new
+            % voxel value.
+            pv(end+1) = r(v) / l(v); %#ok<*SAGROW>
 
             parprogress;
         end
@@ -60,7 +63,7 @@ switch lower(model)
             % Integrate the local map information into the global map.
             h = h + hi.data;
             m = m + mi.data;            
-            pv(i) = h(v) / (h(v)+m(v));
+            pv(end+1) = h(v) / (h(v)+m(v));
 
             parprogress;
         end
