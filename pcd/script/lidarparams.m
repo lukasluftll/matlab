@@ -73,7 +73,7 @@ lidarMapFile = [resultFolder, '/', model, 'map_', dataset, '.mat'];
 klFile = [resultFolder, '/', model, 'map_', dataset, '_kl.mat'];
 kliFile = [resultFolder, '/', model, 'map_', dataset, '_kli.mat'];
 probFile = [resultFolder, '/', model, 'map_', dataset, '_prob.mat'];
-convFile = [resultFolder, '/', model, 'map_', dataset, '_conv.mat'];
+convFile = [resultFolder, '/map_', dataset, '_conv.mat'];
 
 % Sensor reading range.
 rlim = [2, 120];
