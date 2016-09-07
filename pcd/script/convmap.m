@@ -29,29 +29,21 @@ switch lower(model)
         for i = 1 : numel(mappingFile)
             % Read laser scan data from file.
             ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
-            
-            % Iterate over each ray of the laser scan.
-            for j = 1 : ls.count
-                ray = laserscan(ls.sp(:,:,j), ls.azimuth(j), ...
-                    ls.elevation(j), ls.radius(j), ls.rlim);
 
-                % Build the local decay rate map.
-                warning('off', 'pcd:mapping:rlim')
-                [~,ri,li] = decaymap(ray, ...
-                    lidarMap.xgv, lidarMap.ygv, lidarMap.zgv);
-                warning('on', 'pcd:mapping:rlim')
-
-                % Integrate the local map information into the global map.
-                r = r + ri.data;
-                l = l + li.data;
-                
-                % If the ray adds new information to the voxel, store the
-                % new voxel value.
-                if li.data(v) > 0
-                    pv(end+1) = r(v) / l(v); %#ok<*SAGROW>
-                end
-            end
+            % Build the local decay rate map.
+            warning('off', 'pcd:mapping:rlim')
+            [~,ri,li] = decaymap(ls, ...
+                lidarMap.xgv, lidarMap.ygv, lidarMap.zgv);
+            warning('on', 'pcd:mapping:rlim')
+                        
+            % Integrate the local map information into the global map.
+            r = r + ri.data;
+            l = l + li.data;            
             
+            % If the scan adds new information to the voxel, store the new
+            % voxel value.
+            pv(end+1) = r(v) / l(v); %#ok<*SAGROW>
+
             parprogress;
         end
     case 'ref'
@@ -63,27 +55,16 @@ switch lower(model)
             % Read laser scan data from file.
             ls = lsread([dataFolder, '/', mappingFile(i).name], rlim);
             
-            % Iterate over each ray of the laser scan.
-            for j = 1 : ls.count
-                ray = laserscan(ls.sp(:,:,j), ls.azimuth(j), ...
-                    ls.elevation(j), ls.radius(j), ls.rlim);
-                
-                % Build the local reflection map.
-                warning('off', 'pcd:mapping:rlim')
-                [~,hi,mi] = refmap(ls, ...
-                    lidarMap.xgv, lidarMap.ygv, lidarMap.zgv);
-                warning('on', 'pcd:mapping:rlim')
-
-                % Integrate the local map information into the global map.
-                h = h + hi.data;
-                m = m + mi.data;
-                
-                % If the ray adds new information to the voxel, store the
-                % new voxel value.
-                if h(v)+m(v) > 0
-                    pv(end+1) = h(v) / (h(v)+m(v));
-                end
-            end
+            % Build the local reflectivity map.
+            warning('off', 'pcd:mapping:rlim')
+            [~,hi,mi] = refmap(ls, ...
+                lidarMap.xgv, lidarMap.ygv, lidarMap.zgv);
+            warning('on', 'pcd:mapping:rlim')
+            
+            % Integrate the local map information into the global map.
+            h = h + hi.data;
+            m = m + mi.data;            
+            pv(end+1) = h(v) / (h(v)+m(v));
 
             parprogress;
         end
