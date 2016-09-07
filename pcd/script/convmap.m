@@ -40,8 +40,7 @@ switch lower(model)
             r = r + ri.data;
             l = l + li.data;            
             
-            % If the scan adds new information to the voxel, store the new
-            % voxel value.
+            % Store the new voxel value.
             pv(end+1) = r(v) / l(v); %#ok<*SAGROW>
 
             parprogress;
@@ -63,7 +62,9 @@ switch lower(model)
             
             % Integrate the local map information into the global map.
             h = h + hi.data;
-            m = m + mi.data;            
+            m = m + mi.data;   
+            
+            % Store the new voxel value.
             pv(end+1) = h(v) / (h(v)+m(v));
 
             parprogress;
