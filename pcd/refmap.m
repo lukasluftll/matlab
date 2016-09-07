@@ -105,9 +105,6 @@ for s = 1 : numel(ls)
         % If the ray does not intersect with the map volume, issue a 
         % warning.
         if isempty(vi)
-            warning('pcd:mapping:noRayMapIntersection', ...
-                ['Ray #', num2str(i), ...
-                ' does not intersect with map volume.'])
             continue
         end
 
