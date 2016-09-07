@@ -33,7 +33,7 @@ function [lambda, r, l] = decaymap(ls, xgv, ygv, zgv)
 %   The decay rate of a ray emitted by a Lidar sensor is a property of the
 %   material through which the ray travels. The mean decay rate over a 
 %   voxel is the number of ray returns from inside the voxel divided by the 
-%   sum of the lengths of all rays travelling through the voxel:
+%   sum of the lengths of all rays traveling through the voxel:
 %
 %                  n_returns
 %      lambda = -----------------
@@ -104,6 +104,11 @@ for s = 1 : numel(ls)
         % Compute the indices of the voxels through which the ray travels.
         [vi,t] = trav(tform2trvec(ls(s).sp(:,:,i)), ray(i,:), xgv,ygv,zgv);
 
+        % If the ray does not intersect with the map, skip it.
+        if isempty(vi)
+            continue
+        end
+        
         % Convert the subscript indices to linear indices.
         vi = sub2ind(gridsize, vi(:,1), vi(:,2), vi(:,3));
 
