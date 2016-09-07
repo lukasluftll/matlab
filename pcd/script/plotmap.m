@@ -3,6 +3,9 @@
 %% Fetch parameters.
 lidarparams
 
+%% Load point cloud.
+load(pcMapFile, 'pcMap')
+
 %% Read robot trajectory.
 rt = [];
 parprogress(numel(mappingFile));
@@ -17,6 +20,6 @@ parprogress(0);
 colormap('hot')
 pcshow(pcMap)
 hold on
-plot3(rt(:,1), rt(:,2), rt(:,3)+0.5, '.')
+plot3(rt(:,1), rt(:,2), rt(:,3)+1, '.')
 labelaxes('m')
 hold off
