@@ -50,7 +50,25 @@ l = cumsum(l, 4);
 h = cumsum(h, 4);
 m = cumsum(m, 4);
 
+pref = 1 - h./(h+m);
+pdecay = exp(-mapRes * r./l);
+
+dpref = pref - repmat(pref(:,:,:,end), [1,1,1,size(pref,4)]);
+dpdecay = pdecay - repmat(pdecay(:,:,:,end), [1,1,1,size(pdecay,4)]);
+
+cref = mean(reshape(abs(dpref), prod(gridsize), []), 'omitnan');
+cdecay = mean(reshape(abs(dpdecay), prod(gridsize), []), 'omitnan');
+
 %% Save map.
 save(convFile, 'dataset', 'dataFolder', 'mappingFile', 'r', 'l', ...
-    'h', 'm', '-v7.3');
+    'h', 'm', 'cref', 'cdecay', '-v7.3');
 display(['Result written to ', lidarMapFile, '.'])
+
+%% Visualization.
+%plot(cdecay, 'LineWidth', 2)
+%hold on
+%plot(cref, 'LineWidth', 2)
+%hold off
+%legend('decay', 'ref')
+%xlabel('t [1]')
+%ylabel('c')
