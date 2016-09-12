@@ -1,50 +1,47 @@
-function lcs = logsumexp(X, varargin)
-% LOGSUMEXP(X, dim) computes log(sum(exp(X), dim)) robustly. Care lightspeed users!
+function lse = logsumexp(x, varargin)
+% LOGSUMEXP Logarithm of sum of exponentials.
+%   LOGSUMEXP(X) computes LOG(SUM(EXP(X))) avoiding numerical underflow and 
+%   overflow.
 %
-%     lse = logsumexp(X[, dim]);
+%   LOGSUMEXP(X,DIM) computes LOG(SUM(EXP(X),DIM)) along the specified
+%   dimension of the sum.
 %
-% This routine works with general ND-arrays and matches Matlab's default
-% behavior for sum: if dim is omitted it sums over the first non-singleton
-% dimension.
+%   Example:
+%      logsumexp([1e3,1e4])
 %
-% Note: Tom Minka's lightspeed has a logsumexp function, which:
-%     1) sets dim=1 if dim is missing
-%     2) returns Inf for sums containing Infs and NaNs;
-%
-% This routine is fairly fast and accurate for many uses, including when all the
-% values of X are large in magnitude. There is a corner case where the relative
-% error is avoidably bad (although the absolute error is small), when the
-% largest argument is very close to zero and the next largest is moderately
-% negative. For example:
-%     logsumexp([0 -40])
-% Cases like this rarely come up in my work. My LOGPLUSEXP and LOGCUMSUM
-% functions do cover this case.
-%
-% SEE ALSO: LOGCUMSUMEXP LOGPLUSEXP
+%   See also LOG, SUM, EXP.
 
-% Iain Murray, September 2010
+% Copyright 2016 Alexander Schaefer
+% The original algorithm was developed by Tom Minka, then changed by 
+% Iain Murray, and finally commented and documented MATLAB-style by 
+% Alexander Schaefer.
 
-% History: IM wrote a bad logsumexp in ~2002, then used Tom Minka's version for
-% years until eventually wanting something slightly different.
+%% Validate input.
+narginchk(1, 2)
 
-if (numel(varargin) > 1)
-    error('Too many arguments')
-end
-
-if isempty(X)
-    % Easiest way to get this trivial but annoying case right!
-    lcs = log(sum(exp(X),varargin{:}));
+% Handle empty input data.
+if isempty(x)
+    lse = log(sum(exp(x), varargin{:}));
     return;
 end
 
+%% Compute output.
+% Determine maximum value of input data.
 if isempty(varargin)
-    mx = max(X);
+    xmax = max(x);
 else
-    mx = max(X, [], varargin{:});
+    xmax = max(x, [], varargin{:});
 end
-Xshift = bsxfun(@minus, X, mx);
-lcs = bsxfun(@plus, log(sum(exp(Xshift),varargin{:})), mx);
 
-idx = isinf(mx);
-lcs(idx) = mx(idx);
-lcs(any(isnan(X),varargin{:})) = NaN;
+% Subtract maximum from input data.
+xshift = bsxfun(@minus, x, xmax);
+
+% Compute logarithm of sum of exponentials and add maximum value again.
+lse = bsxfun(@plus, log(sum(exp(xshift), varargin{:})), xmax);
+
+% If the input maximum values contain infinite or NaN values, propagate 
+% them to the output.
+lse(isinf(xmax)) = xmax(isinf(xmax));
+lse(any(isnan(x), varargin{:})) = NaN;
+
+end
