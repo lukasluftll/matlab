@@ -9,21 +9,21 @@ t = 3;
 %% Single-threaded execution
 disp('Single-threaded execution')
 n = 1000;
-parprogress(n)
+progressbar(n)
 for i = 1 : n
     pause(t/n)
-    parprogress
+    progressbar
 end
 
 %% Single-threaded execution with warnings
 disp('Single-threaded execution with warnings')
 n = 1000;
-parprogress(n)
+progressbar(n)
 for i = 1 : n
     pause(t/n)
-    parprogress
+    progressbar
     
-    if rem(i/300) == 0
+    if rem(i,300) == 0
         warning('warning text')
     end
 end
@@ -31,21 +31,21 @@ end
 %% Execution in parfor
 disp('Single-threaded execution')
 n = 1000;
-parprogress(n)
+progressbar(n)
 parfor i = 1 : n
     pause(t/n)
-    parprogress
+    progressbar
 end
 
 %% Execution in parfor with warnings
 disp('Single-threaded execution with warnings')
 n = 1000;
-parprogress(n)
+progressbar(n)
 parfor i = 1 : n
     pause(t/n)
-    parprogress
+    progressbar
     
-    if rem(i/300) == 0
+    if rem(i,300) == 0
         warning('warning text')
     end
 end
