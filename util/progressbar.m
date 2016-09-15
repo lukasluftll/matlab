@@ -4,13 +4,13 @@ function progressbar(n)
 %   N is a positive integer that denotes the number of computations to 
 %   come.
 %
-%   PROGRESSBAR increments the progress bar. After N calls to PROGRESSBAR,
-%   the bar shows full completion.
+%   PROGRESSBAR without arguments increments the progress bar. After N 
+%   calls to PROGRESSBAR, the bar shows full completion.
 %
-%   PROGRESSBAR(0) must be called to close the progress bar.
+%   PROGRESSBAR(0) closes the progress bar.
 %
-%   PROGRESSBAR works both in a single-threaded and in a multi-threaded
-%   setting.
+%   PROGRESSBAR works both in a single-threaded context like a FOR loop 
+%   and in a multi-threaded context like PARFOR.
 %
 %   Example:
 %      n = 100;
@@ -24,6 +24,7 @@ function progressbar(n)
 %   See also WAITBAR.
 
 % Copyright 2016 Alexander Schaefer
+%
 % PROGRESSBAR is inspired by TEXTPROGRESSBAR by Paul Proteus
 % (https://www.mathworks.com/matlabcentral/fileexchange/28067-
 % text-progress-bar) and by progressbar by Jeremy Scheff
