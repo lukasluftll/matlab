@@ -29,7 +29,7 @@ for i = 1 : n
 end
 
 %% Execution in parfor
-disp('Single-threaded execution')
+disp('Multi-threaded execution')
 n = 1000;
 progressbar(n)
 parfor i = 1 : n
@@ -38,7 +38,7 @@ parfor i = 1 : n
 end
 
 %% Execution in parfor with warnings
-disp('Single-threaded execution with warnings')
+disp('Multi-threaded execution with warnings')
 n = 1000;
 progressbar(n)
 parfor i = 1 : n
