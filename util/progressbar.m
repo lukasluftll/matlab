@@ -27,7 +27,7 @@ function progressbar(n)
 %
 % PROGRESSBAR is inspired by TEXTPROGRESSBAR by Paul Proteus
 % (https://www.mathworks.com/matlabcentral/fileexchange/28067-
-% text-progress-bar) and by progressbar by Jeremy Scheff
+% text-progress-bar) and by PROGRESSBAR by Jeremy Scheff
 % (https://de.mathworks.com/matlabcentral/fileexchange/32101-
 % progress-monitor--progress-bar--that-works-with-parfor).
 
