@@ -66,6 +66,10 @@ end
         % Store number of computations to come in file.
         pgbsave(n);
         
+        % Clear warning cache. Otherwise, PGBPRINT would print the last
+        % warning.
+        lastwarn('');
+        
         % Display computation progress.
         pgbprint(0);
     end
@@ -118,11 +122,20 @@ end
         % Create percentage string.
         percentStr = sprintf('%3.0f%%', round(progress*100));
         
+        % Create the string that clears the last progress bar.
+        if progress <= 0 || ~isempty(lastwarn)
+            clearStr = '';
+            lastwarn('')
+        else
+            clearStr = [repmat(char(8), 1, barwidth+9), char(10)];
+        end
+        
+        % Create the bar visualization.
+        barStr = ['[', repmat('=', 1, round(progress*barwidth)), '>', ...
+            repmat(' ', 1, barwidth-round(progress*barwidth)), ']'];
+        
         % Display progress bar.
-        display([repmat(char(8), 1, (barwidth+9) * (progress>0)), ...
-            char(10), percentStr, ...
-            '[', repmat('=', 1, round(progress*barwidth)), '>', ...
-            repmat(' ', 1, barwidth-round(progress*barwidth)), ']'])
+        display([clearStr, percentStr, barStr]);
     end
 
     function pgbsave(n)
