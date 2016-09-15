@@ -99,10 +99,11 @@ end
         end
 
         % Display progress.
-        if progress < 1
-            pgbprint(progress)
-        else
-            pgbclose;
+        pgbprint(progress)
+        
+        % Close progress bar on full completion.
+        if progress >= 1
+            pgbclose
         end
     end
 
