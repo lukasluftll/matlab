@@ -1,7 +1,7 @@
-function data = pcdread(filename)
+function data = pcdread(file)
 % PCDREAD Read contents of point cloud from PCD file.
-%   DATA = PCDREAD(FILENAME) reads header and data fields of the 
-%   ASCII-coded PCD file FILENAME and returns them in struct DATA. 
+%   DATA = PCDREAD(FILE) reads header and data fields of the 
+%   ASCII-coded PCD file FILE and returns them in struct DATA. 
 %
 %   DATA contains the following elements read from the PCD header.
 %
@@ -23,8 +23,8 @@ function data = pcdread(filename)
 %   In order for the DAT file to be recognized correctly, it must obey the 
 %   following naming convention:
 %
-%      PCD file name   <filename>.pcd
-%      DAT file name   <filename>_info.dat
+%      PCD file name   <file>.pcd
+%      DAT file name   <file>_info.dat
 %  
 %   Example:
 %      data = pcdread('office.pcd');
@@ -39,21 +39,19 @@ function data = pcdread(filename)
 % Check the number of input arguments.
 narginchk(1, 1)
 
-% Make sure the given file name is a string.
-if ~ischar(filename)
-    error('FILENAME must be a string.')
-end
+% Check the input argument.
+validateattributes(file, {'char'}, {'row', 'nonempty'}, '', 'FILE')
 
 % Verify the file exists.
-if exist(filename, 'file') ~= 2
-    error(['File ', filename, ' does not exist.'])
+if exist(file, 'file') ~= 2
+    error(['File ', file, ' does not exist.'])
 end
 
 %% Open file.
 % Try to open the file.
-fid = fopen(filename, 'r');
+fid = fopen(file, 'r');
 if fid == -1
-    error(['Cannot read ', filename, '.'])
+    error(['Cannot read ', file, '.'])
 end
 
 % Make sure the file is closed upon function termination.
@@ -135,7 +133,7 @@ end
 
 %% Read PCD payload data.
 % Read raw data.
-rawdata = dlmread(filename, ' ', 11, 0);
+rawdata = dlmread(file, ' ', 11, 0);
 
 % Convert raw data to cell array. Each cell element contains a matrix of
 % size WIDTH x HEIGHT x COUNT.
@@ -167,22 +165,22 @@ data.count = count;
 
 %% Read DAT file.
 % Determine the name of the DAT file.
-datFilename = [filename(1:end-length('.pcd')), '_info.dat'];
+datFile = [file(1:end-length('.pcd')), '_info.dat'];
 
 % Check if the DAT file exists.
-if exist(datFilename, 'file') ~= 2
+if exist(datFile, 'file') ~= 2
     return
 end
 
 % Check if the DAT file can be opened for read access.
-datFid = fopen(datFilename, 'r');
+datFid = fopen(datFile, 'r');
 if datFid == -1
     return
 end
 fclose(datFid);
 
 % Read position information if available.
-pos = posread(datFilename);
+pos = posread(datFile);
 
 % Append position information to return structure.
 posfield = fieldnames(pos);

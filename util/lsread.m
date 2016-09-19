@@ -20,9 +20,10 @@ function ls = lsread(file, rlim)
 % Check number of input arguments.
 narginchk(1, 2)
 
-% Check type of input argument.
-if ~ischar(file)
-    error('FILE must be a string.')
+% Check the input arguments.
+validateattributes(file, {'char'}, {'row', 'nonempty'}, '', 'FILE')
+if nargin > 1
+    validateattributes(rlim, {'numeric'}, {'numel', 2}, '', 'RLIM')
 end
 
 %% Read PCD file.

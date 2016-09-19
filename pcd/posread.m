@@ -1,7 +1,7 @@
-function pos = posread(filename)
+function pos = posread(file)
 % POSREAD Read position information from file.
-%   POS = POSREAD(FILENAME) reads position information from the DAT file
-%   specified by the string FILENAME. The return value POS is a structure 
+%   POS = POSREAD(FILE) reads position information from the DAT file
+%   specified by the string FILE. The return value POS is a structure 
 %   that contains the following elements.
 %
 %   'time'          scalar that represents the time stamp of the laser scan
@@ -34,7 +34,7 @@ function pos = posread(filename)
 %   is empty.
 % 
 %   Example:
-%      pos = posread('campus_info.dat')
+%      pos = posread('pcd/data/campus_info.dat')
 %
 %   See also PCDREAD, PCREAD, PTSREAD.
  
@@ -44,21 +44,19 @@ function pos = posread(filename)
 % Check the number of input arguments.
 narginchk(1, 1)
 
-% Make sure the given file name is a string.
-if ~ischar(filename)
-    error('FILENAME must be a string.')
-end
+% Check the input argument.
+validateattributes(file, {'char'}, {'row', 'nonempty'}, '', 'FILE')
 
 % Verify the file exists.
-if exist(filename, 'file') ~= 2
-    error(['File ', filename, ' does not exist.'])
+if exist(file, 'file') ~= 2
+    error(['File ', file, ' does not exist.'])
 end
 
 %% Open file.
 % Try to open the file.
-fid = fopen(filename, 'r');
+fid = fopen(file, 'r');
 if fid == -1
-    error(['Cannot read ', filename, '.'])
+    error(['Cannot read ', file, '.'])
 end
 
 % Make sure the file is closed upon function termination.
