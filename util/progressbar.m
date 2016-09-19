@@ -125,8 +125,8 @@ end
         
         % Create the string that clears the last progress bar.
         if progress <= 0 || ~isempty(lastwarn)
-            clearStr = '';
             lastwarn('')
+            clearStr = '';
         else
             clearStr = [repmat(char(8), 1, barwidth+9), char(10)];
         end
