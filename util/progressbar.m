@@ -9,8 +9,8 @@ function progressbar(n)
 %
 %   PROGRESSBAR(0) closes the progress bar.
 %
-%   PROGRESSBAR works both in a single-threaded context like a FOR loop 
-%   and in a multi-threaded context like PARFOR.
+%   PROGRESSBAR works both in single-threaded FOR loops and in 
+%   multi-threaded PARFOR loops, but not inside an SPMD statement.
 %
 %   Example:
 %      n = 100;
