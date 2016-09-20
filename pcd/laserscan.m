@@ -320,7 +320,8 @@ classdef laserscan
             % Transform the ray direction vectors into the reference frame
             % of the laser scan.
             rot = rotm2tform(tform2rotm(obj.sp(:,:,i(:))));
-            v = hom2cart(pagetimes(rot, cart2hom([x,y,z]).').');
+            v = reshape(cart2hom([x,y,z]).', 4, 1, []);
+            v = hom2cart(permute(pagetimes(rot, v), [3,1,2]));
         end
         
         function pc = ls2pc(obj)
