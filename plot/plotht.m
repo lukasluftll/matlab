@@ -6,10 +6,10 @@ function plotht(ht, l, varargin)
 %
 %   PLOTHT(HT, L) plots the axis vectors with length L.
 %
-%   PLOTHT(HT, VARARGIN) additionally specifies the plot linestyle for the
-%   axis vectors. Any marker in LINESPEC is drawn at the base instead of an
-%   arrow on the tip. Use a marker of '.' to specify no marker at all. 
-%   See PLOT for available linestyles.
+%   PLOTHT(HT, L, VARARGIN) additionally specifies the plot linestyle for 
+%   the axis vectors. Any marker in LINESPEC is drawn at the base instead 
+%   of an arrow on the tip. Use a marker of '.' to specify no marker at 
+%   all. See PLOT for available linestyles.
 %
 %   Example:
 %      plotht(eye(4))
@@ -32,9 +32,7 @@ end
 l(nargin<2) = 1;
 
 % Check the axis vector length argument.
-if l <= 0
-    error('L must be positive.')
-end
+validateattributes(l, {'numeric'}, {'scalar', 'positive'}, '', 'L')
 
 %% Plot unit vectors.
 % Compute the origins of the coordinate systems.
