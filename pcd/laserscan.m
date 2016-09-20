@@ -475,11 +475,10 @@ classdef laserscan
             pcshow(pointCloud(er), 'MarkerSize', 80);
             
             % Plot sensor poses.
-            nsp = min([10, obj.count]);
             l = 0.05 * mean(sqrt(sum(tform2trvec(obj.sp).^2, 2)));
-            spplot = obj.sp(:,:,randsample(1:obj.count, nsp));
-            plotht(spplot, l);
-            ptext = tform2trvec(spplot(:,:,1));
+            i = round(linspace(1, obj.count, min([10, obj.count])));
+            plotht(obj.sp(:,:,i), l);
+            ptext = tform2trvec(obj.sp(:,:,1));
             text(ptext(1), ptext(2), ptext(3), 'Sensor pose')
             
             % Plot decoration.
