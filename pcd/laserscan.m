@@ -278,7 +278,8 @@ classdef laserscan
            
             % Transform the ray endpoints into the reference frame of the
             % laser scan.
-            p=hom2cart(pagetimes(obj.sp(:,:,i(:)),cart2hom([x,y,z]).').');
+            p = reshape(cart2hom([x,y,z]).', 4, 1, []);
+            p = hom2cart(permute(pagetimes(obj.sp(:,:,i(:)), p), [3,1,2]));
         end
         
         function v = dir2cart(obj, i)
