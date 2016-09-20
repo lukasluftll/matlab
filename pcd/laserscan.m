@@ -429,14 +429,11 @@ classdef laserscan
             %   selection of rays and sensor poses is plotted to minimize
             %   computational effort.
           
-            %% Select subset of rays to plot.
-            % Define the maximum number of rays to plot.
-            nray = min([obj.count, 2000]); 
-            
+            %% Select subset of rays to plot.           
             % Build logical index vector that selects the maximum number of
             % rays at random.
             i = false(obj.count, 1);
-            i(randsample(1:obj.count, nray)) = true;
+            i(randsample(1:obj.count, min([obj.count, 2000]))) = true;
             
             %% Compute sensor positions and ray endpoints.
             % Identify returned and no-return rays to plot.
@@ -455,7 +452,7 @@ classdef laserscan
             er = end2cart(lsr);
             enr = end2cart(lsnr);
             
-            % Get sensor origin for each ray.
+            % Get the sensor origin for each ray.
             sr = ht2tv(lsr.sp);
             snr = ht2tv(lsnr.sp);
             
