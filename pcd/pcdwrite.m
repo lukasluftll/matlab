@@ -174,7 +174,7 @@ dlmdata = cellfun(@(d) reshape(d,[],size(d,2),1), dlmdata, ...
 dlmdata = cell2mat(dlmdata);
 
 % Write the payload data to file.
-dlmwrite(file, dlmdata, 'delimiter',' ', 'precision','%.10g', '-append');
+dlmwrite(file, dlmdata, 'delimiter',' ', 'precision','%.7g', '-append');
 fprintf('\n');
 
 end
