@@ -1,7 +1,10 @@
-function pcdwrite(pcd, file)
+function pcdwrite(file, pcd)
 % PCDWRITE Write point cloud to PCD file.
-%   PCDWRITE(PCD, FILE) writes the point cloud data PCD to the
-%   ASCII-coded PCD file FILE.
+%   PCDWRITE(FILE, PCD) writes the point cloud data PCD to the ASCII-coded 
+%   PCD file FILE.
+%
+%   FILE is the name of the PCD file. It may or may not contain the file
+%   extension.
 %
 %   PCD is either a pointCloud object or a struct with an arbitrary number 
 %   of fields.
@@ -28,9 +31,6 @@ function pcdwrite(pcd, file)
 %   reference frame of all points. PCD.VIEWPOINT must be a 4x4 homogeneous 
 %   transformation matrix. If PCD.VIEWPOINT is not defined, the VIEWPOINT 
 %   header entry of the PCD file is set to identity.
-%
-%   FILE is the name of the PCD file. It may or may not contain the file
-%   extension.
 %
 %   Example:
 %      pcdwrite(pcread('teapot.ply'), 'teapot.pcd')
