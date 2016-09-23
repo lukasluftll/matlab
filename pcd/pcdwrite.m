@@ -1,14 +1,17 @@
-function pcdwrite(data, file)
+function pcdwrite(pcd, file)
 % PCDWRITE Write point cloud to PCD file.
-%   PCDWRITE(DATA, FILE) writes the point cloud data DATA to the
+%   PCDWRITE(PCD, FILE) writes the point cloud data PCD to the
 %   ASCII-coded PCD file FILE.
 %
-%   DATA is a struct with an arbitrary number of fields. Each field 
-%   contains an IxJxK matrix. I and J must be the same for all fields,
-%   K may vary.
+%   PCD is either a pointCloud object or a struct with an arbitrary number 
+%   of fields.
 %
-%   There are several predefined header field names that must not be used 
-%   to refer to payload data. These field names are:
+%   If PCD is a struct, the size of the payload data matrices contained in
+%   the fields is HEIGHTxWIDTHxCOUNT. HEIGHT and WIDTH indicate the height 
+%   and the width of the point cloud, whereas COUNT specifies the dimension 
+%   of the data of one point. COUNT can vary from matrix to matrix.
+%
+%   Some field names are predefined and may not be used for payload data:
 %      - VERSION,
 %      - FIELDS,
 %      - SIZE,
@@ -20,23 +23,17 @@ function pcdwrite(data, file)
 %      - POINTS,
 %      - DATA.
 %
-%   If DATA contains the field VIEWPOINT, it indicates the pose of the
-%   sensor frame relative to the reference frame of all points. 
-%   DATA.VIEWPOINT must be a 4x4 homogeneous transformation matrix.
-%   If DATA.VIEWPOINT is not defined, the VIEWPOINT header entry of the PCD
-%   file is set to identity.
+%   Except for PCD.VIEWPOINT, all these fields are ignored. However,
+%   PCD.VIEWPOINT indicates the pose of the sensor frame relative to the 
+%   reference frame of all points. PCD.VIEWPOINT must be a 4x4 homogeneous 
+%   transformation matrix. If PCD.VIEWPOINT is not defined, the VIEWPOINT 
+%   header entry of the PCD file is set to identity.
 %
-%   If DATA contains any other of the predefined fields, their values are
-%   ignored. The respective header entries are auto-generated.
-%  
 %   FILE is the name of the PCD file. It may or may not contain the file
 %   extension.
 %
 %   Example:
-%      data.x = rand(1,100);
-%      data.y = rand(1,100);
-%      data.z = rand(1,100);
-%      pcdwrite(data, 'randpoints')
+%      pcdwrite(pcread('teapot.ply'), 'teapot.pcd')
 %
 %   See also PCWRITE, PCDREAD.
  
@@ -47,7 +44,7 @@ function pcdwrite(data, file)
 narginchk(2, 2)
 
 % Check the input arguments types.
-validateattributes(data, {'struct'}, {'numel', 1}, '', 'DATA')
+validateattributes(pcd, {'struct'}, {'numel', 1}, '', 'PCD')
 validateattributes(file, {'char'}, {'row', 'nonempty'}, '', 'FILE')
 
 % If the file is given without extension, append the extension.
@@ -58,17 +55,17 @@ end
 
 %% Preprocess input.
 % Extract the viewpoint.
-field = fieldnames(data);
+field = fieldnames(pcd);
 vp = strcmpi('viewpoint', field);
 if isempty(find(vp, 1))
     viewpoint = eye(4);
-elseif ishrt(data.(field{vp}))
-    viewpoint = data.(field{vp});
+elseif ishrt(pcd.(field{vp}))
+    viewpoint = pcd.(field{vp});
 else
-    error('DATA.VIEWPOINT must be a 4x4 homogeneous transformation.')
+    error('PCD.VIEWPOINT must be a 4x4 homogeneous transformation.')
 end
 
-% Find all predefined fields in DATA.
+% Find all predefined fields in PCD.
 rem = false(size(field));
 prefield = {'version', 'fields', 'size', 'type', 'count', 'width', ...
     'height', 'viewpoint', 'points', 'data'};
@@ -77,15 +74,15 @@ for i = 1 : numel(prefield)
 end
 field = field(~rem);
 
-% Check the content of the remaining fields of DATA.
+% Check the content of the remaining fields of PCD.
 for i = 1 : numel(field)
-    if ~isnumeric(data.(field{i}))
-        error(['DATA.', toupper(field{i}), ...
+    if ~isnumeric(pcd.(field{i}))
+        error(['PCD.', toupper(field{i}), ...
             ' does not contain numeric values.'])
     end
-    if ndims(data.(field{1})) ~= ndims(data.(field{i})) ...
-            || any(size(data.(field{1})) ~= size(data.(field{i})))
-        error(['Sizes of DATA.', toupper(field{1}), ' and ', ...
+    if ndims(pcd.(field{1})) ~= ndims(pcd.(field{i})) ...
+            || any(size(pcd.(field{1})) ~= size(pcd.(field{i})))
+        error(['Sizes of PCD.', toupper(field{1}), ' and ', ...
             toupper(field{i}), ' do not match.'])
     end
 end
@@ -115,7 +112,7 @@ fprintf(fid, '\b\n');
 % Sizes of the datatypes.
 fprintf(fid, 'SIZE ');
 for i = 1 : numel(field)
-    fielddata = data.(field{i});
+    fielddata = pcd.(field{i});
     datainfo = whos('fielddata');
     fprintf(fid, '%i ', datainfo.bytes / numel(fielddata));
 end
@@ -136,20 +133,20 @@ fprintf(fid, 'TYPE ');
                 t = '?';
         end
     end
-cellfun(@(f) fprintf(fid, '%s ', pcdtype(data.(f))), field);
+cellfun(@(f) fprintf(fid, '%s ', pcdtype(pcd.(f))), field);
 fprintf(fid, '\b\n');
 
 % Number of elements per field per point.
 fprintf(fid, 'COUNT ');
-cellfun(@(f) fprintf(fid, '%i ', size(data.(f), 3)), field);
+cellfun(@(f) fprintf(fid, '%i ', size(pcd.(f), 3)), field);
 fprintf(fid, '\b\n');
 
 % Point cloud width.
-width = size(data.(field{1}),2);
+width = size(pcd.(field{1}),2);
 fprintf(fid, 'WIDTH %i\n', width);
 
 % Point cloud height.
-height = size(data.(field{1}),1);
+height = size(pcd.(field{1}),1);
 fprintf(fid, 'HEIGHT %i\n', height);
 
 % Acquisition viewpoint of the points in the dataset.
@@ -162,11 +159,11 @@ fprintf(fid, '\b\n');
 fprintf(fid, 'POINTS %i\n', width*height);
 
 % Data type of the PCD file.
-fprintf(fid, 'DATA ascii\n');
+fprintf(fid, 'PCD ascii\n');
 
 %% Write payload data.
 % Compile the data matrix.
-dlmdata = struct2cell(data).';
+dlmdata = struct2cell(pcd).';
 dlmdata = dlmdata(~rem);
 dlmdata = cellfun(@(d) permute(d,[2,3,1]), dlmdata, 'UniformOutput',false);
 dlmdata = cellfun(@(d) reshape(d,[],size(d,2),1), dlmdata, ...
