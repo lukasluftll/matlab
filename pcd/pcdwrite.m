@@ -36,8 +36,11 @@ function pcdwrite(pcd, file)
 %      pcdwrite(pcread('teapot.ply'), 'teapot.pcd')
 %
 %   See also PCWRITE, PCDREAD.
- 
+
 % Copyright 2016 Alexander Schaefer
+%
+% The PCD file format used by the Point Cloud Library is described here:
+% http://pointclouds.org/documentation/tutorials/pcd_file_format.php.
 
 %% Validate input.
 % Check the number of input arguments.
