@@ -185,7 +185,7 @@ fprintf(fid, '\b\n');
 fprintf(fid, 'POINTS %i\n', height*width);
 
 % Data type of the PCD file.
-fprintf(fid, 'PCD ascii\n');
+fprintf(fid, 'DATA ascii\n');
 
 %% Write payload data.
 % Compile the payload data.
