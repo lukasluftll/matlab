@@ -51,17 +51,17 @@ classdef voxelmap
     % Copyright 2016 Alexander Schaefer
     
     properties 
-        data;
-        prior;
+        data
+        prior
     end
     
     properties ( SetAccess = private )
-        xgv;
-        ygv;
-        zgv;
+        xgv
+        ygv
+        zgv
     end
     
-    methods
+    methods ( Access = private )
         function obj = set.data(obj, data)
             % SET.DATA Change map data.
             
