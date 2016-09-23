@@ -81,13 +81,13 @@ field = field(~rem);
 % Check the content of the remaining fields of PCD.
 for i = 1 : numel(field)
     if ~isnumeric(pcd.(field{i}))
-        error(['PCD.', toupper(field{i}), ...
+        error(['PCD.', upper(field{i}), ...
             ' does not contain numeric values.'])
     end
     if ndims(pcd.(field{1})) ~= ndims(pcd.(field{i})) ...
             || any(size(pcd.(field{1})) ~= size(pcd.(field{i})))
         error(['Sizes of PCD.', toupper(field{1}), ' and ', ...
-            toupper(field{i}), ' do not match.'])
+            upper(field{i}), ' do not match.'])
     end
 end
 
