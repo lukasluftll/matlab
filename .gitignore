@@ -8,4 +8,5 @@ pcd/data/mooswald
 pcd/data/schauinsland
 pcd/data/demo
 .progressbar.txt
-
+pcd/data/sens.pcd
+pcd/data/leek.pcd
