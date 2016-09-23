@@ -182,22 +182,33 @@ arrayfun(@(c) fprintf(fid, '%i ', c), vpv);
 fprintf(fid, '\b\n');
 
 % Total number of points.
-fprintf(fid, 'POINTS %i\n', width*height);
+fprintf(fid, 'POINTS %i\n', height*width);
 
 % Data type of the PCD file.
 fprintf(fid, 'PCD ascii\n');
 
 %% Write payload data.
-% Compile the data matrix.
-dlmdata = struct2cell(pcd).';
-dlmdata = dlmdata(~rem);
-dlmdata = cellfun(@(d) permute(d,[2,3,1]), dlmdata, 'UniformOutput',false);
-dlmdata = cellfun(@(d) reshape(d,[],size(d,2),1), dlmdata, ...
+% Compile the payload data.
+data = struct2cell(pcd).';
+data = data(~rem);
+data = cellfun(@(d) permute(d,[2,3,1]), data, 'UniformOutput',false);
+data = cellfun(@(d) reshape(d,[],size(d,2),1), data, ...
     'UniformOutput',false);
-dlmdata = cell2mat(dlmdata);
 
 % Write the payload data to file.
-dlmwrite(file, dlmdata, 'delimiter',' ', 'precision','%.7g', '-append');
-fprintf('\n');
+    function datawrite(d)
+        % DATAWRITE Write formatted data to file.
+        if isinteger(d)
+            fprintf(fid, '%i ', d);
+        else
+            fprintf(fid, '%.7g ', d);
+        end
+    end
+for row = 1 : height*width
+    for col = 1 : numel(data)
+        datawrite(data{col}(row));
+    end
+    fprintf(fid, '\b\n');
+end
 
 end
