@@ -128,7 +128,7 @@ end
 
 % Make sure the PCD file's data type is ASCII. 
 if ~strcmpi(pcdtype, 'ascii')
-    error('Cannot read PCD files of type ASCII.')
+    error('Cannot read binary PCD files.')
 end
 
 %% Read PCD payload data.
