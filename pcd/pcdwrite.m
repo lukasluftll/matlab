@@ -178,7 +178,7 @@ fprintf(fid, 'HEIGHT %i\n', height);
 % Acquisition viewpoint of the points in the dataset.
 fprintf(fid, 'VIEWPOINT ');
 vpv = [tform2trvec(viewpoint), tform2quat(viewpoint)];
-arrayfun(@(c) fprintf(fid, '%i ', c), vpv);
+arrayfun(@(c) fprintf(fid, '%.6f ', c), vpv);
 fprintf(fid, '\b\n');
 
 % Total number of points.
