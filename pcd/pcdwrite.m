@@ -48,7 +48,7 @@ nargoutchk(0, 0)
 narginchk(2, 2)
 
 % Check the input arguments types.
-validateattributes(pcd, {'struct'}, {'numel', 1}, '', 'PCD')
+validateattributes(pcd, {'struct', 'pointCloud'}, {'numel', 1}, '', 'PCD')
 validateattributes(file, {'char'}, {'row', 'nonempty'}, '', 'FILE')
 
 % If the file is given without extension, append the extension.
@@ -58,6 +58,28 @@ if numel(file) <= numel(ext) || ~strcmpi(file(end-numel(ext)+1:end), ext)
 end
 
 %% Preprocess input.
+% If the point cloud data is given as a pointCloud object, transform it
+% into a struct.
+if isa(pcd, 'pointCloud')
+    point = pcd.Location;
+    color = pcd.Color;
+    
+    % Rearrange the point coordinates if the point cloud is not organized.
+    if ndims(point) ~= 3
+        point = permute(point, [3,1,2]);
+    end
+    pcd = struct('x', point(:,:,1), 'y', point(:,:,2), 'z', point(:,:,3));
+    
+    % If the point cloud contains color information, add it to the struct.
+    if ~isempty(color)
+        % Rearrange the RGB values if the point cloud is not organized.
+        if ndims(color) ~= 3
+            color = permute(color, [3,1,2]);
+        end
+        pcd.rgb = color;
+    end
+end
+
 % Extract the viewpoint.
 field = fieldnames(pcd);
 vp = strcmpi('viewpoint', field);
