@@ -198,10 +198,14 @@ data = cellfun(@(d) reshape(d,[],size(d,2),1), data, ...
 % Write the payload data to file.
     function datawrite(d)
         % DATAWRITE Write formatted data to file.
-        if isinteger(d)
-            fprintf(fid, '%i ', d);
+        if isfinite(d)
+            if isinteger(d)
+                fprintf(fid, '%i ', d);
+            else
+                fprintf(fid, '%.7g ', d);
+            end
         else
-            fprintf(fid, '%.7g ', d);
+            fprintf(fid, 'nan ');
         end
     end
 for row = 1 : height*width
