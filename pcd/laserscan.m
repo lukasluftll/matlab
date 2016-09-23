@@ -72,7 +72,7 @@ classdef laserscan
         rlim;
     end
     
-    methods
+    methods ( Access = private )
         function obj = set.sp(obj, sp)
             % SET.SP Set sensor poses.
             
