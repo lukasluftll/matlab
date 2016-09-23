@@ -43,7 +43,8 @@ function pcdwrite(pcd, file)
 % http://pointclouds.org/documentation/tutorials/pcd_file_format.php.
 
 %% Validate input.
-% Check the number of input arguments.
+% Check the number of input and output arguments.
+nargoutchk(0, 0)
 narginchk(2, 2)
 
 % Check the input arguments types.
