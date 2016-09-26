@@ -19,6 +19,6 @@ if iscell(x)
 end
 
 %% Normalize input.
-y = (x - min(x(:))) / range(x);
+y = (x - min(x(:))) / range(x(:));
 
 end
