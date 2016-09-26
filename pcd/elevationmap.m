@@ -36,13 +36,29 @@ classdef elevationmap
             
             obj.elevation = ones(obj.extension) * min([0, pc.ZLimits(1)]);
             
+            pc = removeInvalidPoints(pc);
             point = reshape(pc.Location(:), pc.Count, 3, 1);
-            point(any(~isfinite(point), 2),:) = [];
             ie = obj.idx(point);
             for i = 1 : size(point,1)
                 obj.elevation(ie(i)) = max(obj.elevation(ie(i)), point(i,3));
             end
         end
+        
+        function d = diff(obj, pc)
+            nargoutchk(0, 1)
+            narginchk(2, 2)
+            
+            validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')
+            
+            pc = removeInvalidPoints(pc);
+            point = reshape(pc.Location(:), pc.Count, 3, 1);
+            ie = obj.idx(point);
+            d = 0;
+            for i = 1 : size(point,1)
+                d = d + abs(point(i,3)-obj.elevation(ie(i)));
+            end
+            d = d / size(point,1);
+        end 
         
         function plot(obj)
             xgv = obj.support(1) + kron(0:obj.extension(1), [1,1]) * obj.resolution;
