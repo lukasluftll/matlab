@@ -50,7 +50,7 @@ classdef elevationmap
             
             z = kron(obj.elevation, ones(2));
             
-            surf(x, y, z)
+            surf(x, y, z, 'EdgeColor', 'none')
             
             labelaxes
             axis equal
