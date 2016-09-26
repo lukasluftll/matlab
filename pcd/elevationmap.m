@@ -42,7 +42,10 @@ classdef elevationmap
         end
         
         function plot(obj)
-            
+            xgv = obj.sup(1) + (1:obj.ext(1)) * obj.res;
+            ygv = obj.sup(2) + (1:obj.ext(2)) * obj.res;
+            [x, y] = ndgrid(xgv, ygv);
+            surf(x, y, obj.ele);
         end
     end
     
