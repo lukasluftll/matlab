@@ -210,7 +210,9 @@ data = cellfun(@(d) reshape(d,[],size(d,2),1), data, ...
     end
 for row = 1 : height*width
     for col = 1 : numel(data)
-        datawrite(data{col}(row));
+        for page = 1 : size(data{col}, 3)
+            datawrite(data{col}(row,:,page));
+        end
     end
     fprintf(fid, '\b\n');
 end
