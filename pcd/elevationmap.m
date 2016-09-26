@@ -36,9 +36,9 @@ classdef elevationmap
             
             point = reshape(pc.Location(:), pc.Count, 3, 1);
             point(any(~isfinite(point), 2),:) = [];
-            for ip = 1 : size(point,1)
-                ie = obj.idx(point(ip,:));    
-                obj.elevation(ie) = max(obj.elevation(ie), point(ip,3));
+            ie = obj.idx(point);
+            for i = 1 : size(point,1)
+                obj.elevation(ie(i)) = max(obj.elevation(ie(i)), point(i,3));
             end
         end
         
