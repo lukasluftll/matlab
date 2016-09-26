@@ -24,8 +24,10 @@ classdef elevationmap
             narginchk(2, 2)
             
             validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')            
+            validateattributes(pc.XLimits, {'numeric'}, {'finite'}, '', 'PC.XLIMITS')
+            validateattributes(pc.YLimits, {'numeric'}, {'finite'}, '', 'PC.YLIMITS')
             validateattributes(res, {'numeric'}, {'scalar', 'nonnegative'}, '', 'RES')
-            
+
             obj.resolution = res;
             
             obj.support = floor([pc.XLimits(1),pc.YLimits(1)]/obj.resolution)*obj.resolution;
