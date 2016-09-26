@@ -53,7 +53,7 @@ classdef elevationmap
             z = kron(obj.elevation, ones(2));
             
             surf(x, y, z, 'EdgeColor', 'none')
-            
+            shading interp
             labelaxes
             axis equal
             grid
