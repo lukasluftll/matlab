@@ -28,11 +28,15 @@ function pc = pcd2pc(pcd)
 
 % Copyright 2016 Alexander Schaefer
 
+%% Validate input.
+% Check the number of input and output arguments.
 nargoutchk(0, 1)
 narginchk(1, 1)
 
+% Check whether PCD is a struct.
 validateattributes(pcd, {'struct'}, {}, '', 'PCD')
 
+% Check whether PCD contains all required fields.
 field = fieldnames(pcd);
 ix = find(strcmpi('x', field), 1);
 iy = find(strcmpi('y', field), 1);
@@ -41,37 +45,50 @@ if isempty(ix) || isempty(iy) || isempty(iz)
     error('PCD does not contain fields X, Y, and Z.')
 end
 
+%% Create pointCloud object.
+% Check the size of the Cartesian coordinate matrices.
 x = pcd.(field{ix});
 y = pcd.(field{iy});
 z = pcd.(field{iz});
 sizechk(x, y, z);
+
+% Create the pointCloud object.
 location = cat(3, x, cat(3, y, z));
 pc = pointCloud(location);
 
-
+%% Add color information.
+% Look for color information in the struct.
 ic = find(strcmpi('rgb', field) | strcmpi('color', field), 1);
-if ~isempty(ic)
+
+% If the struct does not contain color information, use the intensities to
+% color the point cloud.
+if isempty(ic)
+    % Check whether the struct contains intensity information.
+    ii = find(strcmpi('intensity',field) | strcmpi('intensities',field),1);
+
+    % If the struct contains intensity information, convert it to colors.
+    if ~isempty(ii)
+        % Check the size of the intensity matrix.
+        intensity = pcd.(field{ii});
+        sizechk(location(:,:,1), intensity)
+    
+        % Convert the intensities into indices in [1; 64].
+        intensity = (intensity-min(intensity(:))) / range(intensity);
+        intensity = floor(normm(intensity) * 63.9999) + 1;
+    
+        % Transform the intensity values to colors using the colormap.
+        fig = figure('visible', 'off'); 
+        palette = uint8(colormap('jet') .* 255);
+        close(fig);
+        pc.Color = reshape(palette(intensity(:),:), size(location));
+    end 
+else
+    % Check the size of the color matrix.
     color = pcd.(field{ic});
     sizechk(location, color)
+    
+    % Add color information to the pointCloud object.
     pc.Color = color;
-end
-
-ii = find(strcmpi('intensity', field) | strcmpi('intensities', field), 1);
-if isempty(ic) && ~isempty(ii)
-    intensity = pcd.(field{ii});
-    sizechk(location(:,:,1), intensity)
-    
-    intensity = floor((intensity-min(intensity(:))) * 63.9999 / range(intensity)) + 1;
-    
-    % Transform the colormap, which contains 64 RGB values in [0; 1.0], to
-    % RGB values in [0; 255], as required for coloring point clouds.
-    % Function colormap requires an open figure.
-    fig = figure('visible', 'off'); 
-    palette = uint8(colormap('jet') .* 255);
-    close(fig);
-
-    % Convert the intensities to colors.
-    pc.Color = reshape(palette(intensity(:),:), size(location));
 end
 
 end
