@@ -1,52 +1,48 @@
 classdef elevationmap
     
     properties ( SetAccess = private )
-        x
-        y
-        cmin
+        sup
+        ext
         res
-        elevation
+        ele
     end
     
     methods ( Access = private )
-        function varargout = idx(obj, point)
+        function i = idx(obj, point)
+            nargoutchk(0, 1)
             narginchk(2, 2)
-            nargoutchk(1, 2)
-            
-            point = point(all(isfinite(point), 2),:);
-            
-            switch nargout
-                case 1
-                    [ix,iy] = obj.idx(point);
-                    varargout = {sub2ind(size(obj.x), ix, iy)};
-                case 2
-                    i = floor(point(:,1:2)-repmat(obj.cmin,size(point,1),1) / obj.res) + 1;
-                    varargout = {i(:,1), i(:,2)};         
-            end
+
+            d = point(:,1:2) - repmat(obj.sup, size(point,1), 1);
+            i = floor(d / obj.res) + 1;
+            i = sub2ind(size(obj.ele), i(:,1), i(:,2));
         end                
     end
     
     methods ( Access = public )
         function obj = elevationmap(pc, res)
+            nargoutchk(0, 1)
+            narginchk(2, 2)
+            
             validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')            
-            validateattributes(res, {'numeric'}, {'numel',1, 'nonnegative'}, '', 'RES')
+            validateattributes(res, {'numeric'}, {'scalar', 'nonnegative'}, '', 'RES')
             
             obj.res = res;
             
-            obj.cmin = floor([pc.XLimits(1), pc.YLimits(1)] / obj.res) * obj.res;
+            obj.sup = floor([pc.XLimits(1),pc.YLimits(1)]/obj.res)*obj.res;
             
-            lim = floor([pc.XLimits; pc.YLimits] / res) + 0.5;
-            [obj.x, obj.y] = ndgrid((lim(1,1):lim(1,2)) * obj.res, ...
-                (lim(2,1):lim(2,2)) * obj.res);
+            obj.ext = floor(([pc.XLimits(2),pc.YLimits(2)]-obj.sup)/obj.res) + 1;
             
-            obj.elevation = zeros(size(obj.x));
-            i = obj.idx(pc.Location);
-            obj.elevation(i) = max(obj.elevation(i), pc.Location(i,3), 'omitnan');
+            obj.ele = ones(size(obj.ext)) * min([0, pc.ZLimits(1)]);
+            
+            point = reshape(pc.Location(:), pc.Count, 3, 1);
+            for i = 1 : pc.Count
+                ip = obj.idx(point(i,:));
+                obj.ele(ip) = max(obj.ele(ip), point(i,3));
+            end
         end
         
         function plot(obj)
-            surf(obj.x, obj.y, obj.elevation);
-            demcmap(obj.elevation);
+            
         end
     end
     
