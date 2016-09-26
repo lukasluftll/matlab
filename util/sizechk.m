@@ -1,6 +1,16 @@
 function sizechk(varargin)
+% SIZECHK Check equal matrix sizes.
+%   SIZECHK(X1,X2,X3,...) checks whether all input matrices X1, X2, X3,
+%   etc. have the same size.
+%
+%   Example:
+%      sizechk(magic(4), magic(5))
+%
+%   See also SIZE, GVCHK.
 
-nargoutchk(0, 1)
+% Copyright 2016 Alexander Schaefer
+
+nargoutchk(0, 0)
 narginchk(0, +Inf)
 
 if nargin > 0
