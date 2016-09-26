@@ -1,19 +1,31 @@
 function pc = pcd2pc(pcd)
-
-nargoutchk(1, 1)
+% PCD2PC Convert struct to pointCloud object.
+%   PC = PCD2PC(PCD) converts the point cloud data contained in the fields
+%   of struct PCD to a pointCloud object.
+%
+%   PCD is a struct that contains the following fields:
+%   
+nargoutchk(0, 1)
 narginchk(1, 1)
 
 validateattributes(pcd, {'struct'}, {}, '', 'PCD')
 
-if ~isfield(pcd, 'x') || ~isfield(pcd, 'y') || ~isfield(pcd, 'z')
+field = fieldnames(pcd);
+ix = find(strcmpi('x', field), 1);
+iy = find(strcmpi('y', field), 1);
+iz = find(strcmpi('z', field), 1);
+if isempty(ix) || isempty(iy) || isempty(iz)
     error('PCD does not contain fields X, Y, and Z.')
 end
 
-sizechk(pcd.x, pcd.y, pcd.z);
-location = cat(3, pcd.x, cat(3, pcd.y, pcd.z));
+x = pcd.(field{ix});
+y = pcd.(field{iy});
+z = pcd.(field{iz});
+sizechk(x, y, z);
+location = cat(3, x, cat(3, y, z));
 pc = pointCloud(location);
 
-field = fieldnames(pcd);
+
 ic = find(strcmpi('rgb', field) | strcmpi('color', field), 1);
 if ~isempty(ic)
     color = pcd.(field{ic});
