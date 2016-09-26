@@ -4,7 +4,9 @@ function sizechk(varargin)
 %   etc. have the same size.
 %
 %   Example:
-%      sizechk(magic(4), magic(5))
+%      a = magic(4);
+%      b = magic(5);
+%      sizechk(a, b)
 %
 %   See also SIZE, GVCHK.
 
@@ -15,15 +17,15 @@ narginchk(0, +Inf)
 
 if nargin > 0
     ref = varargin{1};
-    refname = inputname(1);
+    refname = upper(inputname(1));
 end
 
 for i = 2 : nargin
     comp = varargin{i};
-    compname = inputname(i);
+    compname = upper(inputname(i));
     
     inputnames = blanks(0);
-    if isempty(refname) || isempty(compname)
+    if ~isempty(refname) || ~isempty(compname)
         inputnames = ['of ',refname,' and ',compname,' '];
     end
        
@@ -32,7 +34,7 @@ for i = 2 : nargin
     end
     
     if any(size(varargin{1}) ~= size(varargin{i}))
-        error(['Sizes ', inputnames, 'do not match.'])
+        error(['Matrix sizes ', inputnames, 'do not match.'])
     end
 end
 
