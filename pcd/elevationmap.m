@@ -1,10 +1,10 @@
 classdef elevationmap
     
     properties ( SetAccess = private )
-        sup
-        ext
-        res
-        ele
+        support
+        extension
+        resolution
+        elevation
     end
     
     methods ( Access = private )
@@ -12,9 +12,9 @@ classdef elevationmap
             nargoutchk(0, 1)
             narginchk(2, 2)
 
-            d = point(:,1:2) - repmat(obj.sup, size(point,1), 1);
-            i = floor(d / obj.res) + 1;
-            i = sub2ind(size(obj.ele), i(:,1), i(:,2));
+            d = point(:,1:2) - repmat(obj.support, size(point,1), 1);
+            i = floor(d / obj.resolution) + 1;
+            i = sub2ind(obj.extension, i(:,1), i(:,2));
         end                
     end
     
@@ -26,31 +26,35 @@ classdef elevationmap
             validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')            
             validateattributes(res, {'numeric'}, {'scalar', 'nonnegative'}, '', 'RES')
             
-            obj.res = res;
+            obj.resolution = res;
             
-            obj.sup = floor([pc.XLimits(1),pc.YLimits(1)]/obj.res)*obj.res;
+            obj.support = floor([pc.XLimits(1),pc.YLimits(1)]/obj.resolution)*obj.resolution;
             
-            obj.ext = floor(([pc.XLimits(2),pc.YLimits(2)]-obj.sup)/obj.res) + 1;
+            obj.extension = floor(([pc.XLimits(2),pc.YLimits(2)]-obj.support)/obj.resolution) + 1;
             
-            obj.ele = ones(size(obj.ext)) * min([0, pc.ZLimits(1)]);
+            obj.elevation = ones(obj.extension) * min([0, pc.ZLimits(1)]);
             
             point = reshape(pc.Location(:), pc.Count, 3, 1);
-            for i = 1 : pc.Count
-                ip = obj.idx(point(i,:));
-                obj.ele(ip) = max(obj.ele(ip), point(i,3));
+            point(any(~isfinite(point), 2),:) = [];
+            for ip = 1 : size(point,1)
+                ie = obj.idx(point(ip,:));    
+                obj.elevation(ie) = max(obj.elevation(ie), point(ip,3));
             end
         end
         
         function plot(obj)
-            xgv = obj.sup(1) + kron(0:obj.ext(1), [1,1]) * obj.res;
-            ygv = obj.sup(2) + kron(0:obj.ext(2), [1,1]) * obj.res;
+            xgv = obj.support(1) + kron(0:obj.extension(1), [1,1]) * obj.resolution;
+            ygv = obj.support(2) + kron(0:obj.extension(2), [1,1]) * obj.resolution;
             
             [x, y] = ndgrid(xgv(2:end-1), ygv(2:end-1));
             
-            z = kron(obj.ele, zeros(2));
+            z = kron(obj.elevation, ones(2));
             
-            surf(x, y, z(2:end-1,2:end-1));
+            surf(x, y, z)
+            
+            labelaxes
+            axis equal
+            grid
         end
-    end
-    
+    end 
 end
