@@ -1,10 +1,33 @@
 function pc = pcd2pc(pcd)
 % PCD2PC Convert struct to pointCloud object.
 %   PC = PCD2PC(PCD) converts the point cloud data contained in the fields
-%   of struct PCD to a pointCloud object.
+%   of struct PCD to a pointCloud object. 
 %
-%   PCD is a struct that contains the following fields:
-%   
+%   The recognized fields of PCD are:
+%   X                      (required)  -  Cartesian x-coordinates
+%   Y                      (required)  -  Cartesian y-coordinates
+%   Z                      (required)  -  Cartesian z-coordinates
+%   RGB/COLOR              (optional)  -  color
+%   INTENSITY/INTENSITIES  (optional)  -  remission intensity
+%
+%   The X, Y, Z and INTENISTY matrices must be of size HEIGHTxWIDTH, where 
+%   HEIGHT and WIDTH are the height and width of the point cloud.
+%
+%   RGB must be of size HEIGHTxWIDTHx3, where the pages contain the red,
+%   green, and blue values respectively.
+%
+%   PC is a pointCloud object. If PCD specifies colors, this information
+%   is copied to PC.COLOR. If PCD specifies no colors, but intensities, 
+%   PC.COLOR contains the intensities translated into colors.
+%
+%   Example:
+%      pcd = pcdread('pcd/data/office.pcd');
+%      pcd2pc(pcd)
+%
+%   See also POINTCLOUD, PCDREAD.
+
+% Copyright 2016 Alexander Schaefer
+
 nargoutchk(0, 1)
 narginchk(1, 1)
 
