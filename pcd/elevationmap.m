@@ -37,13 +37,35 @@ classdef elevationmap
     end
     
     methods ( Access = private )
-        function i = idx(obj, point)
+        function i = idx(obj, p)
+            % IDX Compute tile index given x-y coordinates.
+            %   I = IDX(OBJ, P) computes the linear index I of the tile to
+            %   which the given x-y coordinates P belong.
+            %
+            %   P is an Mx2 vector.
+            %
+            %   I is an M-element column vector. If P(m,:) lies outside the
+            %   map, I(m) is NaN.
+            
+            %% Validate input and output.
             nargoutchk(0, 1)
             narginchk(2, 2)
 
-            d = point(:,1:2) - repmat(obj.support, size(point,1), 1);
-            i = floor(d / obj.resolution) + 1;
-            i = sub2ind(obj.extension, i(:,1), i(:,2));
+            %% Compute tile index.
+            % Determine which coordinates lie inside the map.
+            lim = obj.limits;
+            rin = lim(1,1) <= p(:,1) & p(:,1) < lim(1,2) ...
+                & lim(2,1) <= p(:,2) & p(:,2) < lim(2,2);
+            
+            % Set the tile indices corresponding to points outside the map
+            % to NaN.
+            i(~rin) = NaN;
+            
+            % Compute the indices corresponding to the valid coordinates.
+            d = p(rin,:) - repmat(obj.support, sum(rin), 1);
+            isub = floor(d / obj.resolution) + 1;
+            i(rin) = sub2ind(obj.extension, isub(:,1), isub(:,2));
+            
         end                
     end
     
