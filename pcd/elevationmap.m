@@ -100,7 +100,7 @@ classdef elevationmap
                 ([pc.XLimits(2),pc.YLimits(2)]-obj.support) / res) + 1;
             
             % Set the elevation data to the minimum elevation.
-            obj.elevation = ones(obj.extension) * min([0, pc.ZLimits(1)]);
+            obj.elevation = NaN(obj.extension);
             
             % Remove all NaN and infinite points from the point cloud.
             pc = removeInvalidPoints(pc);
@@ -160,9 +160,9 @@ classdef elevationmap
         function d = diff(obj, pc)
             % DIFF Disparity between elevation map and point cloud.
             %   D = DIFF(OBJ, PC) computes the disparity between elevation 
-            %   map OBJ and point cloud PC. The return D yields the average 
-            %   difference in z between each point of PC and the 
-            %   elevation map.
+            %   map OBJ and point cloud PC. The scalar D yields the 
+            %   average difference in z between each point of PC whose x-y 
+            %   coordinates correspond to a tile of the elevation map.
             
             %% Validate input and output.
             nargoutchk(0, 1)
