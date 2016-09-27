@@ -54,17 +54,17 @@ classdef elevationmap
             %% Compute tile index.
             % Determine which coordinates lie inside the map.
             lim = obj.limits;
-            rin = lim(1,1) <= p(:,1) & p(:,1) < lim(1,2) ...
+            valid = lim(1,1) <= p(:,1) & p(:,1) < lim(1,2) ...
                 & lim(2,1) <= p(:,2) & p(:,2) < lim(2,2);
             
             % Set the tile indices corresponding to points outside the map
             % to NaN.
-            i(~rin) = NaN;
+            i(~valid) = NaN;
             
             % Compute the indices corresponding to the valid coordinates.
-            d = p(rin,:) - repmat(obj.support, sum(rin), 1);
+            d = p(valid,:) - repmat(obj.support, sum(valid), 1);
             isub = floor(d / obj.resolution) + 1;
-            i(rin) = sub2ind(obj.extension, isub(:,1), isub(:,2));
+            i(valid) = sub2ind(obj.extension, isub(:,1), isub(:,2));
             
         end                
     end
@@ -110,7 +110,7 @@ classdef elevationmap
             point = reshape(pc.Location(:), pc.Count, 3, 1);
             
             % Compute the indices of the tiles to which each point belongs.
-            ie = obj.idx(point);
+            ie = obj.idx(point(:,1:2));
             
             % Set the elevation of each tile to the maximum z coordinate of
             % all points belonging to this tile.
