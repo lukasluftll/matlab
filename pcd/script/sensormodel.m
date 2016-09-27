@@ -10,6 +10,7 @@ y = -20 : res : 10;
 nx = numel(x);
 ny = numel(y);
 d = NaN(numel(x), numel(y));
+z = mean(pcsens.Location(:,:,3), 'omitnan');
 
 progressbar(nx)
 parfor ix = 1 : nx
