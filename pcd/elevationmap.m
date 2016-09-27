@@ -119,6 +119,31 @@ classdef elevationmap
             end
         end
         
+        function e = eval(obj, p)
+            % EVAL Elevation of point.
+            %   E = EVAL(OBJ, P) returns the elevation value
+            %   corresponding to the given x and y coordinates.
+            %
+            %   P is an Mx2 matrix whose columns specify the x and y
+            %   coordinates of the points where the elevation map is
+            %   evaluated.
+            %
+            %   E is an M-element column vector whose m-th element contains
+            %   the elevation corresponding to the m-th row of P.
+            %   If P(m,:) lies outside the elevation map, P(m) is NaN.
+            
+            %% Validate input and output.
+            nargoutchk(0, 1)
+            narginchk(2, 2)
+            validateattributes(p, {'numeric'}, {'real','ncols',2}, '', 'P')
+            
+            %% Evaluate map at given coordinates.
+            i = obj.idx(p);
+            ifin = isfinite(i);
+            e(ifin) = obj.elevation(i(ifin));
+            e(~ifin) = NaN;
+        end
+        
         function l = limits(obj)
             nargoutchk(0, 1)
             s = repmat(obj.support, 2, 1);
