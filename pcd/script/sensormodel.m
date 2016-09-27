@@ -20,3 +20,5 @@ parfor ix = 1 : nx
     progressbar
 end
 
+surf(d, 'EdgeColor', 'none')
+labelaxes
