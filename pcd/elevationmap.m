@@ -175,7 +175,7 @@ classdef elevationmap
             
             % Compute the mean difference between the map and the points in
             % z direction.
-            d = mean(obj.eval(p(:,1:2)) - p(:,3), 'omitnan');
+            d = mean(abs(obj.eval(p(:,1:2)) - p(:,3)), 'omitnan');
         end 
         
         function plot(obj)
