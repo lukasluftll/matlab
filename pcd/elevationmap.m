@@ -1,9 +1,38 @@
 classdef elevationmap
+    % ELEVATIONMAP Object for storing an elevation data grid.
+    %   EM = ELEVATIONMAP(PC, RES) rasterizes the x-y plane with grid 
+    %   resolution RES and sets the elevation of each grid tile to the 
+    %   maximum z coordinate of all points of point cloud PC that belong
+    %   to this tile.
+    %
+    %   PC is a pointCloud object. RES is a positive scalar.
+    %
+    %   Example:
+    %      em = elevationmap(pcread('teapot.ply'), 0.1)
+    %
+    %   ELEVATIONMAP methods:
+    %   EVAL      - Elevation at x-y coordinate
+    %   LIMITS    - Extension of map
+    %   DIFF      - Disparity between elevation map and point cloud
+    %   PLOT      - Visualize elevation map
+    %
+    %   See also POINTCLOUD.
+    
+    % Copyright 2016 Alexander Schaefer
     
     properties ( SetAccess = private )
+        % Minimum x and y coordinates of the map; 1x2 vector.
         support
+        
+        % Extension of the map in numbers of map tiles in x and 
+        % y direction; 1x2 vector.
         extension
+        
+        % Edge length of each tile; scalar.
         resolution
+        
+        % Elevation data of the map; IxJ matrix with I and J being the
+        % number of tiles in x and y direction.
         elevation
     end
     
