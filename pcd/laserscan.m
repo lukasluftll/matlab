@@ -72,7 +72,7 @@ classdef laserscan
         rlim;
     end
     
-    methods ( Access = private )
+    methods
         function obj = set.sp(obj, sp)
             % SET.SP Set sensor poses.
             
@@ -181,7 +181,9 @@ classdef laserscan
             %% Assign new limits.
             obj.rlim = rlim;
         end
-        
+    end
+    
+    methods ( Access = private )    
         function idxchk(obj, i)
             % IDXCHK Check laser scan ray indices.
             %   IDXCHK(OBJ, I) throws an error if I is not a valid index

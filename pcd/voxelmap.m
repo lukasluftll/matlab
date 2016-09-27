@@ -47,7 +47,7 @@ classdef voxelmap
     %   PLOT      - Visualize map using transparency values
     %
     %   See also LFMAP, REFMAP, DECAYMAP.
-    
+
     % Copyright 2016 Alexander Schaefer
     
     properties 
@@ -61,7 +61,7 @@ classdef voxelmap
         zgv
     end
     
-    methods ( Access = private )
+    methods
         function obj = set.data(obj, data)
             % SET.DATA Change map data.
             
@@ -89,7 +89,9 @@ classdef voxelmap
             % Assign new prior to object.
             obj.prior = prior;
         end
-        
+    end
+       
+    methods ( Access = private )
         function chkewo(a, b)
             % CHKEWO Check if two voxelmaps are amenable to element-wise 
             % operations.
