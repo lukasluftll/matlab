@@ -169,10 +169,7 @@ classdef elevationmap
             narginchk(2, 2)
             validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')
             
-            %% Compute disparity.
-            % Remove all infinite point from the point cloud.
-            pc = removeInvalidPoints(pc);
-            
+            %% Compute disparity.          
             % Make sure the point cloud is not organized.
             p = reshape(pc.Location(:), pc.Count, 3, 1);
             
