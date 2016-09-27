@@ -145,6 +145,11 @@ classdef elevationmap
         end
         
         function l = limits(obj)
+            % LIMITS Map extent.
+            %   L = LIMITS(OBJ) returns a 2x2 matrix that specifies the
+            %   extent of the elevation map:
+            %      L = [xmin, xmax; ymin, ymax].
+            
             nargoutchk(0, 1)
             s = repmat(obj.support, 2, 1);
             l = (s + [0,0; obj.extension*obj.resolution]).';
@@ -167,18 +172,30 @@ classdef elevationmap
         end 
         
         function plot(obj)
-            xgv = obj.support(1) + kron(0:obj.extension(1), [1,1]) * obj.resolution;
-            ygv = obj.support(2) + kron(0:obj.extension(2), [1,1]) * obj.resolution;
+            % PLOT Visualize elevation map.
             
+            %% Validate output.
+            nargoutchk(0, 0)
+            
+            %% Plot.
+            % Compute the x and y coordinates of each grid node.
+            xgv = obj.support(1) ...
+                + kron(0:obj.extension(1), [1,1]) * obj.resolution;
+            ygv = obj.support(2) ...
+                + kron(0:obj.extension(2), [1,1]) * obj.resolution;
             [x, y] = ndgrid(xgv(2:end-1), ygv(2:end-1));
             
+            % Compute the elevation of each grid node.
             z = kron(obj.elevation, ones(2));
             
+            % Plot the map surface.
             surf(x, y, z, 'EdgeColor', 'none')
             shading interp
-            labelaxes
             axis equal
+            
+            % Plot decoration.
             grid
+            labelaxes
         end
     end 
 end
