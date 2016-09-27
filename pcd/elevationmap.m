@@ -57,9 +57,8 @@ classdef elevationmap
             valid = lim(1,1) <= p(:,1) & p(:,1) < lim(1,2) ...
                 & lim(2,1) <= p(:,2) & p(:,2) < lim(2,2);
             
-            % Set the tile indices corresponding to points outside the map
-            % to NaN.
-            i(~valid) = NaN;
+            % Initialize the index vector.
+            i = NaN(size(p,1), 1);
             
             % Compute the indices corresponding to the valid coordinates.
             d = p(valid,:) - repmat(obj.support, sum(valid), 1);
@@ -138,10 +137,13 @@ classdef elevationmap
             validateattributes(p, {'numeric'}, {'real','ncols',2}, '', 'P')
             
             %% Evaluate map at given coordinates.
+            % Initialize the return value.
+            e = NaN(size(p,1), 1);
+            
+            % Look up the elevation for each coordinate. 
             i = obj.idx(p);
-            ifin = isfinite(i);
-            e(ifin) = obj.elevation(i(ifin));
-            e(~ifin) = NaN;
+            fin = isfinite(i);
+            e(fin) = obj.elevation(i(fin));
         end
         
         function l = limits(obj)
@@ -174,11 +176,9 @@ classdef elevationmap
             % Make sure the point cloud is not organized.
             p = reshape(pc.Location(:), pc.Count, 3, 1);
             
-            % Compute the mean difference in z between the map and the
-            % points.
-            i = idx(p(:,1:2));
-            i = i(isfinite(i));
-            d = mean(obj.eval(p(i,1:2)) - p(i,3), 'omitnan');
+            % Compute the mean difference between the map and the points in
+            % z direction.
+            d = mean(obj.eval(p(:,1:2)) - p(:,3), 'omitnan');
         end 
         
         function plot(obj)
