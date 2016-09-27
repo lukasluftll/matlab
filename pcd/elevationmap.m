@@ -156,19 +156,29 @@ classdef elevationmap
         end
         
         function d = diff(obj, pc)
+            % DIFF Disparity between elevation map and point cloud.
+            %   D = DIFF(OBJ, PC) computes the disparity between elevation 
+            %   map OBJ and point cloud PC. The return D yields the average 
+            %   difference in z between each point of PC and the 
+            %   elevation map.
+            
+            %% Validate input and output.
             nargoutchk(0, 1)
             narginchk(2, 2)
-            
             validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')
             
+            %% Compute disparity.
+            % Remove all infinite point from the point cloud.
             pc = removeInvalidPoints(pc);
-            point = reshape(pc.Location(:), pc.Count, 3, 1);
-            ie = obj.idx(point);
-            d = 0;
-            for i = 1 : size(point,1)
-                d = d + abs(point(i,3)-obj.elevation(ie(i)));
-            end
-            d = d / size(point,1);
+            
+            % Make sure the point cloud is not organized.
+            p = reshape(pc.Location(:), pc.Count, 3, 1);
+            
+            % Compute the mean difference in z between the map and the
+            % points.
+            i = idx(p(:,1:2));
+            i = i(isfinite(i));
+            d = mean(obj.eval(p(i,1:2)) - p(i,3), 'omitnan');
         end 
         
         function plot(obj)
