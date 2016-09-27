@@ -71,27 +71,51 @@ classdef elevationmap
     
     methods ( Access = public )
         function obj = elevationmap(pc, res)
+            % ELEVATIONMAP Constructor.
+            
+            %% Validate input and output.
+            % Check number of input and output arguments.
             nargoutchk(0, 1)
             narginchk(2, 2)
             
+            % Check the validity of the point cloud.
             validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')            
-            validateattributes(pc.XLimits, {'numeric'}, {'finite'}, '', 'PC.XLIMITS')
-            validateattributes(pc.YLimits, {'numeric'}, {'finite'}, '', 'PC.YLIMITS')
-            validateattributes(res, {'numeric'}, {'scalar', 'nonnegative'}, '', 'RES')
+            validateattributes(pc.XLimits, {'numeric'}, {'finite'}, ...
+                '', 'PC.XLIMITS')
+            validateattributes(pc.YLimits, {'numeric'}, {'finite'}, ...
+                '', 'PC.YLIMITS')
+            
+            % Check the validity of the resolution.
+            validateattributes(res, {'numeric'}, ...
+                {'scalar', 'nonnegative'}, '', 'RES')
 
+            %% Compute property values.
+            % Store the resolution.
             obj.resolution = res;
             
-            obj.support = floor([pc.XLimits(1),pc.YLimits(1)]/obj.resolution)*obj.resolution;
+            % Compute the minimum x and y coordinates of the map.
+            obj.support = floor([pc.XLimits(1),pc.YLimits(1)] / res) * res;
             
-            obj.extension = floor(([pc.XLimits(2),pc.YLimits(2)]-obj.support)/obj.resolution) + 1;
+            % Compute the number of map tiles in x and y direction.
+            obj.extension = floor(...
+                ([pc.XLimits(2),pc.YLimits(2)]-obj.support) / res) + 1;
             
+            % Set the elevation data to the minimum elevation.
             obj.elevation = ones(obj.extension) * min([0, pc.ZLimits(1)]);
             
+            % Remove all NaN and infinite points from the point cloud.
             pc = removeInvalidPoints(pc);
+            
+            % Make sure the point cloud is represented by an Mx3 vector.
             point = reshape(pc.Location(:), pc.Count, 3, 1);
+            
+            % Compute the indices of the tiles to which each point belongs.
             ie = obj.idx(point);
+            
+            % Set the elevation of each tile to the maximum z coordinate of
+            % all points belonging to this tile.
             for i = 1 : size(point,1)
-                obj.elevation(ie(i)) = max(obj.elevation(ie(i)), point(i,3));
+                obj.elevation(ie(i))=max(obj.elevation(ie(i)),point(i,3));
             end
         end
         
