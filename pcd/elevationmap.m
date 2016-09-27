@@ -119,6 +119,12 @@ classdef elevationmap
             end
         end
         
+        function l = limits(obj)
+            nargoutchk(0, 1)
+            s = repmat(obj.support, 2, 1);
+            l = (s + [0,0; obj.extension*obj.resolution]).';
+        end
+        
         function d = diff(obj, pc)
             nargoutchk(0, 1)
             narginchk(2, 2)
