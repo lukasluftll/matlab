@@ -14,8 +14,10 @@ d = NaN(numel(x), numel(y));
 progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny
-        pc = pctransform(pcsens,ht2affine3d(trvec2tform([x(ix),y(iy),0])));
-        d(ix,iy) = em.diff(pc); %#ok<PFBNS>
+        zOpt = fminbnd(@(z) em.diff(pctransform(pcsens,ht2affine3d(...
+            trvec2tform([x(ix),y(iy),z])))), -3, +3);
+        pc = pctransform(pcsens,ht2affine3d(trvec2tform([x(ix),y(iy),zOpt])));
+        d(ix,iy) = em.diff(pc); %#ok<*PFBNS>
     end
     progressbar
 end
