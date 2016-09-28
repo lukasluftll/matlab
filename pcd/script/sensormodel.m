@@ -19,23 +19,25 @@ nx = numel(x);
 ny = numel(y);
 dstart = NaN(numel(x), numel(y));
 dmiddle = dstart;
+nmiddle = pcmiddle.Count;
 progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny
-        offset = repmat([x(ix),y(iy),0], pcstart.Count, 1); %#ok<*PFBNS>
-        dstart(ix,iy) = mean(abs(em-(pstart+offset)), 'omitnan');
+        %offset = repmat([x(ix),y(iy),0], pcstart.Count, 1); %#ok<*PFBNS>
+        %dstart(ix,iy) = -mean(abs(em-(pstart+offset)), 'omitnan');
        
-        offset = repmat(offset(1,:), pcmiddle.Count, 1);
-        dmiddle(ix,iy) = mean(abs(em-(pmiddle+offset)), 'omitnan');
+        offset = repmat([x(ix),y(iy),0], nmiddle, 1) %#ok<PFBNS>
+        offset(:,3) = em - (pmiddle+offset);
+        dmiddle(ix,iy) = -mean(abs(em-(pmiddle+offset)), 'omitnan');
     end
     progressbar
 end
 
 % Plot the results.
-figure('Name', 'Sensor model at border of field')
-surf(x, y, dstart, 'EdgeColor', 'none')
-labelaxes
+%figure('Name', 'Sensor model at border of field')
+%surf(y, x, dstart, 'EdgeColor', 'none')
+%labelaxes
 
 figure('Name', 'Sensor model in middle of field')
-surf(x, y, dmiddle, 'EdgeColor', 'none')
+surf(y, x, dmiddle, 'EdgeColor', 'none')
 labelaxes
