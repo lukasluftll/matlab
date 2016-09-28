@@ -13,7 +13,7 @@ classdef elevationmap
     %   ELEVATIONMAP methods:
     %   Z         - Elevation at x-y coordinate
     %   LIMITS    - Extension of map
-    %   DIFF      - Disparity between elevation map and point cloud
+    %   MINUS     - Height difference between elevation map and 3D points
     %   PLOT      - Visualize elevation map
     %
     %   See also POINTCLOUD.
@@ -155,25 +155,25 @@ classdef elevationmap
             l = (s + [0,0; obj.extension*obj.resolution]).';
         end
         
-        function d = diff(obj, pc)
-            % DIFF Disparity between elevation map and point cloud.
-            %   D = DIFF(OBJ, PC) computes the disparity between elevation 
-            %   map OBJ and point cloud PC. The scalar D yields the 
-            %   average difference in z between each point of PC whose x-y 
-            %   coordinates correspond to a tile of the elevation map.
+        function d = minus(obj, p)
+            % -  Height difference between elevation map and 3D points.
+            %   D = OBJ - P computes the height difference between 
+            %   elevation map OBJ and 3D points P.
+            %
+            %   P is an Mx3 matrix whose rows contain x-y-z coordinates.
+            %
+            %   D is an M-element column vector. D(m) yields the height
+            %   difference between P(m,:) and the corresponding map tile.
+            %   If there is no corresponding map tile for P(m,:), D(m)
+            %   returns NaN.
             
             %% Validate input and output.
             nargoutchk(0, 1)
             narginchk(2, 2)
-            validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')
+            validateattributes(pc, {'real'}, {'ncols', 3}, '', 'PC')
             
-            %% Compute disparity.          
-            % Make sure the point cloud is not organized.
-            p = reshape(pc.Location(:), pc.Count, 3, 1);
-            
-            % Compute the mean difference between the map and the points in
-            % z direction.
-            d = mean(abs(obj.eval(p(:,1:2)) - p(:,3)), 'omitnan');
+            %% Compute height difference.
+            d = obj.z(p(:,1:2)) - p(:,3);
         end 
         
         function plot(obj)
