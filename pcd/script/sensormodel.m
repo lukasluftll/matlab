@@ -1,27 +1,41 @@
+% Evaluate sensor model for BoniRob localization on leek field
+
+% Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
+pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
 em = elevationmap(pcfield, 0.05);
 
-pcsens = pcd2pc(pcdread('pcd/data/sens.pcd'));
-pcsens = pctransform(pcsens, ht2affine3d(eul2tform([pi,0,0])));
+% Read sensor measurements.
+pcstart = pcd2pc(pcdread('pcd/data/sensstart.pcd'));
+pcmiddle = pcd2pc(pcdread('pcd/data/sensmiddle.pcd'));
+pstart = permute(pcstart.Location, [2,3,1]);
+pmiddle = permute(pcmiddle.Location, [2,3,1]);
 
+% Shift the measurements and evaluate the height difference at each point.
 res = 0.1;
-x = -100 : res : 20;
-y = -20 : res : 10;
+x = -10 : res : 100;
+y = -10 : res : 20;
 nx = numel(x);
 ny = numel(y);
-d = NaN(numel(x), numel(y));
-z = mean(pcsens.Location(:,:,3), 'omitnan');
-
+dstart = NaN(numel(x), numel(y));
+dmiddle = dstart;
 progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny
-        zOpt = fminbnd(@(z) em.diff(pctransform(pcsens,ht2affine3d(...
-            trvec2tform([x(ix),y(iy),z])))), -3, +3);
-        pc = pctransform(pcsens,ht2affine3d(trvec2tform([x(ix),y(iy),zOpt])));
-        d(ix,iy) = em.diff(pc); %#ok<*PFBNS>
+        offset = repmat([x(ix),y(iy),0], pcstart.Count, 1); %#ok<*PFBNS>
+        dstart(ix,iy) = mean(abs(em-(pstart+offset)), 'omitnan');
+       
+        offset = repmat(offset(1,:), pcmiddle.Count, 1);
+        dmiddle(ix,iy) = mean(abs(em-(pmiddle+offset)), 'omitnan');
     end
     progressbar
 end
 
-surf(d, 'EdgeColor', 'none')
+% Plot the results.
+figure('Name', 'Sensor model at border of field')
+surf(x, y, dstart, 'EdgeColor', 'none')
+labelaxes
+
+figure('Name', 'Sensor model in middle of field')
+surf(x, y, dmiddle, 'EdgeColor', 'none')
 labelaxes
