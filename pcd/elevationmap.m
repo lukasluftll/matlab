@@ -170,7 +170,7 @@ classdef elevationmap
             %% Validate input and output.
             nargoutchk(0, 1)
             narginchk(2, 2)
-            validateattributes(pc, {'real'}, {'ncols', 3}, '', 'PC')
+            validateattributes(p, {'numeric'}, {'real','ncols',3}, '', 'P')
             
             %% Compute height difference.
             d = obj.z(p(:,1:2)) - p(:,3);
