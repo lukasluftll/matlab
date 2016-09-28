@@ -1,4 +1,8 @@
-% Evaluate sensor model for BoniRob localization on leek field
+% Evaluate sensor model for BoniRob localization on leek field.
+
+% Define parameters.
+res = 0.1;
+lim = [-10, 100; -10, 20];
 
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
@@ -10,21 +14,20 @@ pcsens = pcd2pc(pcdread('pcd/data/sensmiddle.pcd'));
 psens = permute(pcsens.Location, [2,3,1]);
 
 % Shift the measurements and evaluate the height difference at each point.
-res = 0.1;
-lim = [-10, 100; -10, 20];
 x = lim(1,1) : res : lim(1,2);
 y = lim(2,1) : res : lim(2,2);
 nx = numel(x);
 ny = numel(y);
-d = NaN(numel(x), numel(y));
+d = NaN(nx, ny);
 n = pcsens.Count;
 progressbar(nx)
-parfor ix = 1 : nx
+for ix = 1 : nx
     for iy = 1 : ny       
-        offset = repmat([x(ix),y(iy),0], n, 1) %#ok<PFBNS>
-        offset(:,3) = em - (psens+offset);
+        offset = repmat([x(ix),y(iy),0], n, 1); %#ok<PFBNS>
+        offset(:,3) = mean(em-(psens+offset), 'omitnan');
         
-        d(ix,iy) = -mean(abs(em-(psens+offset)), 'omitnan');
+        dz = constrain(em-(psens+offset), [0,+Inf]);
+        d(ix,iy) = mean(abs(dz), 'omitnan');
     end
     progressbar
 end
@@ -44,5 +47,5 @@ i = floor((pcfield.Location(:,1:2) - minxy) / res) + 1;
 i = sub2ind(size(c), i(:,1), i(:,2));
 pcfield.Color = palette(c(i),:);
 figure('Name', 'Field map showing robot location probability')
-pcshow(pcfield)
+pcshow(pcfield, 'MarkerSize', 40)
 labelaxes
