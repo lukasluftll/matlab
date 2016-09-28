@@ -14,6 +14,7 @@ classdef elevationmap
     %   Z         - Elevation at x-y coordinate
     %   LIMITS    - Extension of map
     %   MINUS     - Height difference between elevation map and 3D points
+    %   MEDFILT   - 2D median filtering
     %   PLOT      - Visualize elevation map
     %
     %   See also POINTCLOUD.
@@ -174,7 +175,46 @@ classdef elevationmap
             
             %% Compute height difference.
             d = obj.z(p(:,1:2)) - p(:,3);
-        end 
+        end
+        
+        function m = medfilt(obj, ws)
+            % MEDFILT 2D median filtering.
+            %   M = MEDFILT(OBJ) performs median filtering of the
+            %   elevation map OBJ using a window of 3x3 elements. The
+            %   window is always centered around the cell whose value is
+            %   computed.
+            %
+            %   M is an elevationmap object. The elevation value of each
+            %   cell is equal to the median of the values of OBJ inside the
+            %   window.
+            %
+            %   M = MEDFILT(OBJ, WS) performs median filtering using a
+            %   user-defined window size WS.
+            %
+            %   WS is a 2-element vector containing odd integers. 
+            %   The elements specify the extent of the window in x and y 
+            %   direction, respectively.
+
+            %% Validate input and output.
+            % Check the numer of input and output arguments.
+            nargoutchk(0, 1)
+            narginchk(1, 2)
+            
+            % If the window size is not defined, do it now.
+            if nargin < 2
+                ws = [3,3];
+            end
+            
+            % Validate the window size.
+            validateattributes(ws, {'numeric'}, ...
+                {'odd', 'positive', 'numel',2}, '', 'WS')
+            
+            %% Perform filtering.
+            % Compute the number of neighbors in each direction.
+            nn = (ws-1) / 2;
+            m = obj;
+            m.elevation = median(obj.elevation(
+        end
         
         function plot(obj)
             % PLOT Visualize elevation map.
