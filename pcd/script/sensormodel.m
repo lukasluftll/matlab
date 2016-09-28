@@ -11,22 +11,38 @@ psens = permute(pcsens.Location, [2,3,1]);
 
 % Shift the measurements and evaluate the height difference at each point.
 res = 0.1;
-x = -10 : res : 100;
-y = -10 : res : 20;
+lim = [-10, 100; -10, 20];
+x = lim(1,1) : res : lim(1,2);
+y = lim(2,1) : res : lim(2,2);
 nx = numel(x);
 ny = numel(y);
-dsens = NaN(numel(x), numel(y));
-nsens = pcsens.Count;
+d = NaN(numel(x), numel(y));
+n = pcsens.Count;
 progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny       
-        offset = repmat([x(ix),y(iy),0], nsens, 1) %#ok<PFBNS>
+        offset = repmat([x(ix),y(iy),0], n, 1) %#ok<PFBNS>
         offset(:,3) = em - (psens+offset);
-        dsens(ix,iy) = -mean(abs(em-(psens+offset)), 'omitnan');
+        
+        d(ix,iy) = -mean(abs(em-(psens+offset)), 'omitnan');
     end
     progressbar
 end
 
+% Plot result.
 figure('Name', 'Sensor model in middle of field')
-surf(y, x, dsens, 'EdgeColor', 'none')
+surf(y, x, d, 'EdgeColor', 'none')
+labelaxes
+
+% Colorize field map according to visualize the sensor model output.
+c = floor(normm(d) * 63.9999) + 1;
+palette = uint8(round(colormap('hot') * 255));
+roi = [lim(1,1), lim(1,2)-eps, lim(2,1), lim(2,2)-eps, -Inf, +Inf];
+pcfield = select(pcfield, findPointsInROI(pcfield, roi));
+minxy = repmat(lim(1:2,1).',pcfield.Count,1);
+i = floor((pcfield.Location(:,1:2) - minxy) / res) + 1;
+i = sub2ind(size(c), i(:,1), i(:,2));
+pcfield.Color = palette(c(i),:);
+figure('Name', 'Field map showing robot location probability')
+pcshow(pcfield)
 labelaxes
