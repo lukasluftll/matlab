@@ -11,7 +11,7 @@ classdef elevationmap
     %      em = elevationmap(pcread('teapot.ply'), 0.1)
     %
     %   ELEVATIONMAP methods:
-    %   EVAL      - Elevation at x-y coordinate
+    %   Z         - Elevation at x-y coordinate
     %   LIMITS    - Extension of map
     %   DIFF      - Disparity between elevation map and point cloud
     %   PLOT      - Visualize elevation map
@@ -118,30 +118,28 @@ classdef elevationmap
             end
         end
         
-        function e = eval(obj, p)
-            % EVAL Elevation of point.
-            %   E = EVAL(OBJ, P) returns the elevation value
+        function e = z(obj, xy)
+            % Z Elevation of point.
+            %   E = Z(OBJ, XY) returns the elevation value
             %   corresponding to the given x and y coordinates.
             %
-            %   P is an Mx2 matrix whose columns specify the x and y
-            %   coordinates of the points where the elevation map is
-            %   evaluated.
+            %   XY is an Mx2 matrix whose rows specify M x-y coordinates.
             %
             %   E is an M-element column vector whose m-th element contains
-            %   the elevation corresponding to the m-th row of P.
-            %   If P(m,:) lies outside the elevation map, P(m) is NaN.
+            %   the elevation at coordinate XY(m,:).
+            %   If XY(m,:) lies outside the elevation map, E(m) yields NaN.
             
             %% Validate input and output.
             nargoutchk(0, 1)
             narginchk(2, 2)
-            validateattributes(p, {'numeric'}, {'real','ncols',2}, '', 'P')
+            validateattributes(xy,{'numeric'},{'real','ncols',2},'','XY')
             
             %% Evaluate map at given coordinates.
             % Initialize the return value.
-            e = NaN(size(p,1), 1);
+            e = NaN(size(xy,1), 1);
             
             % Look up the elevation for each coordinate. 
-            i = obj.idx(p);
+            i = obj.idx(xy);
             fin = isfinite(i);
             e(fin) = obj.elevation(i(fin));
         end
