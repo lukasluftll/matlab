@@ -15,7 +15,7 @@ classdef elevationmap
     %   SETELEV   - Assign elevation at coordinate
     %   LIMITS    - Extension of map
     %   MINUS     - Height difference between elevation map and 3D points
-    %   MEDFILT   - 2D median filtering
+    %   FILLNAN   - Estimate elevation values of NaN tiles
     %   PLOT      - Visualize elevation map
     %
     %   See also POINTCLOUD.
@@ -203,18 +203,19 @@ classdef elevationmap
             d = obj(p(:,1),p(:,2)) - p(:,3);
         end
         
-        function m = medfilt(obj, ws)
-            % MEDFILT 2D median filtering.
-            %   M = MEDFILT(OBJ) performs median filtering of the
-            %   elevation map OBJ using a window of 3x3 elements. The
-            %   window is always centered around the cell whose value is
-            %   computed.
+        function m = fillnan(obj, ws)
+            % FILLNAN Estimate elevation values of NaN tiles.
+            %   M = FILLNAN(OBJ) estimates the elevation values of NaN map
+            %   tiles using a median filter.
             %
-            %   M is an elevationmap object. The elevation value of each
-            %   cell is equal to the median of the values of OBJ inside the
-            %   window.
+            %   M is an elevationmap object.
             %
-            %   M = MEDFILT(OBJ, WS) performs median filtering using a
+            %   For each map tile of M, FILLNAN takes a window of 3x3 tiles
+            %   centered around the corresponding tile of OBJ. 
+            %   FILLNAN then computes the median of all tiles in the window
+            %   and assigns the resulting value to the tile of M.
+            %
+            %   M = FILLNAN(OBJ, WS) performs median filtering using a
             %   user-defined window size WS.
             %
             %   WS is a 2-element vector containing odd integers. 
@@ -226,7 +227,7 @@ classdef elevationmap
             nargoutchk(0, 1)
             narginchk(1, 2)
             
-            % If the window size is not defined, do it now.
+            % If the window size is not defined, use the default.
             if nargin < 2
                 ws = [3,3];
             end
@@ -235,11 +236,19 @@ classdef elevationmap
             validateattributes(ws, {'numeric'}, ...
                 {'odd', 'positive', 'numel',2}, '', 'WS')
             
-            %% Perform filtering.
-            % Compute the number of neighbors in each direction.
-            nn = (ws-1) / 2;
+            %% Filter values.
             m = obj;
-            m.elevation = median(obj.elevation(
+            nx = (ws(1)-1) / 2;
+            ny = (ws(2)-1) / 2;
+            ne = size(obj.elevation);
+            for x = 1 : ne(1)
+                for y = 1 : ne(2)
+                    xgv = max(1, x-nx) : min(ne(1), x+nx);
+                    ygv = max(1, y-ny) : min(ne(2), y+ny);
+                    w = obj.elevation(xgv,ygv);
+                    m.elevation(x,y) = median(w, 'omitnan');
+                end
+            end
         end
         
         function plot(obj)
