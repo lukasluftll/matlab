@@ -25,7 +25,7 @@ y = lim(2,1) : res : lim(2,2);
 nx = numel(x);
 ny = numel(y);
 d = NaN(nx, ny);
-nnan = NaN(nx, ny);
+nanfrac = NaN(nx, ny);
 n = size(psens, 1);
 progressbar(nx)
 parfor ix = 1 : nx
@@ -34,10 +34,7 @@ parfor ix = 1 : nx
         dz = constrain(em-(psens+repmat([x(ix),y(iy),z], n, 1)), [0,+Inf]);
         d(ix,iy) = mean(dz, 'omitnan');
         
-        dz = constrain(em-(psens+offset), [0,+Inf]);
-        d(ix,iy) = mean(abs(dz), 'omitnan');
-        
-        nnan(ix,iy) = sum(isnan(dz));
+        nanfrac(ix,iy) = sum(isnan(dz)) / numel(dz);
     end
     progressbar
 end
@@ -60,9 +57,9 @@ pcfieldsel.Color = palette(c(i),:);
 figure('Name', 'Field map showing robot location probability')
 pcshow(pcfieldsel, 'MarkerSize', 40)
 
-% Show the numbers of missing correspondences.
+% Show the fraction of missing correspondences.
 figure('Name', 'NaN count')
-surf(x, y, nnan', 'EdgeColor', 'none')
+surf(x, y, nanfrac', 'EdgeColor', 'none')
 labelaxes
 
 % Plot point cloud of field and the scan point cloud at the most probable
