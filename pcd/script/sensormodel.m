@@ -44,12 +44,6 @@ surf(x, y, d', 'EdgeColor', 'none')
 daspect([1 1 0.01])
 labelaxes
 
-% Plot point cloud of field.
-figure('Name', 'Field')
-pcshow(pcfield)
-axisequal
-labelaxes
-
 % Colorize field map according to visualize the sensor model output.
 c = floor(normm(d) * 63.9999) + 1;
 palette = uint8(round(colormap * 255));
@@ -65,4 +59,15 @@ pcshow(pcfieldsel, 'MarkerSize', 40)
 % Show the numbers of missing correspondences.
 figure('Name', 'NaN count')
 surf(x, y, nnan', 'EdgeColor', 'none')
+labelaxes
+
+% Plot point cloud of field and the scan point cloud at the most probable
+% location.
+[~,imin] = min(d(:));
+[xmin,ymin] = ind2sub(size(d), imin);
+offset = repmat([x(xmin),y(ymin),0], n, 1);
+offset(:,3) = mean(em-(psens+offset), 'omitnan');
+figure('Name', 'Field')
+pcshowpair(pcfield, pointCloud(psens+offset))
+axis equal
 labelaxes
