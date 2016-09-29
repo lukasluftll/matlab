@@ -29,11 +29,13 @@ nanfrac = NaN(nx, ny);
 n = size(psens, 1);
 progressbar(nx)
 parfor ix = 1 : nx
-    for iy = 1 : ny       
+    for iy = 1 : ny
+        % Compute the disparity between elevation map and scan.
         z = mean(em-(psens+repmat([x(ix),y(iy),0], n, 1)), 'omitnan');
         dz = constrain(em-(psens+repmat([x(ix),y(iy),z], n, 1)), [0,+Inf]);
         d(ix,iy) = mean(dz, 'omitnan');
         
+        % Compute the fraction of unmatched points.
         nanfrac(ix,iy) = sum(isnan(dz)) / numel(dz);
     end
     progressbar
