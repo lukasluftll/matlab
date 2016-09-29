@@ -22,18 +22,18 @@ classdef elevationmap
     % Copyright 2016 Alexander Schaefer
     
     properties ( SetAccess = private )
-        % Minimum x and y coordinates of the map; 1x2 vector.
+        % SUPPORT Minimum x and y coordinates of the map; 1x2 vector.
         support
         
-        % Extension of the map in numbers of map tiles in x and 
+        % EXTENSION Extension of the map in numbers of map tiles in x and 
         % y direction; 1x2 vector.
         extension
         
-        % Edge length of each tile; scalar.
+        % RESOLUTION Edge length of each tile; scalar.
         resolution
-        
-        % Elevation data of the map; IxJ matrix with I and J being the
-        % number of tiles in x and y direction.
+
+        % ELEVATION Elevation data of the map; IxJ matrix with I and J 
+        % being the number of tiles in x and y direction.
         elevation
     end
     
