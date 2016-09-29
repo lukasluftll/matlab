@@ -40,21 +40,21 @@ end
 
 % Plot result.
 figure('Name', 'Sensor model in middle of field')
-surfl(y, x, d, 'EdgeColor', 'none')
+surf(y, x, d, 'EdgeColor', 'none')
 daspect([1 1 0.01])
 
 % Colorize field map according to visualize the sensor model output.
 c = floor(normm(d) * 63.9999) + 1;
-palette = uint8(round(colormap('hot') * 255));
+palette = uint8(round(colormap * 255));
 roi = [lim(1,1), lim(1,2)-eps, lim(2,1), lim(2,2)-eps, -Inf, +Inf];
-pcfield = select(pcfield, findPointsInROI(pcfield, roi));
-minxy = repmat(lim(1:2,1).', pcfield.Count, 1);
-i = floor((pcfield.Location(:,1:2) - minxy) / res) + 1;
+pcfieldsel = select(pcfield, findPointsInROI(pcfield, roi));
+minxy = repmat(lim(1:2,1).', pcfieldsel.Count, 1);
+i = floor((pcfieldsel.Location(:,1:2) - minxy) / res) + 1;
 i = sub2ind(size(c), i(:,1), i(:,2));
-pcfield.Color = palette(c(i),:);
+pcfieldsel.Color = palette(c(i),:);
 figure('Name', 'Field map showing robot location probability')
-pcshow(pcfield, 'MarkerSize', 40)
+pcshow(pcfieldsel, 'MarkerSize', 40)
 
 % Show the numbers of missing correspondences.
 figure('Name', 'NaN count')
-surfl(y, x, 'EdgeColor', 'none')
+surf(y, x, nnan, 'EdgeColor', 'none')
