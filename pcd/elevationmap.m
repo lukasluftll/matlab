@@ -221,6 +221,10 @@ classdef elevationmap
             %   WS is a 2-element vector containing odd integers. 
             %   The elements specify the extent of the window in x and y 
             %   direction, respectively.
+            %
+            %   Example:
+            %      em = elevationmap(pcread('teapot.ply'), 0.05);
+            %      em = em.fillnan([9,9])
 
             %% Validate input and output.
             % Check the numer of input and output arguments.
