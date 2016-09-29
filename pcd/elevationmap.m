@@ -101,7 +101,7 @@ classdef elevationmap
             obj.extension = floor(...
                 ([pc.XLimits(2),pc.YLimits(2)]-obj.support) / res) + 1;
             
-            % Set the elevation data to the minimum elevation.
+            % Initialize the elevation data to NaN.
             obj.elevation = NaN(obj.extension);
             
             % Remove all NaN and infinite points from the point cloud.
