@@ -16,14 +16,14 @@ em = em.fillnan([5,5]);
 pcsens = pcd2pc(pcdread('pcd/data/sensmiddle.pcd'));
 psens = permute(pcsens.Location, [2,3,1]);
 
-% Shift the measurements and evaluate the height difference at each point.
+% Shift the measurements and compute the height difference at each point.
 x = lim(1,1) : res : lim(1,2);
 y = lim(2,1) : res : lim(2,2);
 nx = numel(x);
 ny = numel(y);
 d = NaN(nx, ny);
 nnan = NaN(nx, ny);
-n = pcsens.Count;
+n = size(psens, 1);
 progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny       
@@ -40,8 +40,9 @@ end
 
 % Plot result.
 figure('Name', 'Sensor model in middle of field')
-surf(y, x, d, 'EdgeColor', 'none')
+surf(x, y, d', 'EdgeColor', 'none')
 daspect([1 1 0.01])
+labelaxes
 
 % Colorize field map according to visualize the sensor model output.
 c = floor(normm(d) * 63.9999) + 1;
@@ -57,4 +58,5 @@ pcshow(pcfieldsel, 'MarkerSize', 40)
 
 % Show the numbers of missing correspondences.
 figure('Name', 'NaN count')
-surf(y, x, nnan, 'EdgeColor', 'none')
+surf(x, y, nnan', 'EdgeColor', 'none')
+labelaxes
