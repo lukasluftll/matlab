@@ -9,6 +9,9 @@ pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
 em = elevationmap(pcfield, 0.05);
 
+% Fill gaps in elevation map.
+em = em.fillnan([5,5]);
+
 % Read sensor measurements.
 pcsens = pcd2pc(pcdread('pcd/data/sensmiddle.pcd'));
 psens = permute(pcsens.Location, [2,3,1]);
@@ -21,7 +24,7 @@ ny = numel(y);
 d = NaN(nx, ny);
 n = pcsens.Count;
 progressbar(nx)
-for ix = 1 : nx
+parfor ix = 1 : nx
     for iy = 1 : ny       
         offset = repmat([x(ix),y(iy),0], n, 1); %#ok<PFBNS>
         offset(:,3) = mean(em-(psens+offset), 'omitnan');
