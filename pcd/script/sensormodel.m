@@ -27,8 +27,9 @@ n = size(psens, 1);
 progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny       
-        offset = repmat([x(ix),y(iy),0], n, 1); %#ok<PFBNS>
-        offset(:,3) = mean(em-(psens+offset), 'omitnan');
+        z = mean(em-(psens+repmat([x(ix),y(iy),0], n, 1)), 'omitnan');
+        dz = constrain(em-(psens+repmat([x(ix),y(iy),z], n, 1)), [0,+Inf]);
+        d(ix,iy) = mean(dz, 'omitnan');
         
         dz = constrain(em-(psens+offset), [0,+Inf]);
         d(ix,iy) = mean(abs(dz), 'omitnan');
