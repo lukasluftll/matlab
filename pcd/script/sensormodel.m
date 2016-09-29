@@ -4,6 +4,7 @@
 res = 0.1;
 lim = [-10, 100; -10, 20];
 sensorfile = 'pcd/data/sensmiddle.pcd';
+rpy = [0,0,0];
 
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
@@ -15,6 +16,7 @@ em = em.fillnan([5,5]);
 
 % Read sensor measurements.
 pcsens = pcd2pc(pcdread(sensorfile));
+pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpy)));
 psens = permute(pcsens.Location, [2,3,1]);
 
 % Shift the measurements and compute the height difference at each point.
