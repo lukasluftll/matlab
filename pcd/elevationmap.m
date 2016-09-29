@@ -240,16 +240,20 @@ classdef elevationmap
             m = obj;
             dx = (ws(1)-1) / 2;
             dy = (ws(2)-1) / 2;
-            se = size(obj.elevation);
-            for x = 1 : se(1)
-                for y = 1 : se(2)
-                    if ~isfinite(obj.elevation(x,y))
-                        l = [max([1,1;x-dx,y-dy]); min([se;x+dx,y+dy])]';
+            sex = size(obj.elevation, 1);
+            sey = size(obj.elevation, 2);
+            e = obj.elevation;
+            parfor x = 1 : sex
+                for y = 1 : sey
+                    if ~isfinite(obj.elevation(x,y)) %#ok<PFBNS>
+                        l = [max([1,x-dx; 1,y-dy], [], 2), ...
+                            min([sex,x+dx; sey,y+dy], [], 2)];
                         w = obj.elevation(l(1,1):l(1,2),l(2,1):l(2,2));
-                        m.elevation(x,y) = median(w(:), 'omitnan');
+                        e(x,y) = median(w(:), 'omitnan');
                     end
                 end
             end
+            m.elevation = e;
         end
         
         function plot(obj)
