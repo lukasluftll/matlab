@@ -44,6 +44,12 @@ surf(x, y, d', 'EdgeColor', 'none')
 daspect([1 1 0.01])
 labelaxes
 
+% Plot point cloud of field.
+figure('Name', 'Field')
+pcshow(pcfield)
+axisequal
+labelaxes
+
 % Colorize field map according to visualize the sensor model output.
 c = floor(normm(d) * 63.9999) + 1;
 palette = uint8(round(colormap * 255));
