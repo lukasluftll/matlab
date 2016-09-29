@@ -11,7 +11,7 @@ classdef elevationmap
     %      em = elevationmap(pcread('teapot.ply'), 0.1)
     %
     %   ELEVATIONMAP methods:
-    %   Z         - Elevation at x-y coordinate
+    %   GETELEV   - Elevation at coordinate
     %   LIMITS    - Extension of map
     %   MINUS     - Height difference between elevation map and 3D points
     %   MEDFILT   - 2D median filtering
@@ -69,7 +69,7 @@ classdef elevationmap
         end                
     end
     
-    methods ( Access = public )
+    methods ( Access = public )      
         function obj = elevationmap(pc, res)
             % ELEVATIONMAP Constructor.
             
@@ -119,25 +119,28 @@ classdef elevationmap
             end
         end
         
-        function e = z(obj, xy)
-            % Z Elevation of point.
-            %   E = Z(OBJ, XY) returns the elevation value
-            %   corresponding to the given x and y coordinates.
+        function e = getelev(obj, c)
+            % GETELEV Elevation at coordinate.
+            %   E = GETELEV(OBJ, C) returns the elevation value 
+            %   at coordinate C.
             %
-            %   XY is an Mx2 matrix whose rows specify M x-y coordinates.
+            %   C is an Mx2 matrix. Each row specifies an x-y coordinate.
             %
-            %   E is an M-element column vector whose m-th element contains
-            %   the elevation at coordinate XY(m,:).
-            %   If XY(m,:) lies outside the elevation map, E(m) yields NaN.
+            %   E is an M-element column vector. The m-th row contains the
+            %   elevation value of the tile at coordinate C(m,:).
+            %
+            %   If C(m,:) lies outside the map, E(m) yields NaN.
             
-            %% Validate input and output.
+            %% Validate input and output arguments.
             nargoutchk(0, 1)
             narginchk(2, 2)
-            validateattributes(xy,{'numeric'},{'real','ncols',2},'','XY')
+            validateattributes(c, {'numeric'}, {'real','ncols',2}, '', 'C')
             
-            %% Evaluate map at given coordinates.
-            % Initialize the return value.
-            e = NaN(size(xy,1), 1);
+            %% Determine elevation at coordinate.
+            i = obj.idx(c);
+            e = NaN(size(c,1), 1);
+            e(isfinite(i)) = obj.elevation(i(isfinite(i)));
+        end
             
             % Look up the elevation for each coordinate. 
             i = obj.idx(xy);
