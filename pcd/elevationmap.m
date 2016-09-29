@@ -200,7 +200,7 @@ classdef elevationmap
             validateattributes(p, {'numeric'}, {'real','ncols',3}, '', 'P')
             
             %% Compute height difference.
-            d = obj(p(:,1),p(:,2)) - p(:,3);
+            d = obj.getelev(p(:,1:2)) - p(:,3);
         end
         
         function m = fillnan(obj, ws)
@@ -238,15 +238,16 @@ classdef elevationmap
             
             %% Filter values.
             m = obj;
-            nx = (ws(1)-1) / 2;
-            ny = (ws(2)-1) / 2;
-            ne = size(obj.elevation);
-            for x = 1 : ne(1)
-                for y = 1 : ne(2)
-                    xgv = max(1, x-nx) : min(ne(1), x+nx);
-                    ygv = max(1, y-ny) : min(ne(2), y+ny);
-                    w = obj.elevation(xgv,ygv);
-                    m.elevation(x,y) = median(w, 'omitnan');
+            dx = (ws(1)-1) / 2;
+            dy = (ws(2)-1) / 2;
+            se = size(obj.elevation);
+            for x = 1 : se(1)
+                for y = 1 : se(2)
+                    if ~isfinite(obj.elevation(x,y))
+                        l = [max([1,1;x-dx,y-dy]); min([se;x+dx,y+dy])]';
+                        w = obj.elevation(l(1,1):l(1,2),l(2,1):l(2,2));
+                        m.elevation(x,y) = median(w(:), 'omitnan');
+                    end
                 end
             end
         end
