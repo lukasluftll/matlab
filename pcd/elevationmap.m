@@ -12,6 +12,7 @@ classdef elevationmap
     %
     %   ELEVATIONMAP methods:
     %   GETELEV   - Elevation at coordinate
+    %   SETELEV   - Assign elevation at coordinate
     %   LIMITS    - Extension of map
     %   MINUS     - Height difference between elevation map and 3D points
     %   MEDFILT   - 2D median filtering
@@ -141,11 +142,33 @@ classdef elevationmap
             e = NaN(size(c,1), 1);
             e(isfinite(i)) = obj.elevation(i(isfinite(i)));
         end
+        
+        function obj = setelev(obj, c, e)
+            % SETELEV Assign elevation at coordinate.
+            %   SETELEV(OBJ, C, E) assigns elevation E to the map tile at
+            %   coordinate C.
+            %
+            %   C is an Mx2 matrix. Each row specifies an x-y coordinate.
+            %   
+            %   E is an M-element column vector. The map tile at coordinate
+            %   C(m,:) will be assigned the elevation E(m).
             
-            % Look up the elevation for each coordinate. 
-            i = obj.idx(xy);
-            fin = isfinite(i);
-            e(fin) = obj.elevation(i(fin));
+            %% Validate input and output.
+            % Check the input and output arguments.
+            nargoutchk(0, 1)
+            narginchk(3, 3)
+            validateattributes(c, {'numeric'}, {'real','ncols',2}, '', 'C')
+            validateattributes(e, {'numeric'}, ...
+                {'real','ncols',1,'nrows',size(c,1)}, '', 'E')
+            
+            %% Set elevation at coordinate.
+            i = obj.idx(c);
+            if any(isnan(i))
+                inan = i(find(isnan(i), 1));
+                error(['Coordinate [', num2str(c(inan,1)), '; ', ...
+                    num2str(c(inan,2)), '] lies outside map.'])
+            end
+            obj.elevation(i) = e;
         end
         
         function l = limits(obj)
@@ -177,7 +200,7 @@ classdef elevationmap
             validateattributes(p, {'numeric'}, {'real','ncols',3}, '', 'P')
             
             %% Compute height difference.
-            d = obj.z(p(:,1:2)) - p(:,3);
+            d = obj(p(:,1),p(:,2)) - p(:,3);
         end
         
         function m = medfilt(obj, ws)
