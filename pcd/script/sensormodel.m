@@ -9,10 +9,10 @@ rpy = [0,0,0];
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
-em = elevationmap(pcfield, 0.05);
+emnan = elevationmap(pcfield, 0.05);
 
 % Fill gaps in elevation map.
-em = em.fillnan([5,5]);
+em = emnan.fillnan([5,5]);
 
 % Read sensor measurements.
 pcsens = pcd2pc(pcdread(sensorfile));
