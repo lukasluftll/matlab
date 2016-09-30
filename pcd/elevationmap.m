@@ -14,7 +14,8 @@ classdef elevationmap
     %   GETELEV   - Elevation at coordinate
     %   SETELEV   - Assign elevation at coordinate
     %   LIMITS    - Extension of map
-    %   DIFF      - Height difference between 3D points and elevation map 
+    %   DIFF      - Height difference between 3D points and elevation map
+    %   MATCH     - Compute distance between point cloud and elevation map
     %   FILLNAN   - Estimate elevation values of NaN tiles
     %   PLOT      - Visualize elevation map
     %
@@ -224,6 +225,40 @@ classdef elevationmap
             
             %% Compute difference in z.
             d = p(:,3) - obj.getelev(p(:,1:2));
+        end
+        
+        function m = match(obj, pc)
+            % MATCH Compute distance between point cloud and elevation map.
+            %   M = MATCH(OBJ, PC) computes the mean distance M in 
+            %   z-direction between the point cloud PC and the 
+            %   elevation map OBJ.
+            %
+            %   PC is a point cloud object.
+            %   M is a scalar that indicates the mean error in z-direction.
+            %
+            %   MATCH computes the z-distance between each point of PC and 
+            %   the corresponding tile of the elevation map. 
+            %   The computed distance is asymmetric: If the point lies 
+            %   above the tile, the distance adds to the total error. If 
+            %   the point lies below the tile, the distance is set to zero.
+            %   This accounts for the fact that the map tiles represent the
+            %   heighest points of the point cloud map only.
+            
+            %% Validate input.
+            nargoutchk(0, 1)
+            narginchk(2, 2)
+            validateattributes(pc, {'pointCloud'}, {'scalar'}, '', 'PC')
+
+            %% Compute mean distance.
+            % Get the point coordinates as a Mx3 matrix.
+            point = reshape(pc.Location, pc.Count, 3, 1);
+
+            % Compute the raw distance in z.
+            dz = point(:,3) - obj.getelev(point(:,1:2));
+            
+            % Add only positive distances to the total distance and compute
+            % the mean distance.
+            m = mean(constrain(dz, [0, +Inf]));
         end
         
         function m = fillnan(obj, ws)
