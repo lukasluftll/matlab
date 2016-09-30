@@ -12,6 +12,9 @@ pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
 pcfield = select(pcfield, findPointsInROI(pcfield, [1.6 87.7 0 13.27 -Inf +Inf])); %%%
 emnan = elevationmap(pcfield, 0.05);
 
+% Compute mean elevation.
+emean = mean(emnan.elevation(:), 'omitnan');
+
 % Fill gaps in elevation map.
 em = emnan.fillnan([5,5]);
 
@@ -31,11 +34,13 @@ d = NaN(nx, ny);
 nanfrac = NaN(nx, ny);
 n = size(psens, 1);
 progressbar(nx)
-for ix = 1 : nx
+parfor ix = 1 : nx
     for iy = 1 : ny
         % Compute the disparity between elevation map and scan.
-        z = mean(em-(psens+repmat([x(ix),y(iy),0], n, 1)), 'omitnan');
-        dz = constrain(em-(psens+repmat([x(ix),y(iy),z], n, 1)), [0,+Inf]);
+        zoffset = mean(em-(psens+repmat([x(ix),y(iy),0],n,1)), 'omitnan');
+        p = psens + repmat([x(ix),y(iy),zoffset], n, 1);
+        dz = constrain(em-p, [0,+Inf]);
+        dz(isnan(dz)) = p(isnan(dz),3) - emean;
         d(ix,iy) = mean(dz, 'omitnan');
         
         % Compute the fraction of unmatched points.
