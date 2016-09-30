@@ -32,10 +32,31 @@ classdef elevationmap
         
         % RESOLUTION Edge length of each tile; scalar.
         resolution
-
+    end
+    
+    properties
         % ELEVATION Elevation data of the map; IxJ matrix with I and J 
         % being the number of tiles in x and y direction.
         elevation
+    end
+    
+    methods
+        function obj = set.elevation(obj, elevation)
+            % SET.ELEVATION Set elevation values.
+            
+            %% Validate input.
+            narginchk(2, 2)
+            if isempty(obj.elevation)
+                validateattributes(elevation, {'numeric'}, ...
+                    {'real', 'ndims', 2}, '', 'ELEVATION')
+            else
+                validateattributes(elevation, {'numeric'}, ...
+                    {'real', 'size', size(obj.elevation)}, '', 'ELEVATION')
+            end
+            
+            %% Assign values.
+            obj.elevation = elevation;
+        end
     end
     
     methods ( Access = private )
@@ -101,9 +122,6 @@ classdef elevationmap
             obj.extension = floor(...
                 ([pc.XLimits(2),pc.YLimits(2)]-obj.support) / res) + 1;
             
-            % Initialize the elevation data to NaN.
-            obj.elevation = NaN(obj.extension);
-            
             % Remove all NaN and infinite points from the point cloud.
             pc = removeInvalidPoints(pc);
             
@@ -115,9 +133,11 @@ classdef elevationmap
             
             % Set the elevation of each tile to the maximum z coordinate of
             % all points belonging to this tile.
+            e = NaN(obj.extension);
             for i = 1 : size(point,1)
-                obj.elevation(ie(i))=max(obj.elevation(ie(i)),point(i,3));
+                e(ie(i)) = max(e(ie(i)), point(i,3));
             end
+            obj.elevation = e;
         end
         
         function e = getelev(obj, c)
