@@ -85,3 +85,48 @@ figure('Name', 'Field')
 pcshowpair(pcfield, pointCloud(psens+offset), 'MarkerSize', 50)
 axis equal
 labelaxes
+
+% Vary yaw angle.
+yaw = -pi : 0.01 : pi;
+dyaw = NaN(numel(yaw), 1);
+for iyaw = 1 : numel(yaw)
+    pcsensrot = pctransform(pcsens, ...
+        ht2affine3d(eul2tform([yaw(iyaw),0,0])));
+
+    % Compute the disparity between elevation map and scan.
+    p = pcsensrot.Location + offset;
+    dz = constrain(em.diff(p), [0,+Inf]);
+    dyaw(iyaw) = mean(dz, 'omitnan');
+end
+figure('Name', 'Matching result of best position over yaw angle')
+plot(yaw, dyaw)
+
+% Vary pitch angle.
+pitch = -pi : 0.01 : pi;
+dpitch = NaN(numel(pitch), 1);
+for ipitch = 1 : numel(pitch)
+    pcsensrot = pctransform(pcsens, ...
+        ht2affine3d(eul2tform([0,pitch(ipitch),0])));
+    
+    % Compute the disparity between elevation map and scan.
+    p = pcsensrot.Location + offset;
+    dz = constrain(em.diff(p), [0;+Inf]);
+    dpitch(ipitch) = mean(dz, 'omitnan');
+end
+figure('Name', 'Matching result of best position over pitch angle')
+plot(pitch, dpitch)
+
+% Vary roll angle.
+roll = -pi : 0.01 : pi;
+droll = NaN(numel(roll), 1);
+for iroll = 1 : numel(roll)
+    pcsensrot = pctransform(pcsens, ...
+        ht2affine3d(eul2tform([0,0,roll(iroll)])));
+    
+    % Compute the disparity between elevation map and scan.
+    p = pcsensrot.Location + offset;
+    dz = constrain(em.diff(p), [0;+Inf]);
+    droll(iroll) = mean(dz, 'omitnan');
+end
+figure('Name', 'Matching result of best position over roll angle')
+plot(roll, droll)
