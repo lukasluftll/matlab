@@ -14,7 +14,7 @@ classdef elevationmap
     %   GETELEV   - Elevation at coordinate
     %   SETELEV   - Assign elevation at coordinate
     %   LIMITS    - Extension of map
-    %   MINUS     - Height difference between elevation map and 3D points
+    %   DIFF      - Height difference between 3D points and elevation map 
     %   FILLNAN   - Estimate elevation values of NaN tiles
     %   PLOT      - Visualize elevation map
     %
@@ -202,15 +202,18 @@ classdef elevationmap
             l = (s + [0,0; obj.extension*obj.resolution]).';
         end
         
-        function d = minus(obj, p)
-            % -  Height difference between elevation map and 3D points.
-            %   D = OBJ - P computes the height difference between 
+        function d = diff(obj, p)
+            % DIFF Height difference between 3D points and elevation map.
+            %   D = DIFF(OBJ, P) computes the height difference between 
             %   elevation map OBJ and 3D points P.
             %
             %   P is an Mx3 matrix whose rows contain x-y-z coordinates.
             %
-            %   D is an M-element column vector. D(m) yields the height
-            %   difference between P(m,:) and the corresponding map tile.
+            %   D is an M-element column vector. D(m) yields the distance
+            %   between P(m,:) and the corresponding map tile in 
+            %   z direction. Positive values mean the point lies above the
+            %   tile, negative values mean the point lies below the tile.
+            %
             %   If there is no corresponding map tile for P(m,:), D(m)
             %   returns NaN.
             
@@ -219,8 +222,8 @@ classdef elevationmap
             narginchk(2, 2)
             validateattributes(p, {'numeric'}, {'real','ncols',3}, '', 'P')
             
-            %% Compute height difference.
-            d = obj.getelev(p(:,1:2)) - p(:,3);
+            %% Compute difference in z.
+            d = p(:,3) - obj.getelev(p(:,1:2));
         end
         
         function m = fillnan(obj, ws)

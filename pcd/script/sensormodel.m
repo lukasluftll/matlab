@@ -38,10 +38,11 @@ progressbar(nx)
 parfor ix = 1 : nx
     for iy = 1 : ny
         % Compute the disparity between elevation map and scan.
-        zoffset = mean(em-(psens+repmat([x(ix),y(iy),0],n,1)), 'omitnan');
+        zoffset = -mean(em.diff(psens+repmat([x(ix),y(iy),0],n,1)), ...
+            'omitnan');
         p = psens + repmat([x(ix),y(iy),zoffset], n, 1);
-        dz = constrain(em-p, [0,+Inf]);
-        if sum(isnan(dz)) < 5000
+        dz = constrain(em.diff(p), [0,+Inf]);
+        if sum(isnan(dz)) < 0.1*n
             d(ix,iy) = mean(dz, 'omitnan');
         end
         
@@ -79,8 +80,8 @@ labelaxes
 [~,imin] = min(d(:));
 [xmin,ymin] = ind2sub(size(d), imin);
 offset = repmat([x(xmin),y(ymin),0], n, 1);
-offset(:,3) = mean(em-(psens+offset), 'omitnan');
+offset(:,3) = -mean(em.diff(psens+offset), 'omitnan');
 figure('Name', 'Field')
-pcshowpair(pcfield, pointCloud(psens+offset))
+pcshowpair(pcfield, pointCloud(psens+offset), 'MarkerSize', 50)
 axis equal
 labelaxes
