@@ -48,21 +48,21 @@ daspect([1 1 0.01])
 labelaxes
 
 % Colorize field map according to visualize the sensor model output.
-c = floor(normm(d) * 63.9999) + 1;
-palette = uint8(round(colormap * 255));
-roi = [lim(1,1), lim(1,2)-eps, lim(2,1), lim(2,2)-eps, -Inf, +Inf];
-pcfieldsel = select(pcfield, findPointsInROI(pcfield, roi));
-minxy = repmat(lim(1:2,1).', pcfieldsel.Count, 1);
-i = floor((pcfieldsel.Location(:,1:2) - minxy) / res) + 1;
-i = sub2ind(size(c), i(:,1), i(:,2));
-pcfieldsel.Color = palette(c(i),:);
-figure('Name', 'Field map showing robot location probability')
-pcshow(pcfieldsel, 'MarkerSize', 40)
+% c = floor(normm(d) * 63.9999) + 1;
+% palette = uint8(round(colormap * 255));
+% roi = [lim(1,1), lim(1,2)-eps, lim(2,1), lim(2,2)-eps, -Inf, +Inf];
+% pcfieldsel = select(pcfield, findPointsInROI(pcfield, roi));
+% minxy = repmat(lim(1:2,1).', pcfieldsel.Count, 1);
+% i = floor((pcfieldsel.Location(:,1:2) - minxy) / res) + 1;
+% i = sub2ind(size(c), i(:,1), i(:,2));
+% pcfieldsel.Color = palette(c(i),:);
+% figure('Name', 'Field map showing robot location probability')
+% pcshow(pcfieldsel, 'MarkerSize', 40)
 
 % Show the fraction of missing correspondences.
-figure('Name', 'NaN count')
-surf(x, y, nanfrac', 'EdgeColor', 'none')
-labelaxes
+%figure('Name', 'NaN count')
+%surf(x, y, nanfrac', 'EdgeColor', 'none')
+%labelaxes
 
 % Plot point cloud of field and the scan point cloud at the most probable
 % location.
