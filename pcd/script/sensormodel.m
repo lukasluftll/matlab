@@ -5,11 +5,13 @@ res = 0.1;
 lim = [-10, 100; -10, 20];
 sensorfile = 'pcd/data/sensmiddle.pcd';
 rpy = [0,0,0];
+roifield = [-Inf,+Inf,-Inf,+Inf,-Inf,+Inf]; %[1.6 87.7 0 13.27 -Inf +Inf];
+roisens = [-Inf,+Inf,-Inf,+Inf,-Inf,+Inf]; %[-29 30 -6.11 8 -Inf +Inf]
 
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
-pcfield = select(pcfield, findPointsInROI(pcfield, [1.6 87.7 0 13.27 -Inf +Inf])); %%%
+pcfield = select(pcfield, findPointsInROI(pcfield, roifield)); 
 emnan = elevationmap(pcfield, 0.05);
 
 % Compute mean elevation.
@@ -20,9 +22,8 @@ em = emnan.fillnan([5,5]);
 
 % Read sensor measurements.
 pcsens = pcd2pc(pcdread(sensorfile));
-pcsens = select(pcsens, findPointsInROI(pcsens, [-29 30 -6.11 8 -Inf +Inf])); %%%
+pcsens = select(pcsens, findPointsInROI(pcsens, roisens)); 
 pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpy)));
-%psens = permute(pcsens.Location, [2,3,1]); %%%
 psens = pcsens.Location;
 
 % Shift the measurements and compute the height difference at each point.
@@ -69,9 +70,9 @@ labelaxes
 % pcshow(pcfieldsel, 'MarkerSize', 40)
 
 % Show the fraction of missing correspondences.
-%figure('Name', 'NaN count')
-%surf(x, y, nanfrac', 'EdgeColor', 'none')
-%labelaxes
+% figure('Name', 'NaN count')
+% surf(x, y, nanfrac', 'EdgeColor', 'none')
+% labelaxes
 
 % Plot point cloud of field and the scan point cloud at the most probable
 % location.
