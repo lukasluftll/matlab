@@ -9,6 +9,7 @@ rpy = [0,0,0];
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
+pcfield = select(pcfield, findPointsInROI(pcfield, [1.6 87.7 0 13.27 -Inf +Inf])); %%%
 emnan = elevationmap(pcfield, 0.05);
 
 % Fill gaps in elevation map.
@@ -16,8 +17,10 @@ em = emnan.fillnan([5,5]);
 
 % Read sensor measurements.
 pcsens = pcd2pc(pcdread(sensorfile));
+pcsens = select(pcsens, findPointsInROI(pcsens, [-29 30 -6.11 8 -Inf +Inf])); %%%
 pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpy)));
-psens = permute(pcsens.Location, [2,3,1]);
+%psens = permute(pcsens.Location, [2,3,1]); %%%
+psens = pcsens.Location;
 
 % Shift the measurements and compute the height difference at each point.
 x = lim(1,1) : res : lim(1,2);
@@ -28,7 +31,7 @@ d = NaN(nx, ny);
 nanfrac = NaN(nx, ny);
 n = size(psens, 1);
 progressbar(nx)
-parfor ix = 1 : nx
+for ix = 1 : nx
     for iy = 1 : ny
         % Compute the disparity between elevation map and scan.
         z = mean(em-(psens+repmat([x(ix),y(iy),0], n, 1)), 'omitnan');
