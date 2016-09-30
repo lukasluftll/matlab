@@ -40,8 +40,9 @@ parfor ix = 1 : nx
         zoffset = mean(em-(psens+repmat([x(ix),y(iy),0],n,1)), 'omitnan');
         p = psens + repmat([x(ix),y(iy),zoffset], n, 1);
         dz = constrain(em-p, [0,+Inf]);
-        dz(isnan(dz)) = p(isnan(dz),3) - emean;
-        d(ix,iy) = mean(dz, 'omitnan');
+        if sum(isnan(dz)) < 5000
+            d(ix,iy) = mean(dz, 'omitnan');
+        end
         
         % Compute the fraction of unmatched points.
         nanfrac(ix,iy) = sum(isnan(dz)) / numel(dz);
