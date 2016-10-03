@@ -27,4 +27,3 @@ validateattriubtes(pc, {'pointCloud'}, {'scalar'}, '', 'PC')
 [~,d] = knnsearch(pcref.Location, pc.Location);
 
 end
-

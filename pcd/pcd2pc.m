@@ -45,14 +45,14 @@ if isempty(ix) || isempty(iy) || isempty(iz)
     error('PCD does not contain fields X, Y, and Z.')
 end
 
-%% Create pointCloud object.
 % Check the size of the Cartesian coordinate matrices.
-x = pcd.(field{ix});
-y = pcd.(field{iy});
-z = pcd.(field{iz});
-sizechk(x, y, z);
+validateattributes(pcd.(field{ix}), {'numeric'}, {'real'}, '', 'PCD.X')
+validateattributes(pcd.(field{iy}), {'numeric'}, ...
+    {'real', 'size', size(pcd.(field{ix}))}, '', 'PCD.Y')
+validateattributes(pcd.(field{iz}), {'numeric'}, ...
+    {'real', 'size', size(pcd.(field{ix}))}, '', 'PCD.Z')
 
-% Create the pointCloud object.
+%% Create pointCloud object.
 location = cat(3, x, cat(3, y, z));
 pc = pointCloud(location);
 
