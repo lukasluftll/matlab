@@ -18,13 +18,10 @@ function d = pccompare(pc, pcref)
 % Copyright 2016 Alexander Schaefer
 
 %% Validate input.
-% Check number of input arguments.
+nargoutchk(0, 1)
 narginchk(2, 2)
-
-% Check input argument types.
-if ~isa(pc, 'pointCloud') || ~isa(pcref, 'pointCloud')
-    error('PC and PCREF must be pointCloud objects.')
-end
+validateattributes(pcref, {'pointCloud'}, {'scalar'}, '', 'PCREF')
+validateattriubtes(pc, {'pointCloud'}, {'scalar'}, '', 'PC')
 
 %% Compute point-to-point distances.
 [~,d] = knnsearch(pcref.Location, pc.Location);
