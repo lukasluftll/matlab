@@ -82,7 +82,7 @@ else
         {'size', size(pc.Location)}, '', ['PCD.', upper(field{ic})])
     
     % Add color information to the pointCloud object.
-    pc.Color = color;
+    pc.Color = pcd.(field{ic});
 end
 
 end
