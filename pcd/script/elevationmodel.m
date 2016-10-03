@@ -1,4 +1,4 @@
-% Evaluate eleavation map sensor model for leek field dataset.
+% Evaluate elevation map sensor model for leek field dataset.
 
 % Define parameters.
 shiftres = 0.1;
@@ -22,8 +22,8 @@ x = shiftlim(1,1) : shiftres : shiftlim(1,2);
 y = shiftlim(2,1) : shiftres : shiftlim(2,2);
 nx = numel(x);
 ny = numel(y);
-d = NaN(nx, ny);
-nanfrac = NaN(nx, ny);
+d = NaN(nx,ny);
+nanfrac = NaN(nx,ny);
 n = size(psens, 1);
 progressbar(nx)
 parfor ix = 1 : nx
