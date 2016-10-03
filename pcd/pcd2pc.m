@@ -68,22 +68,18 @@ if isempty(ic)
 
     % If the struct contains intensity information, convert it to colors.
     if ~isempty(ii)
-    
-        % Convert the intensities into indices in [1; 64].
-        intensity = (intensity-min(intensity(:))) / range(intensity);
-        intensity = floor(normm(intensity) * 63.9999) + 1;
-    
-        % Transform the intensity values to colors using the colormap.
-        fig = figure('visible', 'off'); 
-        palette = uint8(colormap('jet') .* 255);
-        close(fig);
-        pc.Color = reshape(palette(intensity(:),:), size(location));
         % Check the intensity matrix.
         validateattributes(pcd.(field{ii}), {'numeric'}, ...
             {'real', 'size', size(location(:,:,1))}, ...
             '', ['PCD.', upper(field{ii})])
+        
+        % Convert the intensities to colors.
+        pc = pccolor(pc, pcd.(field{ii}));
     end 
 else
+    % Check the color matrix.
+    validateattributes(pcd.(field{ic}), {'uint8'}, ...
+        {'size', size(pc.Location)}, '', ['PCD.', upper(field{ic})])
     
     % Add color information to the pointCloud object.
     pc.Color = color;
