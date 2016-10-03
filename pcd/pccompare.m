@@ -1,17 +1,17 @@
-function d = pccompare(pc, pcref)
+function d = pccompare(pcref, pc)
 % PCCOMPARE Compute distance between point clouds.
-%   D = PCCOMPARE(PC, PCREF) computes for each point of point cloud PC the
+%   D = PCCOMPARE(PCREF, PC) computes for each point of point cloud PC the
 %   Euclidean distance to the nearest point of PCREF.
 %
-%   PC and PCREF are pointCloud objects.
+%   PCREF and PC are pointCloud objects.
 %
 %   D is an N-element row vector. Its n-th element contains the distance
 %   between the n-th point of PC and the nearest point of PCREF.
 %
 %   Example:
-%      pc = pointCloud(rand(3));
 %      pcref = pointCloud(rand(3));
-%      d = pccompare(pc, pcref)
+%      pc = pointCloud(rand(3));
+%      d = pccompare(pcref, pc)
 %
 %   See also POINTCLOUD, KNNSEARCH.
 
