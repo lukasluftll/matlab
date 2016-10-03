@@ -1,12 +1,12 @@
 % Evaluate eleavation map sensor model for leek field dataset.
 
 % Define parameters.
-res = 0.1;
-lim = [-10, 100; -10, 20];
+shiftres = 0.1;
+shiftlim = [-10, 100; -10, 20];
 sensorfile = 'pcd/data/sensmiddle.pcd';
-rpy = [0,0,0];
 roifield = [-Inf,+Inf,-Inf,+Inf,-Inf,+Inf]; %[1.6 87.7 0 13.27 -Inf +Inf];
 roisens = [-Inf,+Inf,-Inf,+Inf,-Inf,+Inf]; %[-29 30 -6.11 8 -Inf +Inf]
+rpysens = [deg2rad(10),0,0];
 
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
@@ -27,8 +27,8 @@ pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpy)));
 psens = pcsens.Location;
 
 % Shift the measurements and compute the height difference at each point.
-x = lim(1,1) : res : lim(1,2);
-y = lim(2,1) : res : lim(2,2);
+x = shiftlim(1,1) : shiftres : shiftlim(1,2);
+y = shiftlim(2,1) : shiftres : shiftlim(2,2);
 nx = numel(x);
 ny = numel(y);
 d = NaN(nx, ny);
