@@ -4,14 +4,11 @@
 shiftres = 0.1;
 shiftlim = [-10, 100; -10, 20];
 sensorfile = 'pcd/data/sensmiddle.pcd';
-roifield = [-Inf,+Inf,-Inf,+Inf,-Inf,+Inf]; %[1.6 87.7 0 13.27 -Inf +Inf];
-roisens = [-Inf,+Inf,-Inf,+Inf,-Inf,+Inf]; %[-29 30 -6.11 8 -Inf +Inf]
 rpysens = [deg2rad(10),0,0];
 
 % Create elevation map of field.
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
-pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
-pcfield = select(pcfield, findPointsInROI(pcfield, roifield)); 
+pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0]))); 
 emnan = elevationmap(pcfield, 0.05);
 
 % Compute mean elevation.
@@ -21,10 +18,9 @@ emean = mean(emnan.elevation(:), 'omitnan');
 em = emnan.fillnan([5,5]);
 
 % Read sensor measurements.
-pcsens = pcd2pc(pcdread(sensorfile));
-pcsens = select(pcsens, findPointsInROI(pcsens, roisens)); 
-pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpy)));
-psens = pcsens.Location;
+pcsens = pcd2pc(pcdread(sensorfile)); 
+pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpysens)));
+psens = reshape(pcsens.Location(:), pcsens.Count, 3, 1);
 
 % Shift the measurements and compute the height difference at each point.
 x = shiftlim(1,1) : shiftres : shiftlim(1,2);
