@@ -53,7 +53,7 @@ validateattributes(pcd.(field{iz}), {'numeric'}, ...
     {'real', 'size', size(pcd.(field{ix}))}, '', 'PCD.Z')
 
 %% Create pointCloud object.
-location = cat(3, x, cat(3, y, z));
+location = cat(3,pcd.(field{ix}),cat(3,pcd.(field{iy}),pcd.(field{iz})));
 pc = pointCloud(location);
 
 %% Add color information.
