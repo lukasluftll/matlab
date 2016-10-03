@@ -42,7 +42,7 @@ ix = find(strcmpi('x', field), 1);
 iy = find(strcmpi('y', field), 1);
 iz = find(strcmpi('z', field), 1);
 if isempty(ix) || isempty(iy) || isempty(iz)
-    error('PCD does not contain fields X, Y, and Z.')
+    error('PCD does not contain required fields X, Y, and Z.')
 end
 
 % Check the size of the Cartesian coordinate matrices.
@@ -79,7 +79,7 @@ if isempty(ic)
 else
     % Check the color matrix.
     validateattributes(pcd.(field{ic}), {'uint8'}, ...
-        {'size', size(pc.Location)}, '', ['PCD.', upper(field{ic})])
+        {'size', size(location)}, '', ['PCD.', upper(field{ic})])
     
     % Add color information to the pointCloud object.
     pc.Color = pcd.(field{ic});
