@@ -10,11 +10,6 @@ rpysens = [deg2rad(10),0,0];
 pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0]))); 
 emnan = elevationmap(pcfield, 0.05);
-
-% Compute mean elevation.
-emean = mean(emnan.elevation(:), 'omitnan');
-
-% Fill gaps in elevation map.
 em = emnan.fillnan([5,5]);
 
 % Read sensor measurements.
@@ -35,7 +30,7 @@ parfor ix = 1 : nx
     for iy = 1 : ny
         % Compute the disparity between elevation map and scan.
         zoffset = -mean(em.diff(psens+repmat([x(ix),y(iy),0],n,1)), ...
-            'omitnan');
+            'omitnan'); %#ok<PFBNS>
         p = psens + repmat([x(ix),y(iy),zoffset], n, 1);
         dz = constrain(em.diff(p), [0,+Inf]);
         if sum(isnan(dz)) < 0.1*n
