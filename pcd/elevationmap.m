@@ -250,7 +250,7 @@ classdef elevationmap
             validateattributes(pc, {'pointCloud'}, {'scalar'}, '', 'PC')
 
             %% Compute mean distance.
-            % Get the point coordinates as a Mx3 matrix.
+            % Get the point coordinates as an Mx3 matrix.
             point = reshape(pc.Location, pc.Count, 3, 1);
 
             % Compute the raw distance in z.
