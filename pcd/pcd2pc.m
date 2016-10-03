@@ -52,7 +52,7 @@ validateattributes(pcd.(field{iy}), {'numeric'}, ...
 validateattributes(pcd.(field{iz}), {'numeric'}, ...
     {'real', 'size', size(pcd.(field{ix}))}, '', 'PCD.Z')
 
-%% Create pointCloud object.
+%% Create point cloud.
 location = cat(3,pcd.(field{ix}),cat(3,pcd.(field{iy}),pcd.(field{iz})));
 pc = pointCloud(location);
 

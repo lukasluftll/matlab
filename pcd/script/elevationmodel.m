@@ -1,4 +1,4 @@
-% Evaluate sensor model for BoniRob localization on leek field.
+% Evaluate eleavation map sensor model for leek field dataset.
 
 % Define parameters.
 res = 0.1;
