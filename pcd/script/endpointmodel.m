@@ -37,18 +37,20 @@ pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpysens)));
 % Define the offset vectors.
 x = shiftlim(1,1) : shiftres : shiftlim(1,2);
 y = shiftlim(2,1) : shiftres : shiftlim(2,2);
+nx = numel(x);
+ny = numel(y);
 
 % Initialize the matrix that stores the mean z difference.
-d = NaN(numel(x), numel(y));
+d = NaN(nx, ny);
 
 % Initialize the matrix that stores the fraction of NaN differences.
-nanfrac = NaN(numel(x), numel(y));
+nanfrac = NaN(nx, ny);
 
 % Vary the position of the scan and compute the z difference for
 % each offset.
-progressbar(numel(x))
-for ix = 1 : numel(x)
-    for iy = 1 : numel(y)
+progressbar(nx)
+for ix = 1 : nx
+    for iy = 1 : ny
         d(ix,iy) = mean(pccompare(pcfield, pcsens));
     end
     

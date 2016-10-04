@@ -37,18 +37,20 @@ pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpysens)));
 % Define the offset vectors.
 x = shiftlim(1,1) : shiftres : shiftlim(1,2);
 y = shiftlim(2,1) : shiftres : shiftlim(2,2);
+nx = numel(x);
+ny = numel(y);
 
 % Initialize the matrix that stores the mean z difference.
-d = NaN(numel(x), numel(y));
+d = NaN(nx, ny);
 
 % Initialize the matrix that stores the fraction of NaN differences.
-nanfrac = NaN(numel(x), numel(y));
+nanfrac = NaN(nx, ny);
 
 % Vary the position of the scan and compute the z difference for
 % each offset.
-progressbar(numel(x))
-parfor ix = 1 : numel(x)
-    for iy = 1 : numel(y)
+progressbar(nx)
+parfor ix = 1 : nx
+    for iy = 1 : ny
         % Extract the Mx3 vector of point coordinates from the scan.
         psens = reshape(pcsens.Location(:),pcsens.Count,3,1); %#ok<*PFBNS>
         
@@ -57,21 +59,21 @@ parfor ix = 1 : numel(x)
         
         % Adjust the z coordinate of the scan origin.
         ifin = all(isfinite(psens(:,1:2)), 2);
-        psens(ifin,3) = psens(ifin,3) - mean(em.diff(psens), 'omitnan');
+        psens = psens - mean(em.diff(psens), 'omitnan');
         
         % Compute the difference in z for all points of the scan.
         % Allow only positive values, as negative differences mean the scan
         % hit an object and the corresponding point is correct.
         dz = constrain(em.diff(psens), [0,+Inf]);
         
-        % Compute the mean difference along z between the elevation map and 
-        % the scan.
-        if sum(isnan(dz)) < 0.1*numel(dz)
-            d(ix,iy) = mean(dz, 'omitnan');
-        end
-        
         % Compute the fraction of unmatched points.
         nanfrac(ix,iy) = sum(isnan(dz)) / numel(dz);
+        
+        % Compute the mean difference along z between the elevation map and 
+        % the scan.
+        if nanfrac(ix,iy) < 0.1
+            d(ix,iy) = mean(dz, 'omitnan');
+        end        
     end
     
     % Advance the progress bar.
@@ -82,4 +84,5 @@ end
 % Plot the mean z distance for all offsets.
 fig = figure('Name', 'Mean distance in z');
 surf(x, y, d', 'EdgeColor', 'none')
+daspect([1,1,0.01])
 labelaxes
