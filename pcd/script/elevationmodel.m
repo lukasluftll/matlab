@@ -7,12 +7,6 @@ shiftres = 0.1;
 % Minimum and maximum shifting offset in x and y direction.
 shiftlim = [-10, 100; -10, 20];
 
-% Step size when rotating the scan.
-rotres = 0.01;
-
-% Minimum and maximum rotation.
-rotlim = [-pi, pi];
-
 % PCD file containing the map.
 mapfile = 'pcd/data/leek.pcd';
 
@@ -43,20 +37,18 @@ pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpysens)));
 % Define the offset vectors.
 x = shiftlim(1,1) : shiftres : shiftlim(1,2);
 y = shiftlim(2,1) : shiftres : shiftlim(2,2);
-nx = numel(x);
-ny = numel(y);
 
 % Initialize the matrix that stores the mean z difference.
-d = NaN(nx,ny);
+d = NaN(numel(x), numel(y));
 
 % Initialize the matrix that stores the fraction of NaN differences.
-nanfrac = NaN(nx,ny);
+nanfrac = NaN(numel(x), numel(y));
 
 % Vary the position of the scan and compute the z difference for
 % each offset.
 progressbar(nx)
-parfor ix = 1 : nx
-    for iy = 1 : ny
+for ix = 1 : numel(x)
+    for iy = 1 : numel(y)
         % Extract the Mx3 vector of point coordinates from the scan.
         psens = reshape(pcsens.Location(:),pcsens.Count,3,1); %#ok<*PFBNS>
         
