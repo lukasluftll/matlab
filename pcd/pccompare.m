@@ -21,7 +21,7 @@ function d = pccompare(pcref, pc)
 nargoutchk(0, 1)
 narginchk(2, 2)
 validateattributes(pcref, {'pointCloud'}, {'scalar'}, '', 'PCREF')
-validateattriubtes(pc, {'pointCloud'}, {'scalar'}, '', 'PC')
+validateattributes(pc, {'pointCloud'}, {'scalar'}, '', 'PC')
 
 %% Compute point-to-point distances.
 [~,d] = knnsearch(pcref.Location, pc.Location);
