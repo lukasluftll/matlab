@@ -24,7 +24,7 @@ pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
 
 % Create the elevation map and fill the gaps in the map.
-%em = fillnan(elevationmap(pcfield, 0.05), [5,5]);
+em = fillnan(elevationmap(pcfield, 0.05), [5,5]);
 
 %% Read sensor measurements.
 % Read PCD file to point cloud.
@@ -57,7 +57,7 @@ for ix = 1 : numel(x)
         
         % Adjust the z coordinate of the scan origin.
         ifin = all(isfinite(psens(1:2,:)), 2);
-        psens(ifin,3) = -mean(em.diff(psens(ifin,:)));
+        psens(ifin,3) = psens(ifin,3) - mean(em.diff(psens), 'omitnan');
         
         % Compute the difference in z for all points of the scan.
         % Allow only positive values, as negative differences mean the scan
@@ -66,7 +66,7 @@ for ix = 1 : numel(x)
         
         % Compute the mean difference along z between the elevation map and 
         % the scan.
-        if sum(isnan(dz)) < 0.7*numel(dz)
+        if sum(isnan(dz)) < 0.1*numel(dz)
             d(ix,iy) = mean(dz, 'omitnan');
         end
         
