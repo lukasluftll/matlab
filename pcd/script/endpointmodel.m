@@ -23,9 +23,6 @@ pcfield = removeInvalidPoints(pcd2pc(pcdread('pcd/data/leek.pcd')));
 % Apply rotation to map.
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
 
-% Create the elevation map and fill the gaps in the map.
-em = fillnan(elevationmap(pcfield, 0.05), [5,5]);
-
 %% Read sensor measurements.
 % Read PCD file to point cloud.
 pcsens = removeInvalidPoints(pcd2pc(pcdread(sensorfile)));
@@ -49,7 +46,7 @@ nanfrac = NaN(nx, ny);
 % Vary the position of the scan and compute the z difference for
 % each offset.
 progressbar(nx)
-for ix = 1 : nx
+parfor ix = 1 : nx
     for iy = 1 : ny
         d(ix,iy) = mean(pccompare(pcfield, pcsens));
     end
