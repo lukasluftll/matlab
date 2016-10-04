@@ -47,7 +47,7 @@ nanfrac = NaN(numel(x), numel(y));
 % Vary the position of the scan and compute the z difference for
 % each offset.
 progressbar(numel(x))
-for ix = 1 : numel(x)
+parfor ix = 1 : numel(x)
     for iy = 1 : numel(y)
         % Extract the Mx3 vector of point coordinates from the scan.
         psens = reshape(pcsens.Location(:),pcsens.Count,3,1); %#ok<*PFBNS>
@@ -56,7 +56,7 @@ for ix = 1 : numel(x)
         psens = psens + repmat([x(ix),y(iy),0], size(psens,1), 1);
         
         % Adjust the z coordinate of the scan origin.
-        ifin = all(isfinite(psens(1:2,:)), 2);
+        ifin = all(isfinite(psens(:,1:2)), 2);
         psens(ifin,3) = psens(ifin,3) - mean(em.diff(psens), 'omitnan');
         
         % Compute the difference in z for all points of the scan.
