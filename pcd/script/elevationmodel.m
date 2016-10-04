@@ -46,7 +46,7 @@ nanfrac = NaN(numel(x), numel(y));
 
 % Vary the position of the scan and compute the z difference for
 % each offset.
-progressbar(nx)
+progressbar(numel(x))
 for ix = 1 : numel(x)
     for iy = 1 : numel(y)
         % Extract the Mx3 vector of point coordinates from the scan.
