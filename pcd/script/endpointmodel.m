@@ -18,7 +18,7 @@ rpysens = deg2rad([0,0,0]);
 
 %% Create elevation map of field.
 % Read PCD file to point cloud.
-pcfield = pcd2pc(pcdread('pcd/data/leek.pcd'));
+pcfield = removeInvalidPoints(pcd2pc(pcdread('pcd/data/leek.pcd')));
 
 % Apply rotation to map.
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
@@ -28,7 +28,7 @@ em = fillnan(elevationmap(pcfield, 0.05), [5,5]);
 
 %% Read sensor measurements.
 % Read PCD file to point cloud.
-pcsens = pcd2pc(pcdread(sensorfile));
+pcsens = removeInvalidPoints(pcd2pc(pcdread(sensorfile)));
 
 % Rotate the scan.
 pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpysens)));
