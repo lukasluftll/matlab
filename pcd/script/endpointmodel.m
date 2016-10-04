@@ -46,9 +46,12 @@ nanfrac = NaN(nx, ny);
 % Vary the position of the scan and compute the z difference for
 % each offset.
 progressbar(nx)
+pfield = pcfield.Location;
+psens = pcsens.Location;
 parfor ix = 1 : nx
     for iy = 1 : ny
-        d(ix,iy) = mean(pccompare(pcfield, pcsens));
+        [~,dist] = knnsearch(pfield, psens);
+        d(ix,iy) = mean(dist);
     end
     
     % Advance the progress bar.
