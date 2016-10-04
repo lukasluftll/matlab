@@ -82,6 +82,4 @@ end
 % Plot the mean z distance for all offsets.
 fig = figure('Name', 'Mean distance in z');
 surf(x, y, d', 'EdgeColor', 'none')
-%xlim([20,30])
-%ylim([5,15])
 labelaxes
