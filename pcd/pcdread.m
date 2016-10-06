@@ -34,6 +34,10 @@ function data = pcdread(file)
 %   See also POSREAD, PCREAD, PTSREAD.
  
 % Copyright 2016 Alexander Schaefer
+%
+% This function implements the PCD file format as specified by the Point
+% Cloud Library:
+% http://pointclouds.org/documentation/tutorials/pcd_file_format.php.
 
 %% Validate input.
 % Check the number of input arguments.
