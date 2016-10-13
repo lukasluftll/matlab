@@ -18,7 +18,7 @@ rpysens = deg2rad([0,0,0]);
 
 %% Create elevation map of field.
 % Read PCD file to point cloud.
-pcfield = removeInvalidPoints(pcread(sensorfile));
+pcfield = removeInvalidPoints(pcread(mapfile));
 
 % Apply rotation to map.
 pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
