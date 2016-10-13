@@ -1,11 +1,16 @@
 classdef elevationmap
     % ELEVATIONMAP Object for storing an elevation data grid.
-    %   EM = ELEVATIONMAP(PC, RES) rasterizes the x-y plane with grid 
-    %   resolution RES and sets the elevation of each grid tile to the 
-    %   maximum z coordinate of all points of point cloud PC that belong
-    %   to this tile.
+    %   EM = ELEVATIONMAP(DATA, RES) creates an elevation map in the x-y 
+    %   plane with grid resolution RES.
     %
-    %   PC is a pointCloud object. RES is a positive scalar.
+    %   RES is a positive scalar.
+    %
+    %   If DATA is a pointCloud object, the elevation of each grid tile is
+    %   set to the maximum z coordinate of all points of point cloud DATA 
+    %   that belong to that tile.
+    %
+    %   If DATA is a MxN matrix, the matrix values define the elevation of
+    %   the respective map tile.
     %
     %   Example:
     %      em = elevationmap(pcread('teapot.ply'), 0.1)
@@ -98,7 +103,7 @@ classdef elevationmap
     end
     
     methods ( Access = public )      
-        function obj = elevationmap(pc, res)
+        function obj = elevationmap(data, res)
             % ELEVATIONMAP Constructor.
             
             %% Validate input and output.
@@ -106,13 +111,19 @@ classdef elevationmap
             nargoutchk(0, 1)
             narginchk(2, 2)
             
-            % Check the validity of the point cloud.
-            validateattributes(pc, {'pointCloud'}, {'numel',1}, '', 'PC')            
-            validateattributes(pc.XLimits, {'numeric'}, ...
-                {'finite', 'numel', 2}, '', 'PC.XLIMITS')
-            validateattributes(pc.YLimits, {'numeric'}, ...
-                {'finite', 'numel', 2}, '', 'PC.YLIMITS')
+            % Validate data.
+            validateattributes(data, {'pointCloud', 'numeric'}, {'2d'}, ...
+                '', 'DATA')
             
+            % Check the validity of the point cloud.
+            if isa(data, 'pointCloud')
+                validateattributes(data, {}, {'scalar'}, '', 'DATA')
+                validateattributes(data.XLimits, {'numeric'}, ...
+                    {'finite', 'numel', 2}, '', 'PC.XLIMITS')
+                validateattributes(data.YLimits, {'numeric'}, ...
+                    {'finite', 'numel', 2}, '', 'PC.YLIMITS')
+            end
+
             % Check the validity of the resolution.
             validateattributes(res, {'numeric'}, ...
                 {'scalar', 'nonnegative'}, '', 'RES')
@@ -121,18 +132,28 @@ classdef elevationmap
             % Store the resolution.
             obj.resolution = res;
             
-            % Compute the minimum x and y coordinates of the map.
-            obj.support = floor([pc.XLimits(1),pc.YLimits(1)] / res) * res;
+            % Compute the property values if given the data directly.
+            if isnumeric(data)
+                obj.elevation = data;
+                obj.support = [0,0];
+                obj.extension = size(data);
+                return
+            end
+            
+            % Compute the property values if given a point cloud.
+            % Compute the minimum x and y coordinates of the map if given
+            % a point cloud.
+            obj.support = floor([data.XLimits(1),data.YLimits(1)]/res)*res;
             
             % Compute the number of map tiles in x and y direction.
             obj.extension = floor(...
-                ([pc.XLimits(2),pc.YLimits(2)]-obj.support) / res) + 1;
+                ([data.XLimits(2),data.YLimits(2)]-obj.support) / res) + 1;
             
             % Remove all NaN and infinite points from the point cloud.
-            pc = removeInvalidPoints(pc);
+            data = removeInvalidPoints(data);
             
             % Make sure the point cloud is represented by an Mx3 vector.
-            point = reshape(pc.Location(:), pc.Count, 3, 1);
+            point = reshape(data.Location(:), data.Count, 3, 1);
             
             % Compute the indices of the tiles to which each point belongs.
             ie = obj.idx(point(:,1:2));
