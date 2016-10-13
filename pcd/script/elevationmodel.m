@@ -28,7 +28,7 @@ em = fillnan(elevationmap(pcfield, 0.05), [5,5]);
 
 %% Read sensor measurements.
 % Read PCD file to point cloud.
-pcsens = removeInvalidPoints(pcdread(sensorfile));
+pcsens = removeInvalidPoints(pcread(sensorfile));
 
 % Rotate the scan.
 pcsens = pctransform(pcsens, ht2affine3d(eul2tform(rpysens)));
