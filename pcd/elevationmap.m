@@ -325,22 +325,34 @@ classdef elevationmap
                 {'odd', 'positive', 'numel',2}, '', 'WS')
             
             %% Filter values.
-            m = obj;
-            dx = (ws(1)-1) / 2;
-            dy = (ws(2)-1) / 2;
-            sex = size(obj.elevation, 1);
-            sey = size(obj.elevation, 2);
+            % Compute half the window size.
+            dn = floor(ws / 2);
+            
+            % Compute the size of the data matrix.
+            sx = size(obj.elevation, 1);
+            sy = size(obj.elevation, 2);
+
+            % Compute an elevation matrix with its NaN values filled.
+            % Loop over all map tiles.
             e = obj.elevation;
-            parfor x = 1 : sex
-                for y = 1 : sey
-                    if ~isfinite(obj.elevation(x,y)) %#ok<PFBNS>
-                        l = [max([1,x-dx; 1,y-dy], [], 2), ...
-                            min([sex,x+dx; sey,y+dy], [], 2)];
-                        w = obj.elevation(l(1,1):l(1,2),l(2,1):l(2,2));
-                        e(x,y) = median(w(:), 'omitnan');
+            parfor x = 1 : sx
+                for y = 1 : sy
+                    % If the map tile elevation is NaN, set it to the
+                    % median of all tiles in the window.
+                    if ~isfinite(e(x,y)) %#ok<*PFBNS>
+                        % Compute the indices of the tiles in the window.
+                        i = [max([1, x-dn(1); 1, y-dn(2)], [], 2), ...
+                            min([sx, x+dn(1); sy, y+dn(2)], [], 2)]; 
+                        
+                        % Compute the median of the tiles in the window.
+                        ew = obj.elevation(i(1,1):i(1,2),i(2,1):i(2,2));
+                        e(x,y) = median(ew(:), 'omitnan');
                     end
                 end
             end
+            
+            % Create the result elevation map.
+            m = obj;
             m.elevation = e;
         end
         
