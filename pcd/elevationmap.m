@@ -85,9 +85,14 @@ classdef elevationmap
             i = NaN(size(p,1), 1);
             
             % Compute the indices corresponding to the valid coordinates.
+            % Make sure the indices stay within the valid range: Due to 
+            % limited numerical precision, FLOOR() of a quotient may return
+            % too large a value.
             d = p(valid,:) - repmat(obj.support, sum(valid), 1);
             isub = floor(d / obj.resolution) + 1;
-            i(valid) = sub2ind(obj.extension, isub(:,1), isub(:,2));
+            ix = constrain(isub(:,1), [1,obj.extension(1)]);
+            iy = constrain(isub(:,2), [1,obj.extension(2)]);
+            i(valid) = sub2ind(obj.extension, ix, iy);
             
         end                
     end
