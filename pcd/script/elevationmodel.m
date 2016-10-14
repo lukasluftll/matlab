@@ -40,7 +40,7 @@ ny = numel(y);
 % Initialize the matrix that stores the mean z difference.
 d = NaN(nx, ny);
 
-% Initialize the matrix that stores the fraction of NaN differences.
+% Initialize the matrix that stores the fraction of NaN difference values.
 nanfrac = NaN(nx, ny);
 
 % Vary the position of the scan and compute the z difference for
@@ -56,7 +56,7 @@ parfor ix = 1 : nx
         
         % Adjust the z coordinate of the scan origin.
         ifin = all(isfinite(psens(:,1:2)), 2);
-        psens = psens - mean(em.diff(psens), 'omitnan');
+        psens(:,3) = psens(:,3) - mean(em.diff(psens), 'omitnan');
         
         % Compute the difference in z for all points of the scan.
         % Allow only positive values, as negative differences mean the scan
