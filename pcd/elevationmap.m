@@ -117,7 +117,8 @@ classdef elevationmap
             
             % Check the validity of the point cloud.
             if isa(data, 'pointCloud')
-                validateattributes(data, {}, {'scalar'}, '', 'DATA')
+                validateattributes(data, {'pointCloud'}, {'scalar'}, ...
+                    '', 'DATA')
                 validateattributes(data.XLimits, {'numeric'}, ...
                     {'finite', 'numel', 2}, '', 'PC.XLIMITS')
                 validateattributes(data.YLimits, {'numeric'}, ...
