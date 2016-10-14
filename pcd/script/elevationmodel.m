@@ -14,14 +14,11 @@ mapfile = 'pcd/data/leek.pcd';
 sensorfile = 'pcd/data/sensmiddle.pcd';
 
 % Orientation of the scan.
-rpysens = deg2rad([0,0,0]);
+rpysens = deg2rad([180,0,0]);
 
 %% Create elevation map of field.
 % Read PCD file to point cloud.
 pcfield = removeInvalidPoints(pcread(mapfile));
-
-% Apply rotation to map.
-pcfield = pctransform(pcfield, ht2affine3d(eul2tform([pi,0,0])));
 
 % Create the elevation map and fill the gaps in the map.
 em = fillnan(elevationmap(pcfield, 0.05), [5,5]);
