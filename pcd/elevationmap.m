@@ -22,6 +22,7 @@ classdef elevationmap
     %   DIFF      - Height difference between 3D points and elevation map
     %   MATCH     - Compute distance between point cloud and elevation map
     %   FILLNAN   - Estimate elevation values of NaN tiles
+    %   SETPRIOR  - Set NaN tiles to value
     %   PLOT      - Visualize elevation map
     %
     %   See also POINTCLOUD.
@@ -355,6 +356,20 @@ classdef elevationmap
             % Create the result elevation map.
             m = obj;
             m.elevation = e;
+        end
+        
+        function m = setprior(obj, v)
+            % SETPRIOR Set NaN tiles to value.
+            %   M = SETPRIOR(OBJ, V) sets all NaN tiles to value V.
+            
+            %% Validate input and output.
+            nargoutchk(0, 1)
+            narginchk(2, 2)
+            validateattributes(v, {'numeric'}, {'scalar', 'real'}, '', 'V')
+            
+            %% Set prior.
+            m = obj;
+            m.elevation(isnan(obj.elevation)) = v;
         end
         
         function plot(obj)
