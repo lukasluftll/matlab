@@ -312,7 +312,7 @@ classdef elevationmap
             %      em = em.fillnan([9,9])
 
             %% Validate input and output.
-            % Check the numer of input and output arguments.
+            % Check the number of input and output arguments.
             nargoutchk(0, 1)
             narginchk(1, 2)
             
