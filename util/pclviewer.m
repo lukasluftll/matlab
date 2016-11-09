@@ -1,13 +1,13 @@
-function pclshow(varargin)
-% PCLSHOW Visualize point clouds with pcl_viewer.
-%   PCLSHOW(PC1, PC2, ...) starts the external application pcl_viewer to
+function pclviewer(varargin)
+% PCLVIEWER Visualize point clouds with pcl_viewer.
+%   PCLVIEWER(PC1, PC2, ...) starts the external application pcl_viewer to
 %   display the pointCloud objects PC1, PC2, etc.
 %
 %   For this function to work, pcl_viewer must be installed on the system
 %   and can be started by typing "pcl_viewer" into the console window.
 %
 %   Example:
-%      pclshow(pcread('teapot.ply'));
+%      pclviewer(pcread('teapot.ply'));
 %
 %   See also PCSHOW.
 
