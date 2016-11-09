@@ -18,21 +18,9 @@ end
 pcwritefun = @(x) pcwrite(x, [tempname(dirname), '.pcd']);
 cellfun(pcwritefun, varargin);
 
-script = [dirname, 'pclshow'];
-fid = fopen(script, 'w');
-if fid < 0
-    error('Failed to create script for starting pcl_viewer.')
-end
-fprintf(fid, '%s', ['pcl_viewer ', dirname, '*.pcd']);
-fclose(fid);
-
-status = system(['chmod ugo+x ' script]);
+status = system(['LD_LIBRARY_PATH=; pcl_viewer ', dirname, '*.pcd &']);
 if status ~= 0
-    error('Failed to make script for starting pcl_viewer executable.')
-end
-status = system(script);
-if status ~= 0
-    error('Failed to launch pcl_viewer via command line.')
+    error('Failed to launch pcl_viewer.')
 end
 
 end
