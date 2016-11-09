@@ -18,7 +18,11 @@ end
 pcwritefun = @(x) pcwrite(x, [tempname(dirname), '.pcd']);
 cellfun(pcwritefun, varargin);
 
-status = system(['unset LD_LIBRARY_PATH; pcl_viewer ', dirname, '*.pcd &']);
+if isunix
+    status = system(['unset LD_LIBRARY_PATH; pcl_viewer ', dirname, '*.pcd &']);
+else
+    status = system(['pcl_viewer ', dirname, '*.pcd &']);
+end
 if status ~= 0
     error('Failed to launch pcl_viewer.')
 end
