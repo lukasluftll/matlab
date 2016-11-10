@@ -1,7 +1,7 @@
 function data = pcdread(file)
 % PCDREAD Read contents of point cloud from PCD file.
-%   DATA = PCDREAD(FILE) reads header and data fields of the 
-%   ASCII-coded PCD file FILE and returns them in struct DATA. 
+%   DATA = PCDREAD(FILE) reads header and data fields of the PCD file FILE 
+%   and returns them in struct DATA. 
 %
 %   DATA contains the following elements read from the PCD header.
 %
@@ -35,8 +35,8 @@ function data = pcdread(file)
  
 % Copyright 2016 Alexander Schaefer
 %
-% This function implements the PCD file format as specified by the Point
-% Cloud Library:
+% This function implements the PCD file format as specified by the 
+% Point Cloud Library:
 % http://pointclouds.org/documentation/tutorials/pcd_file_format.php.
 
 %% Validate input.
