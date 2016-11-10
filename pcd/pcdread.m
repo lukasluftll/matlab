@@ -210,6 +210,9 @@ switch pcdtype{1}
                 data = cell2struct(c, fieldname, 1); 
         otherwise
                 error('unknown or not supported DATA mode: %s', pcdtype{1});
+%% Check header field COUNT.
+if count ~= size(data.(fieldname{1}), 1)
+    warning('PCD header field COUNT is inconsistent with data.')
 end
   
 
