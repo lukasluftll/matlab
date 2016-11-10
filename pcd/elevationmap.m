@@ -15,35 +15,44 @@ classdef elevationmap
     %   Example:
     %      em = elevationmap(pcread('teapot.ply'), 0.1)
     %
+    %   ELEVATIONMAP properties:
+    %   SUPPORT    - Minimum coordinates of the map
+    %   EXTENSION  - Extension of the map in numbers of map tiles
+    %   RESOLUTION - Edge length of each tile
+    %   ELEVATION  - Elevation data
+    %
     %   ELEVATIONMAP methods:
-    %   GETELEV   - Elevation at coordinate
-    %   SETELEV   - Assign elevation at coordinate
-    %   LIMITS    - Extension of map
-    %   DIFF      - Height difference between 3D points and elevation map
-    %   MATCH     - Compute distance between point cloud and elevation map
-    %   FILLNAN   - Estimate elevation values of NaN tiles
-    %   SETPRIOR  - Set NaN tiles to value
-    %   PLOT      - Visualize elevation map
+    %   GETELEV    - Elevation at coordinate
+    %   SETELEV    - Assign elevation at coordinate
+    %   LIMITS     - Extension of map
+    %   DIFF       - Height difference between 3D points and elevation map
+    %   MATCH      - Compute distance between point cloud and elevation map
+    %   FILLNAN    - Estimate elevation values of NaN tiles
+    %   SETPRIOR   - Set NaN tiles to value
+    %   PLOT       - Visualize elevation map
     %
     %   See also POINTCLOUD.
     
     % Copyright 2016 Alexander Schaefer
     
     properties ( SetAccess = private )
-        % SUPPORT Minimum x and y coordinates of the map; 1x2 vector.
+        % SUPPORT Minimum coordinates of the map.
+        %   [xmin, ymin].
         support
         
-        % EXTENSION Extension of the map in numbers of map tiles in x and 
-        % y direction; 1x2 vector.
+        % EXTENSION Extension of the map in numbers of map tiles.
+        %   [nx, ny], with nd being the number of tiles in d-direction.
         extension
         
-        % RESOLUTION Edge length of each tile; scalar.
+        % RESOLUTION Edge length of each tile.
+        %   Scalar.
         resolution
     end
     
     properties
-        % ELEVATION Elevation data of the map; IxJ matrix with I and J 
-        % being the number of tiles in x and y direction.
+        % ELEVATION Elevation data.
+        %   IxJ matrix with I and J being the number of tiles in x- and 
+        %   y-direction.
         elevation
     end
     
