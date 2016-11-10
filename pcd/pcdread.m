@@ -207,22 +207,22 @@ data.count = count;
 
 %% Read DAT file.
 % Determine the name of the DAT file.
-datFile = [file(1:end-length('.pcd')), '_info.dat'];
+datfile = [file(1:end-length('.pcd')), '_info.dat'];
 
 % Check if the DAT file exists.
-if exist(datFile, 'file') ~= 2
+if exist(datfile, 'file') ~= 2
     return
 end
 
 % Check if the DAT file can be opened for read access.
-datFid = fopen(datFile, 'r');
-if datFid == -1
+datfid = fopen(datfile, 'r');
+if datfid == -1
     return
 end
-fclose(datFid);
+fclose(datfid);
 
 % Read position information if available.
-pos = posread(datFile);
+pos = posread(datfile);
 
 % Append position information to return structure.
 posfield = fieldnames(pos);
