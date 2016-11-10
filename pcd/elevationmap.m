@@ -25,6 +25,7 @@ classdef elevationmap
     %   GETELEV    - Elevation at coordinate
     %   SETELEV    - Assign elevation at coordinate
     %   LIMITS     - Extension of map
+    %   MASK       - Compute mask of tiles corresponding to given points
     %   DIFF       - Height difference between 3D points and elevation map
     %   MATCH      - Compute distance between point cloud and elevation map
     %   FILLNAN    - Estimate elevation values of NaN tiles
@@ -108,7 +109,6 @@ classdef elevationmap
             ix = constrain(isub(:,1), [1,obj.extension(1)]);
             iy = constrain(isub(:,2), [1,obj.extension(2)]);
             i(valid) = sub2ind(obj.extension, ix, iy);
-            
         end                
     end
     
@@ -236,8 +236,37 @@ classdef elevationmap
             %      L = [xmin, xmax; ymin, ymax].
             
             nargoutchk(0, 1)
+            narginchk(1, 1)
             s = repmat(obj.support, 2, 1);
             l = (s + [0,0; obj.extension*obj.resolution]).';
+        end
+        
+        function m = mask(obj, p)
+            % MASK Tell which tiles lie below or above given points.
+            %   M = MASK(OBJ, P) returns a boolean IxJ matrix that 
+            %   indicates whether an elevation map tile lies below or above
+            %   one of the given points P or not. 
+            %   I and J are the numbers of tiles in x- and y-direction, 
+            %   respectively.
+            %
+            %   P is an Mx2 matrix, whose columns contain the x-y
+            %   coordinates of the points, respectively.
+            
+            %% Validate input and output.
+            nargoutchk(0, 1)
+            narginchk(2, 2)
+            validateattributes(p, {'numeric'}, {'real','ncols',2}, '', 'P')
+            
+            %% Compute mask.
+            % Initialize the mask.
+            m = false(size(obj.elevation));
+            
+            % Compute the indices of the tiles above or below which points
+            % are located.
+            i = idx(obj,p);
+            
+            % Set the mask values corresponding to these tiles to true.
+            m(i(isfinite(i))) = true;
         end
         
         function d = diff(obj, p)
