@@ -116,7 +116,7 @@ count = cell2mat(textscan(count, '%d'));
 pcdtype = fgetl(fid);
 pcdtype = pcdtype(length('DATA')+1:end);
 pcdtype = textscan(pcdtype, '%s');
-pcdtype = pcdtype{:};
+pcdtype = pcdtype{1}{1};
 
 %% Check file contents.
 % Warn if the PCD file version is older than the official entry point for
@@ -125,96 +125,77 @@ if pcdversion < 0.7
     warning('PCD file version is below 0.7: file format not well defined.')
 end
 
-% If the number of all points does not equal the point cloud height x
-% width, issue a warning.
+% If the number of all points does not equal the point cloud 
+% height multiplied by its width, issue a warning.
 if count ~= width * height
     warning('Inconsistent PCD header fields: POINTS ~= WIDTH * HEIGHT.')
 end
 
-%% Read PCD payload data.
-num_fieldnames = numel(fieldcount);
-switch pcdtype{1}
-        case 'ascii'
-            format = '';
+%% Read payload data.
+switch pcdtype
+    case 'ascii'
+        % Define the format string for reading data.
+        fieldtype = lower(fieldtype);
+        fieldtype(fieldtype=='i') = 'd';
+        format = repelem(fieldtype, fieldcount);
+        format = reshape([repmat('%',size(fieldtype)), fieldtype]', 1, []);
+        
+        % Read data to structure.
+        rawdata = textscan(fid, format);
+        for i = 1 : numel(fieldname)
+            data.(fieldname{i}) = rawdata{i : i+fieldcount(i)-1};
+        end
+    case 'binary'
+        num_fieldnames = numel(fieldcount);
+            startPos_fid = ftell(fid);
+            points = zeros(3, count);
             for j=1:num_fieldnames
-                % Get the right format out of the fieldtype
-                % and build the right format structure for textscan
-                out = fieldtype(j);
+                % map IUF -> int, uint, float
                 switch fieldtype(j)
-                    case 'I', typ = 'd';
-                    case 'U', typ = 'u';
-                    case 'F', typ = 'f';
+                    case 'I'
+                        fmt = 'int';
+                    case 'U'
+                        fmt = 'uint';
+                    case 'F'
+                        fmt = 'float';
                 end
-                format = [format '%' typ num2str(fieldsize(j)*8)];
+                format = ['*' fmt num2str(fieldsize(j)*8)];
+                % repositioning of the file indicator
+                fseek(fid, startPos_fid + sum(fieldsize(1:j-1)),...
+                    'bof');
+                % file read with right position and format
+                data = fread(fid, [1 count], format,...
+                    sum(fieldsize)-fieldsize(j));
+                % save each row in points in every iteration
+                points(j,:) = data;
             end
-            c = textscan(fid, format, count);
-            c = c.';
-            % Transform the cell array into a structure array.
-            for index=1:length(c)
-                c{index}=c{index}.';
+            % transform the point matrices in the cell structure  
+            % needed for the given structure 
+            c = cell(3,1);
+            for index=1:num_fieldnames
+                c{index} = points(index, :);
             end
-            % If the data type of a raw data column is not double,
-            % convert it to the data type given in the PCD file header.
+            % If the data type of a raw data column is not double, 
+            % convert it to the data type given in the PCD file
+            % header.
             uint = regexp(fieldtype', '[uU]');
-            c(uint) = cellfun(@uint32, c(uint), 'UniformOutput',...
-                false);
+            c(uint) = cellfun(@uint32, c(uint),...
+                'UniformOutput', false);
             int = regexp(fieldtype', '[iI]');
-            c(int) = cellfun(@int32, c(int), 'UniformOutput', false);
+            c(int) = cellfun(@int32, c(int),...
+                'UniformOutput', false);
             int = regexp(fieldtype', '[fF]');
-            c(int) = cellfun(@double, c(int), 'UniformOutput', false);
-
-            % prepare the cell data for return
+            c(int) = cellfun(@double, c(int),...
+                'UniformOutput', false);
             data = cell2struct(c, fieldname, 1); 
+    otherwise
+            error('unknown or not supported DATA mode: %s', pcdtype);
+end
 
-        case 'binary'
-                startPos_fid = ftell(fid);
-                points = zeros(3, count);
-                for j=1:num_fieldnames
-                    % map IUF -> int, uint, float
-                    switch fieldtype(j)
-                        case 'I'
-                            fmt = 'int';
-                        case 'U'
-                            fmt = 'uint';
-                        case 'F'
-                            fmt = 'float';
-                    end
-                    format = ['*' fmt num2str(fieldsize(j)*8)];
-                    % repositioning of the file indicator
-                    fseek(fid, startPos_fid + sum(fieldsize(1:j-1)),...
-                        'bof');
-                    % file read with right position and format
-                    data = fread(fid, [1 count], format,...
-                        sum(fieldsize)-fieldsize(j));
-                    % save each row in points in every iteration
-                    points(j,:) = data;
-                end
-                % transform the point matrices in the cell structure  
-                % needed for the given structure 
-                c = cell(3,1);
-                for index=1:num_fieldnames
-                    c{index} = points(index, :);
-                end
-                % If the data type of a raw data column is not double, 
-                % convert it to the data type given in the PCD file
-                % header.
-                uint = regexp(fieldtype', '[uU]');
-                c(uint) = cellfun(@uint32, c(uint),...
-                    'UniformOutput', false);
-                int = regexp(fieldtype', '[iI]');
-                c(int) = cellfun(@int32, c(int),...
-                    'UniformOutput', false);
-                int = regexp(fieldtype', '[fF]');
-                c(int) = cellfun(@double, c(int),...
-                    'UniformOutput', false);
-                data = cell2struct(c, fieldname, 1); 
-        otherwise
-                error('unknown or not supported DATA mode: %s', pcdtype{1});
 %% Check header field COUNT.
 if count ~= size(data.(fieldname{1}), 1)
     warning('PCD header field COUNT is inconsistent with data.')
 end
-  
 
 %% Add header data to return structure.
 data.version = pcdversion;
@@ -248,4 +229,5 @@ posfield = fieldnames(pos);
 for i = 1 : numel(posfield)
     data.(posfield{i}) = pos.(posfield{i});
 end
+
 end
