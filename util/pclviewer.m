@@ -24,7 +24,7 @@ cellfun(valfun, varargin)
 
 %% Write point clouds to file.
 % Create an empty folder in a temporary directory.
-dirname = [tempdir, 'pclshow/'];
+dirname = [tempdir, mfilename, '/'];
 if exist(dirname, 'dir') == 7
     delete([dirname, '*']);
 else
