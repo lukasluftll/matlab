@@ -39,8 +39,9 @@ function data = pcdread(file)
 % Point Cloud Library:
 % http://pointclouds.org/documentation/tutorials/pcd_file_format.php.
 
-%% Validate input.
-% Check the number of input arguments.
+%% Validate input and output.
+% Check the numbers of input and output arguments.
+nargoutchk(0, 1)
 narginchk(1, 1)
 
 % Check the input argument.
