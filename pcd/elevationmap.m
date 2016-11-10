@@ -290,12 +290,9 @@ classdef elevationmap
             % Get the point coordinates as an Mx3 matrix.
             point = reshape(pc.Location, pc.Count, 3, 1);
 
-            % Compute the raw distance in z.
-            dz = point(:,3) - obj.getelev(point(:,1:2));
-            
-            % Add only positive distances to the total distance and compute
-            % the mean distance.
-            m = mean(constrain(dz, [0, +Inf]));
+            % Compute the mean of all positive distances between the points
+            % and the elevation map.
+            m = mean(constrain(diff(obj, point), [0, +Inf]));
         end
         
         function m = fillnan(obj, ws)
