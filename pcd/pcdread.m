@@ -146,6 +146,9 @@ switch pcdtype
             data.(fieldname{i}) = rawdata{i : i+fieldcount(i)-1};
         end
     case 'binary'
+        % TODO: Fix wrong assumption numel(fieldtype) == columns of data.
+        % Actually, sum(fieldcount) == columns of data.
+        % fieldcount does not denote the data size in byte.
         num_fieldnames = numel(fieldcount);
             startPos_fid = ftell(fid);
             points = zeros(3, count);
