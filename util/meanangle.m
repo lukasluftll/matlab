@@ -46,10 +46,16 @@ if nargin < 2
 end
 validateattributes(method, {'char'}, {'row', 'nonempty'}, '', 'METHOD')
 
+% If given no data, return no data.
+if isempty(theta)
+    m = [];
+    return
+end
+
 %% Compute mean.
 switch lower(method)
     case 'arcmin'
-        % Use Olson's approach.
+        % Use Olson's method.
         % Notation is inspired by Olson's paper.
 
         % Map all angles to [0; 2*pi] and sort them.
