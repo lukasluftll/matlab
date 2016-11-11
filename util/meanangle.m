@@ -26,13 +26,15 @@ narginchk(1, 1)
 validateattributes(theta, {'numeric'}, {'real'}, '', 'THETA')
 
 %% Compute mean.
+% Notation is inspired by Olson's paper.
+
 % Map all angles to [0; 2*pi] and sort them.
-theta = sort(wrapTo2Pi(theta(:)'));
+theta = sort(wrapTo2Pi(theta(:)))';
 
 % Compute the moments for all angle arrangements.
 N = numel(theta);
-M1 = sum(theta) + (0 : N-1) * 2*pi;
-M2 = sum(theta.^2) + (0 : N-1) .* (4*pi*theta + 4*pi^2);
+M1 = sum(theta) + (0:N-1) * 2*pi;
+M2 = sum(theta.^2) + [0, cumsum(4*pi*(theta(1:end-1) + pi))];
 
 % Compute the mean and the variance for all arrangements.
 m = M1 / N;
