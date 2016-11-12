@@ -32,25 +32,25 @@ function m = meanangle(theta, method)
 % Shanghai, China.
 
 %% Validate input and output.
-% Check number of input and output arguments.
+% Check the numbers of output and input arguments.
 nargoutchk(0, 1)
 narginchk(1, 2)
-
-% Check given angles.
-validateattributes(theta, {'numeric'}, {'real'}, '', 'THETA')
-theta = theta(:)';
-
-% Check given method.
-if nargin < 2
-    method = 'arcmin';
-end
-validateattributes(method, {'char'}, {'row', 'nonempty'}, '', 'METHOD')
 
 % If given no data, return no data.
 if isempty(theta)
     m = [];
     return
 end
+
+% Check the given angles and ensure they are organized in a row vector.
+validateattributes(theta, {'numeric'}, {'real'}, '', 'THETA')
+theta = reshape(theta, 1, []);
+
+% Check the given method.
+if nargin < 2
+    method = 'arcmin';
+end
+validatestring(method, {'arcmin', 'vectorsum'});
 
 %% Compute mean.
 switch lower(method)
@@ -76,8 +76,6 @@ switch lower(method)
     case 'vectorsum'
         % Use the vector sum method.
         m = atan2(sum(sin(theta)), sum(cos(theta)));
-    otherwise
-        error(['Unknown method ', upper(method), '.'])
 end
 
 end
