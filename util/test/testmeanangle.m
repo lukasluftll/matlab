@@ -26,6 +26,20 @@ m = meanangle(theta, 'vectorsum');
 assert(all(size(m) == msize));
 assert(all(ismembertol(m, mval)));
 
+%% Multiple dimensions.
+theta = zeros(3,4,5);
+dim = 3;
+msize = [3,4];
+mval = 0;
+
+m = meanangle(theta, dim);
+assert(all(size(m) == msize));
+assert(all(m(:) == mval));
+
+m = meanangle(theta, dim, 'vectorsum');
+assert(all(size(m) == msize));
+assert(all(m(:) == mval));
+
 %% Symmetrically distributed angles.
 theta = [-0.3 : 0.2 : +0.3; -0.6 : 0.4 : +0.6];
 dim = 2;
