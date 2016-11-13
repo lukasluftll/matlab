@@ -1,25 +1,32 @@
-function m = meanangle(theta, method)
+function m = meanangle(theta, varargin)
 % MEANANGLE Mean of set of angles in radians.
-%   M = MEANANGLE(THETA) computes the mean of THETA. 
+%   M = MEANANGLE(THETA) is the mean value of the elements of THETA if
+%   THETA is a vector.
+%   For matrices, M is a row vector containing the mean value of each 
+%   column.
+%   For N-D arrays, M is the mean value of the elements along the first
+%   array dimension whose size does not equal 1.
+%   M is always wrapped to [-pi, +pi].
 %
-%   THETA is a n-D matrix that contains a set of angles in radians.
+%   MEANANGLE(THETA,DIM) takes the mean along the dimension DIM of THETA.
 %
-%   M is the mean angle wrapped to [-pi; +pi].
-%
-%   M = MEANANGLE(THETA, METHOD) specifies the algorithm used to compute
-%   the mean:
-%   'arcmin'    - Minimizes the squared arc lengths between the mean angle 
-%                 and the given angles when drawn as points on the unit
-%                 circle.
-%   'vectorsum' - Compute the unit vector corresponding to each angle, sum
-%                 up the vectors, and compute the arc tangent. This method
-%                 minimizes the squared chord lengths between the mean 
-%                 angle and the given angles when drawn as points on the 
-%                 unit circle.
+%   M = MEANANGLE(...,METHOD) specifies the algorithm used:
+%   'arcmin'    - If the mean angle and the given angles are drawn as 
+%                 points on the unit circle, this method minimizes the 
+%                 squared arc lengths between the mean angle and the given 
+%                 angles.
+%   'vectorsum' - Computes the unit vector corresponding to each angle, 
+%                 sums up the vectors, and computes the arc tangent. 
+%                 If the mean angle and the given angles are drawn as 
+%                 points on the unit circle, this method minimizes the 
+%                 squared chord lengths between the mean angle and the 
+%                 given angles.
 %   Default is 'arcmin'.
 %
 %   Example:
-%      meanangle([-0.5 : 0.1 : 0.2])
+%      theta = [3,1,2; 2,3,-1; -3,0,2]
+%      meanangle(theta,1)
+%      meanangle(theta,2)
 %
 %   See also MEAN.
 
@@ -31,41 +38,56 @@ function m = meanangle(theta, method)
 % 2011 IEEE International Conference on Robotics and Automation,
 % Shanghai, China.
 
-%% Validate input and output.
+%% Validate input.
 % Check the numbers of output and input arguments.
 nargoutchk(0, 1)
-narginchk(1, 2)
+narginchk(1, 3)
 
-% If given no data, return no data.
-if isempty(theta)
-    m = [];
+% Check the given angles.
+validateattributes(theta, {'numeric'}, {'real'}, '', 'THETA')
+
+% Validate the dimension value.
+if ~isempty(varargin) && isnumeric(varargin{1})
+    dim = varargin{1};
+    validateattributes(dim, {'numeric'}, ...
+        {'scalar', 'positive', 'integer', '<=', ndims(theta)}, '', 'DIM')
+    varargin(1) = [];
+else
+    dim = find(size(theta)>1, 1);
+end
+
+% Validate the method string and set the method.
+method = 'arcmin';
+if ~isempty(varargin)
+    validatestring(varargin{1}, {'arcmin', 'vectorsum'});
+    method = varargin{1};
+end
+
+% If given no data or a scalar, return.
+if isempty(theta) || isscalar(theta)
+    m = theta;
     return
 end
 
-% Check the given angles and ensure they are organized in a row vector.
-validateattributes(theta, {'numeric'}, {'real'}, '', 'THETA')
-theta = reshape(theta, 1, []);
-
-% Check the given method.
-if nargin < 2
-    method = 'arcmin';
-end
-validatestring(method, {'arcmin', 'vectorsum'});
-
 %% Compute mean.
+% Permute the dimensions of the matrix so the mean is always calculated
+% along the columns.
+dimshift = [dim:ndims(theta), 1:dim-1];
+theta = permute(theta,dimshift);
+
+% Compute the mean using the specified method.
 switch lower(method)
     case 'arcmin'
-        % Use Olson's method.
-        % Notation is inspired by Olson's paper.
-
-        % Map all angles to [0; 2*pi] and sort them.
-        theta = sort(wrapTo2Pi(theta(:)))';
+        % Map all angles to [-pi, +pi] and sort them.
+        theta = sort(wrapToPi(theta));
 
         % Compute the moments for all angle arrangements.
-        N = numel(theta);
-        M1 = sum(theta) + (0:N-1) * 2*pi;
-        M2 = sum(theta.^2) + [0, cumsum(4*pi*(theta(1:end-1) + pi))];
-
+        N = size(theta,1);
+        M1 = sum(theta) + (0:N-1)' * 2*pi;
+        M2 = sum(theta.^2);
+        idx = repmat({':'}, 1, ndims(theta)-1);
+        M2 = [M2; M2 + cumsum(4*pi*(theta(1:end-1,idx{:}) + pi))];
+        
         % Compute the mean and the variance for all arrangements.
         m = M1 / N;
         sigma = M2 - 2*M1.*m + N*m.^2;
@@ -77,5 +99,8 @@ switch lower(method)
         % Use the vector sum method.
         m = atan2(sum(sin(theta)), sum(cos(theta)));
 end
+
+% Revert the permutation of the matrix dimensions.
+m = ipermute(m, dimshift);
 
 end

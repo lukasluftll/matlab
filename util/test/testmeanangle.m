@@ -5,35 +5,46 @@
 % SHARED VARIABLES SECTION.
 
 %% Empty set of angles.
-m = meanangle([]);
+theta = [];
+
+m = meanangle(theta);
 assert(isempty(m));
 
-m = meanangle([], 'vectorsum');
+m = meanangle(theta, 'vectorsum');
 assert(isempty(m));
 
-%% Equal angles applied.
-m = meanangle(ones(2,30));
-assert(m == 1);
+%% Equal angles.
+theta = ones(5,30);
+msize = [1,30];
+mval = 1;
 
-m = meanangle(ones(2,30), 'vectorsum');
-assert(ismembertol(m, 1));
+m = meanangle(theta);
+assert(all(size(m) == msize));
+assert(all(m == mval));
+
+m = meanangle(theta, 'vectorsum');
+assert(all(size(m) == msize));
+assert(all(ismembertol(m, mval)));
 
 %% Symmetrically distributed angles.
-m = meanangle(-1 : 0.01 : +1);
-assert(m == 0);
+theta = [-0.3 : 0.2 : +0.3; -0.6 : 0.4 : +0.6];
+dim = 2;
+msize = [2,1];
+mval = 0;
 
-m = meanangle(-0.3 : 0.2 : +0.3);
-assert(m == 0);
+m = meanangle(theta, dim);
+assert(all(size(m) == msize));
+assert(all(m == mval));
 
-m = meanangle(-1 : 0.01 : +1, 'vectorsum');
-assert(m < eps);
-
-m = meanangle(-0.3 : 0.2 : +0.3, 'vectorsum');
-assert(m < eps);
+m = meanangle(theta, 2, 'vectorsum');
+assert(all(size(m) == msize));
+assert(all(abs(m-mval) < eps));
 
 %% Randomly distributed angles.
-m = meanangle(rand(1, 100));
+theta = rand(1,100);
+
+m = meanangle(theta);
 assert(0 < m && m < 1);
 
-m = meanangle(rand(1, 100), 'vectorsum');
+m = meanangle(theta, 'vectorsum');
 assert(0 < m && m < 1);
