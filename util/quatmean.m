@@ -12,7 +12,7 @@ function m = quatmean(q, w)
 %   
 %   Example:
 %      q = eul2quat([0,0,0; 1,2,3; 3,2,0])'
-%      quat2eul(quatmean(q, [0.3,0.3,0.4]))
+%      quat2eul(quatmean(q, [0.3,0.3,0.4])')
 %
 %   See also ANGLEMEAN, MEAN.
 
