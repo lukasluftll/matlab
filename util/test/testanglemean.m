@@ -7,10 +7,10 @@
 %% Empty set of angles.
 theta = [];
 
-m = meanangle(theta);
+m = anglemean(theta);
 assert(isempty(m));
 
-m = meanangle(theta, 'vectorsum');
+m = anglemean(theta, 'vectorsum');
 assert(isempty(m));
 
 %% Equal angles.
@@ -18,11 +18,11 @@ theta = ones(5,30);
 msize = [1,30];
 mval = 1;
 
-m = meanangle(theta);
+m = anglemean(theta);
 assert(all(size(m) == msize));
 assert(all(m == mval));
 
-m = meanangle(theta, 'vectorsum');
+m = anglemean(theta, 'vectorsum');
 assert(all(size(m) == msize));
 assert(all(ismembertol(m, mval)));
 
@@ -32,11 +32,11 @@ dim = 3;
 msize = [3,4];
 mval = 0;
 
-m = meanangle(theta, dim);
+m = anglemean(theta, dim);
 assert(all(size(m) == msize));
 assert(all(m(:) == mval));
 
-m = meanangle(theta, dim, 'vectorsum');
+m = anglemean(theta, dim, 'vectorsum');
 assert(all(size(m) == msize));
 assert(all(m(:) == mval));
 
@@ -46,19 +46,19 @@ dim = 2;
 msize = [2,1];
 mval = 0;
 
-m = meanangle(theta, dim);
+m = anglemean(theta, dim);
 assert(all(size(m) == msize));
 assert(all(m == mval));
 
-m = meanangle(theta, 2, 'vectorsum');
+m = anglemean(theta, 2, 'vectorsum');
 assert(all(size(m) == msize));
 assert(all(abs(m-mval) < eps));
 
 %% Randomly distributed angles.
 theta = rand(1,100);
 
-m = meanangle(theta);
+m = anglemean(theta);
 assert(0 < m && m < 1);
 
-m = meanangle(theta, 'vectorsum');
+m = anglemean(theta, 'vectorsum');
 assert(0 < m && m < 1);

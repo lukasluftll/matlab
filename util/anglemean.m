@@ -1,6 +1,6 @@
-function m = meanangle(theta, varargin)
-% MEANANGLE Mean of set of angles in radians.
-%   M = MEANANGLE(THETA) is the mean value of the elements of THETA if
+function m = anglemean(theta, varargin)
+% ANGLEMEAN Mean of set of angles in radians.
+%   M = ANGLEMEAN(THETA) is the mean value of the elements of THETA if
 %   THETA is a vector.
 %   For matrices, M is a row vector containing the mean value of each 
 %   column.
@@ -8,9 +8,9 @@ function m = meanangle(theta, varargin)
 %   array dimension whose size does not equal 1.
 %   M is always wrapped to [-pi, +pi].
 %
-%   MEANANGLE(THETA,DIM) takes the mean along the dimension DIM of THETA.
+%   ANGLEMEAN(THETA,DIM) takes the mean along the dimension DIM of THETA.
 %
-%   M = MEANANGLE(...,METHOD) specifies the algorithm used:
+%   M = ANGLEMEAN(...,METHOD) specifies the algorithm used:
 %   'arcmin'    - If the mean angle and the given angles are drawn as 
 %                 points on the unit circle, this method minimizes the 
 %                 squared arc lengths between the mean angle and the given 
@@ -25,14 +25,14 @@ function m = meanangle(theta, varargin)
 %
 %   Example:
 %      theta = [3,1,2; 2,3,-1; -3,0,2]
-%      meanangle(theta,1)
-%      meanangle(theta,2)
+%      anglemean(theta,1)
+%      anglemean(theta,2)
 %
 %   See also MEAN.
 
 % Copyright 2016 Alexander Schaefer
 %
-% MEANANGLE implements the orientation averaging algorithm proposed by 
+% ANGLEMEAN implements the orientation averaging algorithm proposed by 
 % Olson:
 % Edwin Olson. On computing the average orientation of vectors and lines.
 % 2011 IEEE International Conference on Robotics and Automation,
@@ -72,7 +72,8 @@ end
 %% Compute mean.
 % Permute the dimensions of the matrix so the mean is always calculated
 % along the columns.
-dimshift = [dim:ndims(theta), 1:dim-1];
+ndim = ndims(theta);
+dimshift = [dim:ndim, 1:dim-1];
 theta = permute(theta,dimshift);
 
 % Compute the mean using the specified method.
@@ -85,7 +86,7 @@ switch lower(method)
         N = size(theta,1);
         M1 = sum(theta) + (0:N-1)' * 2*pi;
         M2 = sum(theta.^2);
-        idx = repmat({':'}, 1, ndims(theta)-1);
+        idx = repmat({':'}, 1, ndim-1);
         M2 = [M2; M2 + cumsum(4*pi*(theta(1:end-1,idx{:}) + pi))];
         
         % Compute the mean and the variance for all arrangements.
