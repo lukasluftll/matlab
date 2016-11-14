@@ -30,7 +30,7 @@ nargoutchk(0, 1)
 narginchk(1, 2)
 
 % Validate the quaternion matrix.
-validateattributes(q, {'numeric'}, {'real', 'rows', 4}, '', 'Q')
+validateattributes(q, {'numeric'}, {'real', 'nrows', 4}, '', 'Q')
 nq = size(q,2);
 
 % Validate the weight vector.
@@ -38,7 +38,7 @@ if nargin < 2
     w(1:nq) = 1/nq;
 end
 validateattributes(w, {'numeric'}, ...
-    {'real', 'positive', 'rows', 1, 'cols', nq}, '', 'W')
+    {'real', 'positive', 'row', 'numel', nq}, '', 'W')
 
 %% Average quaternions.
 M = zeros(4);
