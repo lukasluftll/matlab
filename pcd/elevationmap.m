@@ -24,7 +24,7 @@ classdef elevationmap
     %   ELEVATIONMAP methods:
     %   GETELEV    - Elevation at coordinate
     %   SETELEV    - Assign elevation at coordinate
-    %   LIMITS     - Extension of map
+    %   LIMITS     - Spatial extension of map
     %   MASK       - Compute mask of tiles corresponding to given points
     %   DIFF       - Height difference between 3D points and elevation map
     %   MATCH      - Compute distance between point cloud and elevation map
@@ -80,7 +80,7 @@ classdef elevationmap
         function i = idx(obj, p)
             % IDX Compute tile index given x-y coordinates.
             %   I = IDX(OBJ, P) computes the linear index I of the tile to
-            %   which the given x-y coordinates P belong.
+            %   which the given x-y coordinates P correspond.
             %
             %   P is an Mx2 vector.
             %
@@ -230,9 +230,9 @@ classdef elevationmap
         end
         
         function l = limits(obj)
-            % LIMITS Map extent.
+            % LIMITS Spatial map extent.
             %   L = LIMITS(OBJ) returns a 2x2 matrix that specifies the
-            %   extent of the elevation map:
+            %   extent of the elevation map in x- and y-direction:
             %      L = [xmin, xmax; ymin, ymax].
             
             nargoutchk(0, 1)
